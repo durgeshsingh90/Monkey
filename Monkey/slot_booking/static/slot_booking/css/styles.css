@@ -141,16 +141,20 @@ body {
 
   .tooltip {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.85);
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    pointer-events: none;
     z-index: 9999;
+    background: #ffffff;
+    color: #333;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 13px;
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.6;
     max-width: 300px;
-    white-space: normal;
+    pointer-events: auto;   /* ✅ Let tooltip catch mouse events */
+    user-select: text;      /* ✅ Allow selecting text */
   }
+  
 
   .zoom-animation {
     animation: zoomInOut 0.3s ease;
@@ -206,20 +210,7 @@ body {
 }
 
 
-.tooltip {
-  position: absolute;
-  z-index: 9999;
-  background: #ffffff;
-  color: #333;
-  padding: 12px 16px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  font-size: 13px;
-  font-family: 'Segoe UI', sans-serif;
-  line-height: 1.6;
-  max-width: 300px;
-  pointer-events: none;
-}
+
 
 .tooltip strong {
   color: #0056b3;

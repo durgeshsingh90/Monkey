@@ -287,42 +287,38 @@ function initCalendar() {
     eventContent: function (arg) {
       const sub = arg.event.extendedProps;
       const viewType = arg.view.type;
-    
       let colorClass = sub.openSlot ? 'open-slot-color' : '';
-    
+
       if (!sub.openSlot) {
         if (sub.timeSlot.includes('morning')) colorClass = 'morning-slot';
         else if (sub.timeSlot.includes('afternoon')) colorClass = 'afternoon-slot';
         else if (sub.timeSlot.includes('overnight')) colorClass = 'overnight-slot';
       }
-    
-      // If Cancelled, override the colorClass
+
       if (sub.status === 'Cancelled') {
-        colorClass = 'cancelled-slot';  // Add a special CSS class
+        colorClass = 'cancelled-slot';
       }
+
       const serverText = Array.isArray(sub.server)
-      ? sub.server.map(s => s.user).join("/")
-      : (sub.server?.user || 'N/A');
-    
+        ? sub.server.map(s => s.user).join("/")
+        : (sub.server?.user || 'N/A');
+
       const baseTitle = sub.openSlot
         ? 'Open Slot'
         : `${sub.bookingID} - ${serverText} - ${sub.schemeType.join("/")} - ${sub.simulator.name}`;
-    
+
       const title = sub.status === 'Cancelled'
-        ? `❌ <del>${baseTitle}</del>`  // ❌ icon and strike-through
+        ? `❌ <del>${baseTitle}</del>`
         : baseTitle;
-    
-      if (viewType === 'multiMonthYear') {
-        return { html: `<div class="event-dot ${colorClass}"></div>` };
-      } else {
-        return { html: `<div class="event-bar ${colorClass}">${title}</div>` };
-      }
-    }
-    ,
-    
+
+      return viewType === 'multiMonthYear'
+        ? { html: `<div class="event-dot ${colorClass}"></div>` }
+        : { html: `<div class="event-bar ${colorClass}">${title}</div>` };
+    },
+
     eventMouseEnter: function (info) {
       const sub = info.event.extendedProps;
-
+    
       const tooltip = document.createElement('div');
       tooltip.className = 'tooltip';
       tooltip.innerHTML = `
@@ -330,12 +326,12 @@ function initCalendar() {
         <strong>Project Name:</strong> ${sub.projectName}<br>
         <strong>Project ID:</strong> ${sub.projectID || 'N/A'}<br>
         <strong>PSP:</strong> ${sub.psp.name} (${sub.psp.pspID})<br>
-        <strong>Owner:</strong> ${sub.owner.name} (${sub.owner.lanID})<br>
-    <strong>Server:</strong> ${
-      Array.isArray(sub.server)
-        ? sub.server.map(s => `${s.hostname} (${s.user})`).join('<br>')
-        : 'N/A'
-    }<br>
+        <strong>Owner:</strong> ${sub.owner.name} (${sub.owner.lanID || ''})<br>
+        <strong>Server:</strong> ${
+          Array.isArray(sub.server)
+            ? sub.server.map(s => `${s.hostname} (${s.user})`).join('<br>')
+            : (sub.server?.hostname ? `${sub.server.hostname} (${sub.server.user})` : 'N/A')
+        }<br>
         <strong>Schemes:</strong> ${sub.schemeType.join(", ")}<br>
         <strong>Simulator:</strong> ${sub.simulator.name} (${sub.simulator.ipAddress})<br>
         <strong>Time Slots:</strong> ${sub.timeSlot.join(", ")}<br>
@@ -344,36 +340,58 @@ function initCalendar() {
         <strong>Comments:</strong> ${sub.comments || 'N/A'}
       `;
       document.body.appendChild(tooltip);
-
-      info.el.addEventListener('mousemove', function (e) {
+    
+      // Positioning
+      const moveTooltip = (e) => {
         tooltip.style.left = e.pageX + 10 + 'px';
         tooltip.style.top = e.pageY + 10 + 'px';
+      };
+      info.el.addEventListener('mousemove', moveTooltip);
+    
+      // Flags to track hover state
+      let stillOnTooltip = false;
+      let stillOnEvent = true;
+    
+      // Tooltip hover
+      tooltip.addEventListener('mouseenter', () => stillOnTooltip = true);
+      tooltip.addEventListener('mouseleave', () => {
+        stillOnTooltip = false;
+        setTimeout(() => {
+          if (!stillOnTooltip && !stillOnEvent) tooltip.remove();
+        }, 100);
       });
+    
+      // Event hover
+      info.el.addEventListener('mouseleave', () => {
+        stillOnEvent = false;
+        setTimeout(() => {
+          if (!stillOnTooltip && !stillOnEvent) tooltip.remove();
+        }, 100);
+      });
+    }
+,    
+    
 
-      info.el.addEventListener('mouseleave', function () {
-        tooltip.remove();
-      });
-    },
     eventDidMount: function (info) {
       info.el.addEventListener('dblclick', function () {
         const bookingID = info.event.extendedProps.bookingID;
         const status = info.event.extendedProps.status;
-    
+
         if (status === 'Cancelled') {
           alert(`Booking ID ${bookingID} is already cancelled.`);
           return;
         }
-    
+
         if (confirm(`Do you want to cancel booking ID ${bookingID}?`)) {
           cancelBooking(bookingID);
         }
       });
     }
-    
   });
 
   calendar.render();
 }
+
 
 function fetchEvents(fetchInfo, successCallback, failureCallback) {
   fetch('/slot_booking/submissions/')
