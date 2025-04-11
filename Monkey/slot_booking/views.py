@@ -11,12 +11,25 @@ COUNTER_FILE = os.path.join(BASE_DIR, 'media', 'slot_booking', 'counter.json')
 
 def ensure_files_exist():
     os.makedirs(os.path.dirname(SUBMISSIONS_FILE), exist_ok=True)
+
     if not os.path.exists(SUBMISSIONS_FILE):
         with open(SUBMISSIONS_FILE, 'w') as file:
             json.dump({"submissions": []}, file)
+
     if not os.path.exists(COUNTER_FILE):
         with open(COUNTER_FILE, 'w') as file:
             json.dump({"last_booking_id": 0}, file)
+
+    if not os.path.exists(CONFIG_PATH):
+        default_config = {
+            "psps": [{"name": "DummyPSP", "pspID": "001"}],
+            "owners": [{"name": "John Doe", "lanID": "jdoe"}],
+            "servers": [{"hostname": "dummyhost", "user": "dummyuser"}],
+            "schemeTypes": [{"name": "Visa"}, {"name": "MasterCard"}],
+            "simulators": [{"name": "DummySim", "ipAddress": "127.0.0.1"}]
+        }
+        with open(CONFIG_PATH, 'w') as file:
+            json.dump(default_config, file, indent=4)
 
 def read_counter():
     with open(COUNTER_FILE, 'r') as file:
@@ -28,12 +41,16 @@ def write_counter(counter):
         json.dump({'last_booking_id': counter}, file)
 
 def index(request):
+    ensure_files_exist()
     return render(request, 'slot_booking/index.html')
 
 def admin(request):
+    ensure_files_exist()
     return render(request, 'slot_booking/admin.html')
 
 def config(request):
+    ensure_files_exist()  # ✅ Ensure all files exist including config.json
+
     if request.method == 'GET':
         try:
             with open(CONFIG_PATH, 'r') as file:
@@ -41,6 +58,7 @@ def config(request):
                 return JsonResponse(config_data, safe=False)
         except FileNotFoundError:
             return HttpResponse("Config file not found", status=404)
+    
     elif request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -96,24 +114,29 @@ def save_submission(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            
+
             # Check for open slot duplicate booking if open slot is true
             is_open_slot, open_slot_booking_id = is_open_slot_duplicate(data)
             if is_open_slot:
                 return JsonResponse({"error": f"Open slot booking already exists (Booking ID: {open_slot_booking_id})"}, status=409)
-            
+
             # Check for duplicate submission for openSlot = False
             is_duplicate, booking_id = is_duplicate_submission(data)
             if is_duplicate:
                 return JsonResponse({"error": f"Duplicate booking found (Booking ID: {booking_id})"}, status=409)
 
+            # ✅ Inject all servers if openSlot is true
+            if data.get("openSlot"):
+                if os.path.exists(CONFIG_PATH):
+                    with open(CONFIG_PATH, 'r') as f:
+                        config = json.load(f)
+                        data["server"] = config.get("servers", [])
+
             # Get the next booking ID
             last_booking_id = read_counter()
             new_booking_id = last_booking_id + 1
-            
-            # Update the counter
             write_counter(new_booking_id)
-            
+
             data["bookingID"] = new_booking_id
             data["status"] = "Booked"
 
@@ -124,7 +147,6 @@ def save_submission(request):
                 file.seek(0)
                 json.dump(submissions_data, file, indent=4)
 
-            # ✅ Return the booking ID in the response!
             return JsonResponse({
                 "message": "Submission saved successfully",
                 "bookingID": new_booking_id
@@ -133,7 +155,7 @@ def save_submission(request):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
-    return HttpResponse(status=405)  # Method not allowed
+    return HttpResponse(status=405)
 
 # NEW VIEW: Serve the submissions for the calendar
 def get_submissions(request):
@@ -173,3 +195,24 @@ def cancel_booking(request, booking_id):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
+
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def import_submissions(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+
+            if not isinstance(data, dict) or 'submissions' not in data:
+                return JsonResponse({'error': 'Invalid format: Expected key "submissions"'}, status=400)
+
+            with open(SUBMISSIONS_FILE, 'w') as f:
+                json.dump(data, f, indent=4)
+
+            return JsonResponse({'message': 'Submissions imported successfully'})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

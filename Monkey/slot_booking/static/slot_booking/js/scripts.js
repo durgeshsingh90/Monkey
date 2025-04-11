@@ -24,7 +24,7 @@ function loadConfig() {
     .then(config => {
       populateSelect('psp', config.psps, false, false, false, false, false, true);
       populateSelect('owner', config.owners, false, true);
-      populateSelect('server', config.servers, true, false, true);
+      populateSelect('server', config.servers, false, false, true);
       populateSelect('schemeType', config.schemeTypes, true, false, false, true);
       populateSelect('simulator', config.simulators, false, false, false, false, true);
     });
@@ -74,8 +74,8 @@ function populateSelect(elementId, options, isMultiple = false, isOwner = false,
       opt.value = JSON.stringify(option);
       opt.text = `${option.name} (${option.pspID})`;
     } else if (isOwner) {
-      opt.value = JSON.stringify(option);  // ✅ HERE!
-      opt.text = `${option.name} (${option.lanID})`;
+      opt.value = JSON.stringify(option);
+      opt.text = option.name;  // ✅ Only display name, not LAN ID    
     } else if (isServer) {
       opt.value = JSON.stringify(option);
       opt.text = `${option.hostname} (${option.user})`;
@@ -114,13 +114,13 @@ function validateForm() {
   }
 
   // ✅ Validate server selection (multi-select)
-  const serverSelect = document.getElementById('server');
-  const selectedServers = Array.from(serverSelect.selectedOptions);
-  if (selectedServers.length === 0) {
-    document.getElementById('submissionMessage').textContent = 'Please select at least one server';
+  const serverValue = document.getElementById('server').value;
+  if (!serverValue) {
+    document.getElementById('submissionMessage').textContent = 'Please select a server';
     document.getElementById('submissionMessage').style.color = 'red';
     return false;
   }
+  
 
   // ✅ Validate time slot selection
   const timeSlots = document.querySelectorAll('input[name="timeSlot"]:checked').length;
@@ -150,7 +150,7 @@ function submitForm() {
     psp: JSON.parse(formData.get('psp')),
     comments: formData.get('comments') || "",
     owner: JSON.parse(formData.get('owner')),
-    server: formData.getAll('server').map(s => JSON.parse(s)),  // multi-select
+    server: JSON.parse(formData.get('server')),  // single select
     schemeType: formData.getAll('schemeType'),
     simulator: JSON.parse(formData.get('simulator')),
     dateRange: {
@@ -522,3 +522,10 @@ function cancelBooking(bookingID) {
     alert("An error occurred while cancelling the booking.");
   });
 }
+
+document.getElementById("globalSearchInput").addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();  // Prevent form submission or page reload
+    globalSearch();          // Trigger the search
+  }
+});

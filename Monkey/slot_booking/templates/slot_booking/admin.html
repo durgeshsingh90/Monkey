@@ -4,111 +4,101 @@
   <meta charset="UTF-8">
   <title>Slot Booking Admin Panel</title>
 
-  <!-- Styling -->
-  <style>html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-  }
-  
-  h2 {
-    margin-bottom: 20px;
-  }
-  
-  .main-container {
-    display: flex;
-    height: calc(100vh - 60px); /* Take available vertical space */
-    gap: 20px;
-  }
-  
-  .left-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  
-  .right-panel {
-    width: 40%;
-    min-width: 350px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  #editorContainer {
-    flex-grow: 1;
-    height: 100%;
-    border: 1px solid #ccc;
-  }
-  
-  .monaco-editor,
-  .monaco-editor .overflow-guard,
-  .monaco-scrollable-element {
-    height: 100% !important;
-    width: 100% !important;
-  }
-  
-  button {
-    padding: 10px 20px;
-    font-size: 14px;
-    cursor: pointer;
-    border-radius: 4px;
-    border: none;
-    background-color: #007bff;
-    color: white;
-  }
-  
-  button:hover {
-    background-color: #0056b3;
-  }
-  
-  .save-button-container {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* space between button and error message */
-  margin-bottom: 10px;
-}
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
 
-#saveButton {
-  background-color: #007bff; /* default blue */
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 14px;
-  border-radius: 4px;
-  cursor: pointer;
-}
+    h2 {
+      margin-bottom: 20px;
+    }
 
-#saveButton:hover {
-  background-color: #0056b3;
-}
+    .main-container {
+      display: flex;
+      height: calc(100vh - 60px);
+      gap: 20px;
+    }
 
-#errorContainer {
-  color: red;
-  font-size: 14px;
-  white-space: nowrap; /* prevent text wrapping */
-}
+    .left-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
 
-  .export-header {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    padding-top: 7%;
-  }
-  
-  .export-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+    .right-panel {
+      width: 40%;
+      min-width: 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    #editorContainer {
+      flex-grow: 1;
+      height: 100%;
+      border: 1px solid #ccc;
+    }
+
+    .monaco-editor,
+    .monaco-editor .overflow-guard,
+    .monaco-scrollable-element {
+      height: 100% !important;
+      width: 100% !important;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .save-button-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    #saveButton:hover {
+      background-color: #0056b3;
+    }
+
+    #errorContainer {
+      color: red;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .export-header {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      padding-top: 7%;
+    }
+
+    .export-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
   </style>
 
   <!-- Monaco Editor -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.1/min/vs/loader.min.js"></script>
 
-  <!-- SheetJS for Excel export -->
+  <!-- SheetJS for Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 </head>
@@ -118,26 +108,27 @@
 
   <div class="main-container">
 
-    <!-- Left Side: Text Editor & Save -->
+    <!-- Left: Config Editor -->
     <div class="left-panel">
       <div class="save-button-container">
         <button type="button" id="saveButton" onclick="saveConfig()">Save Config</button>
         <div id="errorContainer"></div>
       </div>
-      
-            <form id="adminForm" style="flex: 1;">
-        {% csrf_token %}
 
+      <form id="adminForm" style="flex: 1;">
+        {% csrf_token %}
         <div id="editorContainer"></div>
       </form>
     </div>
 
-    <!-- Right Side: Export Section -->
+    <!-- Right: Export/Import -->
     <div class="right-panel">
-      <div class="export-header">Export Bookings</div>
+      <div class="export-header">Export / Import Bookings</div>
       <div class="export-buttons">
         <button type="button" onclick="exportJSON()">Export JSON</button>
         <button type="button" onclick="exportExcel()">Export Excel</button>
+        <button type="button" onclick="triggerFileImport()">Import JSON</button>
+        <input type="file" id="hiddenImportInput" accept=".json" style="display: none;" />
       </div>
     </div>
 
@@ -146,7 +137,6 @@
   <script>
     let editor;
 
-    // Monaco Editor Load
     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.1/min/vs' } });
 
     require(['vs/editor/editor.main'], function () {
@@ -182,78 +172,59 @@
     }
 
     function saveConfig() {
-  const config = editor.getValue();
-  const csrfToken = getCSRFToken();
-  const saveButton = document.getElementById('saveButton');
-  const errorContainer = document.getElementById('errorContainer');
-
-  try {
-    const parsedConfig = JSON.parse(config); // Validate JSON
-
-    // Start saving...
-    saveButton.textContent = 'Saving...';
-    saveButton.style.backgroundColor = '#007bff'; // Blue while saving
-
-    // DO NOT clear the error here (let it stay until a successful save)
-    fetch('/slot_booking/config.json', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken
-      },
-      body: JSON.stringify(parsedConfig, null, 2)
-    }).then(response => {
-      if (response.ok) {
-        // ✅ Save successful
-        saveButton.textContent = 'Saved';
-        saveButton.style.backgroundColor = 'green';
-
-        // ✅ Clear the error message on successful save!
-        errorContainer.textContent = '';
-
-        // Revert button after 1 second
-        setTimeout(() => {
-          saveButton.textContent = 'Save Config';
-          saveButton.style.backgroundColor = '#007bff'; // Back to blue
-        }, 1000);
-
-      } else {
-        // ❌ Server-side save failed
-        response.text().then(text => {
-          throw new Error(text);
-        });
-      }
-    }).catch(error => {
-      // ❌ Fetch error or response error
-      handleSaveError(error);
-    });
-
-  } catch (error) {
-    // ❌ JSON parse error
-    handleSaveError(error);
-  }
-}
-
-function handleSaveError(error) {
-  const saveButton = document.getElementById('saveButton');
-  const errorContainer = document.getElementById('errorContainer');
-
-  saveButton.textContent = 'Error';
-  saveButton.style.backgroundColor = 'red';
-
-  // Leave the error message visible!
-  errorContainer.textContent = `❗ ${error.message}`;
-
-  // Revert button after 1 second, but leave error message intact!
-  setTimeout(() => {
-    saveButton.textContent = 'Save Config';
-    saveButton.style.backgroundColor = '#007bff'; // Back to blue
-  }, 1000);
-}
-
-    function displayError(error) {
+      const config = editor.getValue();
+      const csrfToken = getCSRFToken();
+      const saveButton = document.getElementById('saveButton');
       const errorContainer = document.getElementById('errorContainer');
-      errorContainer.textContent = `Error: ${error.message}`;
+
+      try {
+        const parsedConfig = JSON.parse(config);
+
+        saveButton.textContent = 'Saving...';
+        saveButton.style.backgroundColor = '#007bff';
+
+        fetch('/slot_booking/config.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify(parsedConfig, null, 2)
+        }).then(response => {
+          if (response.ok) {
+            saveButton.textContent = 'Saved';
+            saveButton.style.backgroundColor = 'green';
+            errorContainer.textContent = '';
+            setTimeout(() => {
+              saveButton.textContent = 'Save Config';
+              saveButton.style.backgroundColor = '#007bff';
+            }, 1000);
+          } else {
+            response.text().then(text => {
+              throw new Error(text);
+            });
+          }
+        }).catch(error => {
+          handleSaveError(error);
+        });
+
+      } catch (error) {
+        handleSaveError(error);
+      }
+    }
+
+    function handleSaveError(error) {
+      const saveButton = document.getElementById('saveButton');
+      const errorContainer = document.getElementById('errorContainer');
+
+      saveButton.textContent = 'Error';
+      saveButton.style.backgroundColor = 'red';
+      errorContainer.textContent = `❗ ${error.message}`;
+
+      setTimeout(() => {
+        saveButton.textContent = 'Save Config';
+        saveButton.style.backgroundColor = '#007bff';
+      }, 1000);
     }
 
     function exportJSON() {
@@ -278,20 +249,24 @@ function handleSaveError(error) {
           const sheetData = [];
 
           const headers = [
-            "Booking ID", "Project Name", "Project ID", "PSP", "Owner", "Server", "Schemes",
-            "Simulator", "Time Slots", "Date Start", "Date End", "Open Slot", "Comments"
+            "Booking ID", "Project Name", "Project ID", "PSP", "Owner", "Server",
+            "Schemes", "Simulator", "Time Slots", "Date Start", "Date End",
+            "Open Slot", "Comments"
           ];
-
           sheetData.push(headers);
 
           data.submissions.forEach(sub => {
+            const servers = Array.isArray(sub.server)
+              ? sub.server.map(s => `${s.hostname} (${s.user})`).join(" | ")
+              : `${sub.server.hostname} (${sub.server.user})`;
+
             sheetData.push([
               sub.bookingID,
               sub.projectName,
               sub.projectID,
               `${sub.psp.name} (${sub.psp.pspID})`,
-              `${sub.owner.name} (${sub.owner.lanID})`,
-              `${sub.server.hostname} (${sub.server.user})`,
+              `${sub.owner.name} (${sub.owner.lanID || ''})`,
+              servers,
               sub.schemeType.join(", "),
               `${sub.simulator.name} (${sub.simulator.ipAddress})`,
               sub.timeSlot.join(", "),
@@ -304,11 +279,54 @@ function handleSaveError(error) {
 
           const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
           XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
-
           XLSX.writeFile(workbook, "bookings.xlsx");
         });
     }
 
+    function triggerFileImport() {
+      const fileInput = document.getElementById('hiddenImportInput');
+      fileInput.click();
+
+      fileInput.onchange = function () {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const data = JSON.parse(e.target.result);
+
+            if (!data.submissions || !Array.isArray(data.submissions)) {
+              alert("Invalid format: Expected a 'submissions' array.");
+              return;
+            }
+
+            if (!confirm("⚠️ This will replace all existing bookings. Proceed?")) return;
+
+            fetch('/slot_booking/import_submissions/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+              },
+              body: JSON.stringify(data)
+            }).then(response => {
+              if (response.ok) {
+                alert("✅ Bookings imported successfully!");
+                fileInput.value = ""; // reset
+              } else {
+                response.text().then(msg => alert("❌ Import failed: " + msg));
+              }
+            });
+
+          } catch (error) {
+            alert("❌ Invalid JSON: " + error.message);
+          }
+        };
+
+        reader.readAsText(file);
+      };
+    }
   </script>
 
 </body>
