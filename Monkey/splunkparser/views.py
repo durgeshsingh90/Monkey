@@ -17,6 +17,66 @@ field_definitions_path = os.path.join(settings.MEDIA_ROOT, 'global', 'omnipay_fi
 
 def editor_page(request):
     logger.info("Rendering the main editor page.")
+
+    # Check and create default settings.json if not present
+    if not os.path.exists(settings_file_path):
+        logger.warning(f"settings.json not found at {settings_file_path}. Creating default config.")
+        default_config = {
+            "configs": [
+                {
+                    "scheme": "Visa",
+                    "cards": [
+                        {
+                            "cardName": "Visa Gold",
+                            "DE002": "411111",
+                            "DE014": "2504",
+                            "DE035": "411111******1111=2504",
+                            "DE048": "Visa Card Holder"
+                        },
+                        {
+                            "cardName": "Visa Platinum",
+                            "DE002": "412345",
+                            "DE014": "2605",
+                            "DE035": "412345******4321=2605",
+                            "DE048": "Visa Platinum Member"
+                        }
+                    ]
+                },
+                {
+                    "scheme": "MasterCard",
+                    "cards": [
+                        {
+                            "cardName": "MasterCard Classic",
+                            "DE002": "510510",
+                            "DE014": "2512",
+                            "DE035": "510510******5100=2512",
+                            "DE048": "MasterCard User"
+                        }
+                    ]
+                },
+                {
+                    "scheme": "UPI",
+                    "cards": [
+                        {
+                            "cardName": "UPI Virtual",
+                            "DE002": "620000",
+                            "DE014": "2509",
+                            "DE035": "620000******9999=2509",
+                            "DE048": "UPI Payee"
+                        }
+                    ]
+                }
+            ]
+        }
+
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(settings_file_path), exist_ok=True)
+
+        # Write the default config
+        with open(settings_file_path, 'w') as f:
+            json.dump(default_config, f, indent=4)
+        logger.info("Default settings.json created successfully.")
+
     return render(request, 'splunkparser/index.html')
 
 def config_editor_page(request):
