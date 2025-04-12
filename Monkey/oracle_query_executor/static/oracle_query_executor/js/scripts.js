@@ -7,11 +7,15 @@ require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.28
 require(['vs/editor/editor.main'], function() {
     editor = monaco.editor.create(document.getElementById('editor'), {
         value: '',
-        language: 'yaml', // default language is yaml
+        language: 'yaml',
         theme: 'vs-dark',
         automaticLayout: true
     });
 
+    // Ctrl + Enter to execute the query
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function () {
+        document.getElementById("query-form").dispatchEvent(new Event('submit'));
+    });
     const savedDbKey = localStorage.getItem("db_key");
     const savedQuerySets = localStorage.getItem("query_sets");
     const savedFormat = localStorage.getItem("format");
@@ -223,6 +227,10 @@ function renderTable(data) {
 async function executeQuery(event) {
     event.preventDefault();
 
+    const executeBtn = document.getElementById("execute-button");
+    const originalText = executeBtn.textContent;
+    const originalBg = executeBtn.style.backgroundColor;
+
     const dbKey = document.getElementById("db_key").value;
     localStorage.setItem("db_key", dbKey);
 
@@ -242,35 +250,66 @@ async function executeQuery(event) {
             querySets = { "query": [querySetsText] };
         }
     } catch (error) {
-        alert("Invalid " + format.toUpperCase() + " format: " + error.message);
+        showExecuteError("Parse Error");
         return;
     }
-
-    const outputTypes = Array.from(document.querySelectorAll('input[name="output_types"]:checked')).map(el => el.value);
 
     const payload = {
         db_key: dbKey,
         query_sets: Object.values(querySets).map(queries => queries.map(query => query.trim())),
-        output_types: outputTypes,
+        output_types: ["json", "sql"],
         query_sets_text: querySetsText,
         format: format
     };
 
-    const response = await fetch('/oracle_query_executor/execute_queries/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-    });
+    try {
+        const response = await fetch('/oracle_query_executor/execute_queries/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
 
-    const result = await response.json();
+        const result = await response.json();
 
-    document.getElementById("result").textContent = JSON.stringify(result, null, 4);
-    renderTable(result.results);
+        if (response.ok) {
+            document.getElementById("result").textContent = JSON.stringify(result, null, 4);
+            renderTable(result.results);
+            saveQueryHistory(querySetsText, format);
 
-    saveQueryHistory(querySetsText, format);
+            // ✅ Success UI
+            executeBtn.textContent = "✔ Executed";
+            executeBtn.style.backgroundColor = "#2ecc71";
+
+            setTimeout(() => {
+                executeBtn.textContent = originalText;
+                executeBtn.style.backgroundColor = originalBg;
+            }, 1000);
+        } else {
+            const errorCode = result?.error?.code || "Error";
+            showExecuteError(errorCode);
+        }
+
+    } catch (err) {
+        showExecuteError("Network");
+    }
 }
+
+function showExecuteError(code) {
+    const executeBtn = document.getElementById("execute-button");
+    const originalText = executeBtn.textContent;
+    const originalBg = executeBtn.style.backgroundColor;
+
+    executeBtn.textContent = `❌ Error (${code})`;
+    executeBtn.style.backgroundColor = "#e74c3c"; // red
+
+    setTimeout(() => {
+        executeBtn.textContent = originalText;
+        executeBtn.style.backgroundColor = originalBg;
+    }, 2000);
+}
+
 
 async function getCount(event) {
     event.preventDefault();
@@ -454,33 +493,144 @@ function saveScript(name, description) {
     });
 }
 
-function loadSavedScripts() {
+function loadSavedScripts(callback) {
     fetch('/oracle_query_executor/load_scripts/')
-    .then(response => response.json())
-    .then(data => {
-        const loadScriptDropdown = document.getElementById("load-script-dropdown");
-        loadScriptDropdown.innerHTML = `<option value="" disabled selected>Load Script</option>`;
+        .then(response => response.json())
+        .then(data => {
+            const dropdown = document.getElementById("load-script-dropdown");
+            dropdown.innerHTML = `<option value="" disabled selected>Load Script</option>`;
 
-        data.forEach(script => {
-            const option = document.createElement("option");
-            option.value = script.name;
-            option.textContent = script.name;
-            option.dataset.description = script.description;
-            option.dataset.content = script.content;
-            option.dataset.format = script.format;
-            loadScriptDropdown.appendChild(option);
+            data.forEach(script => {
+                const option = document.createElement("option");
+                option.value = script.name;
+                option.textContent = script.name;
+                option.dataset.description = script.description;
+                option.dataset.content = script.content;
+                option.dataset.format = script.format;
+                dropdown.appendChild(option);
+            });
+
+            dropdown.onchange = function () {
+                const selected = dropdown.selectedOptions[0];
+                editor.setValue(selected.dataset.content);
+                document.getElementById("format_selector").value = selected.dataset.format;
+                localStorage.setItem("query_sets", selected.dataset.content);
+                localStorage.setItem("format", selected.dataset.format);
+            };
+
+            if (callback) callback();
+        })
+        .catch(error => {
+            console.error("Error loading scripts:", error);
+            alert("Error loading scripts.");
         });
+}
 
-        loadScriptDropdown.onchange = function() {
-            const selectedOption = loadScriptDropdown.selectedOptions[0];
-            editor.setValue(selectedOption.dataset.content);
-            document.getElementById("format_selector").value = selectedOption.dataset.format;
-            localStorage.setItem("query_sets", selectedOption.dataset.content);
-            localStorage.setItem("format", selectedOption.dataset.format);
-        };
-    })
-    .catch(error => {
-        console.error("Error loading scripts:", error);
-        alert("Error loading scripts.");
+
+document.addEventListener('keydown', function (e) {
+    // Ctrl + S → Save to existing or new
+    if (e.ctrlKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+
+        const selectedScript = document.getElementById('load-script-dropdown').value;
+
+        if (e.shiftKey || !selectedScript) {
+            saveScriptAsNew(); // Ctrl+Shift+S or no script loaded
+        } else {
+            saveToExistingScript(selectedScript); // Save to selected script
+        }
+    }
+
+    // Ctrl + Enter → Execute Query
+    if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById("query-form").dispatchEvent(new Event('submit'));
+    }
+});
+
+
+
+function saveToExistingScript(scriptName) {
+    const content = editor.getValue();
+    const format = document.getElementById("format_selector").value;
+
+    const payload = {
+        name: scriptName,
+        content: content,
+        format: format
+    };
+
+    fetch('/oracle_query_executor/save_script/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+    }).then(response => {
+        if (response.ok) {
+            const saveBtn = document.getElementById("save-script-button");
+            const originalText = saveBtn.textContent;
+            const originalBg = saveBtn.style.backgroundColor;
+
+            saveBtn.textContent = "✔ Saved";
+            saveBtn.style.backgroundColor = "#2ecc71"; // Green
+
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.style.backgroundColor = originalBg;
+            }, 1000);
+
+            const previousSelection = scriptName;
+            loadSavedScripts(() => {
+                document.getElementById("load-script-dropdown").value = previousSelection;
+            });
+        } else {
+            alert("Failed to save the script.");
+        }
+    });
+}
+
+
+function saveScriptAsNew() {
+    const newName = prompt("Enter name for new script:");
+    if (!newName) return;
+
+    const description = prompt("Enter optional description:");
+    const content = editor.getValue();
+    const format = document.getElementById("format_selector").value;
+
+    const payload = {
+        name: newName,
+        description: description,
+        content: content,
+        format: format
+    };
+
+    fetch('/oracle_query_executor/save_script/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+    }).then(response => {
+        if (response.ok) {
+            const saveBtn = document.getElementById("save-script-button");
+            const originalText = saveBtn.textContent;
+            const originalBg = saveBtn.style.backgroundColor;
+
+            saveBtn.textContent = "✔ Saved";
+            saveBtn.style.backgroundColor = "#2ecc71"; // Green
+
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.style.backgroundColor = originalBg;
+            }, 1000);
+
+            loadSavedScripts(() => {
+                document.getElementById("load-script-dropdown").value = newName;
+            });
+        } else {
+            alert("Failed to save the script.");
+        }
     });
 }
