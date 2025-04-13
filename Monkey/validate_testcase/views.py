@@ -1,89 +1,54 @@
-import requests
-from django.shortcuts import render
+import os
+import json
+import pandas as pd
+from django.shortcuts import render, redirect
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from django.http import JsonResponse
-from .forms import LogUploadForm
-import re
 
-# Function to parse log entries
-def parse_log_entries(log_data):
-    entries = []
-    current_entry = None
+# Store files temporarily in media/validate_testcase
+UPLOAD_DIR = os.path.join(settings.MEDIA_ROOT, 'validate_testcase')
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    for line in log_data.splitlines():
-        timestamp_match = re.match(r'^(\d{2}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) \[ (FromIso|ToIso|FromMC|ToMC)\:', line)
-        if timestamp_match:
-            if current_entry:
-                entries.append(current_entry)
-            current_entry = {
-                'timestamp': timestamp_match.group(1),
-                'direction': timestamp_match.group(2),
-                'lines': [line],
-                'in_lines': [],
-                'out_lines': [],
-            }
-        elif current_entry:
-            current_entry['lines'].append(line)
-            if 'in[' in line:
-                current_entry['in_lines'].append(line)
-            elif 'out[' in line:
-                current_entry['out_lines'].append(line)
-    
-    if current_entry:
-        entries.append(current_entry)
+def index(request):
+    return render(request, 'validate_testcase/index.html')
 
-    return entries
+def upload_excel(request):
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        excel_file = request.FILES['excel_file']
+        fs = FileSystemStorage(location=UPLOAD_DIR)
+        filename = fs.save(excel_file.name, excel_file)
+        file_path = os.path.join(UPLOAD_DIR, filename)
 
-# Function to parse log data and send to API
-def parse_log_data(log_data):
-    url = 'http://localhost:8000/splunkparser/parse/'
-    headers = {'Content-Type': 'application/json'}
-    entries = parse_log_entries(log_data)
-    
-    combined_result = []
+        # Convert Excel to JSON and save temporarily
+        df = pd.read_excel(file_path)
+        json_data = df.to_dict(orient='records')
 
-    for entry in entries:
-        if entry['direction'] in ['FromIso', 'ToIso']:
-            if entry['in_lines'] and entry['out_lines']:
-                combined_result.append({
-                    'timestamp': entry['timestamp'],
-                    'direction': entry['direction'],
-                    'result': {
-                        'status': 'error',
-                        'message': "Log input cannot contain both 'in[' and 'out[' lines. Use only one direction."
-                    }
-                })
-            else:
-                log_text = '\n'.join(entry['lines'])
-                response = requests.post(url, headers=headers, json={'log_data': log_text})
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    combined_result.append({
-                        'timestamp': entry['timestamp'],
-                        'direction': entry['direction'],
-                        'result': result,
-                    })
+        # Save to JSON file
+        with open(os.path.join(UPLOAD_DIR, 'excel_data.json'), 'w') as f:
+            json.dump(json_data, f, indent=2)
 
-    return combined_result
+        return redirect('index')
 
-# Function to parse log file content
-def parse_log_file(file):
-    content = file.read().decode('utf-8')
-    return parse_log_data(content)
+    return JsonResponse({'error': 'Invalid Excel upload'}, status=400)
 
-# View to handle log uploads
 def upload_logs(request):
-    form = LogUploadForm()
-    result = None
-    
-    if request.method == 'POST':
-        form = LogUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            if 'file' in request.FILES:
-                file = request.FILES['file']
-                result = parse_log_file(file)
-            else:
-                log_data = form.cleaned_data['log_data']
-                result = parse_log_data(log_data)
-    
-    return render(request, 'validate_testcase/index.html', {'form': form, 'result': result})
+    if request.method == 'POST' and request.FILES.get('log_file'):
+        log_file = request.FILES['log_file']
+        fs = FileSystemStorage(location=UPLOAD_DIR)
+        filename = fs.save(log_file.name, log_file)
+        file_path = os.path.join(UPLOAD_DIR, filename)
+
+        # Read and convert logs to JSON (simplified logic — adjust as per your log format)
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        log_json = [{'line': line.strip()} for line in lines]
+
+        # Save to JSON file
+        with open(os.path.join(UPLOAD_DIR, 'log_data.json'), 'w') as f:
+            json.dump(log_json, f, indent=2)
+
+        return redirect('index')
+
+    return JsonResponse({'error': 'Invalid log upload'}, status=400)

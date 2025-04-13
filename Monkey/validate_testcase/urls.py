@@ -1,6 +1,8 @@
 from django.urls import path
-from .views import upload_logs
+from . import views
 
 urlpatterns = [
-    path('', upload_logs, name='index'),
+    path('', views.index, name='index'),
+    path('upload_excel/', views.upload_excel, name='upload_excel'),
+    path('upload_logs/', views.upload_logs, name='upload_logs'),
 ]
