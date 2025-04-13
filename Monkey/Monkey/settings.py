@@ -60,7 +60,8 @@ INSTALLED_APPS = [
 
     ]
 
-# Logging configuration
+import logging.handlers
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -72,10 +73,10 @@ LOGGING = {
     'handlers': {
         'file': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': str(LOG_DIR / 'django.log'),  # Dynamic path for the log file
-            # 'maxBytes': 10240,  # Set max file size to 10KB (~100 lines depending on log content)
-            # 'backupCount': 5,  # Keep up to 5 backup log files
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': str(LOG_DIR / 'django.log'),
+            'when': 'midnight',  # rotate daily at midnight
+            'backupCount': 1,    # keep only 1 day's log
             'formatter': 'standard',
         },
         'console': {
@@ -85,13 +86,14 @@ LOGGING = {
         },
     },
     'loggers': {
-        '': {  # 'root' logger
+        '': {
             'handlers': ['file', 'console'],
             'level': 'DEBUG',
             'propagate': True
         },
     }
 }
+
 
 
 MIDDLEWARE = [
