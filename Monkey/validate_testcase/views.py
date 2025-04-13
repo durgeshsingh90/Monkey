@@ -39,8 +39,39 @@ def index(request):
 def process_excel_file(file_path):
     try:
         logger.info("🚀 [Thread] Processing Excel")
-        excel_data = pd.read_excel(file_path, sheet_name=None)
-        full_data = {sheet: df.fillna("").to_dict(orient='records') for sheet, df in excel_data.items()}
+        excel_data = pd.read_excel(file_path, sheet_name=None, header=None)
+
+        full_data = {}
+
+        for sheet, df in excel_data.items():
+            df = df.fillna("")
+
+            # Check if second row contains real keys like BM or DE
+            potential_keys = df.iloc[1].astype(str).tolist()
+            is_bitmap_header = any(re.match(r'(BM|DE)?\d{2,3}', key.strip(), re.IGNORECASE) for key in potential_keys)
+
+            if is_bitmap_header:
+                logger.info(f"🔍 Using 2nd row as header for sheet: {sheet}")
+                df.columns = df.iloc[1]  # Set second row as header
+                df = df.drop(index=[0, 1])  # Drop first two rows
+            else:
+                logger.info(f"📄 Using 1st row as header for sheet: {sheet}")
+                df.columns = df.iloc[0]  # Set first row as header
+                df = df.drop(index=[0])  # Drop only the first row
+            # ✅ Normalize all column headers
+            df.columns = [normalize_column(c) for c in df.columns]
+            df = df.reset_index(drop=True)
+            df = df.fillna("")
+
+            def is_comment_row(row):
+                non_empty_cells = row.astype(str).ne("").sum()
+                if non_empty_cells <= 3:
+                    return row.iloc[3:].eq("").all()
+                return False
+
+            df_filtered = df[~df.apply(is_comment_row, axis=1)]
+
+            full_data[sheet] = df_filtered.to_dict(orient='records')
 
         with open(EXCEL_JSON, 'w') as f:
             json.dump(full_data, f, indent=2)
@@ -49,6 +80,18 @@ def process_excel_file(file_path):
         try_run_comparison()
     except Exception as e:
         logger.exception("❌ Failed to process Excel file")
+
+
+import re
+
+def normalize_column(col):
+    col = str(col).strip()
+    match = re.match(r'(?:BM|DE)?(\d{1,3})(\.\d+)?$', col)
+    if match:
+        main_num = match.group(1).zfill(3)
+        subfield = match.group(2) if match.group(2) else ''
+        return f'DE{main_num}{subfield}'
+    return col  # leave untouched if it doesn't match
 
 def process_log_file(file_path):
     try:
@@ -136,11 +179,3 @@ def view_comparison_result(request):
         'excel_data': excel_data,
         'mismatch_map': mismatch_map
     })
-from django.views.decorators.http import require_GET
-
-@require_GET
-def check_status(request):
-    comparison_path = os.path.join(UPLOAD_DIR, 'comparison_result.json')
-    if os.path.exists(comparison_path):
-        return JsonResponse({'status': 'ready'})
-    return JsonResponse({'status': 'processing'})

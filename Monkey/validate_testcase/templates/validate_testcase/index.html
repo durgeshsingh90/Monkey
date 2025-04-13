@@ -140,16 +140,6 @@
         document.getElementById('log-checkmark').style.display = 'none';
       }
     };
-    let checkInterval = setInterval(() => {
-    fetch("{% url 'check_status' %}")
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "ready") {
-          clearInterval(checkInterval);
-          window.location.href = "{% url 'view_comparison_result' %}";
-        }
-      });
-  }, 3000); // check every 3 sec
   </script>
   
 </body>

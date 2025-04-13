@@ -9,7 +9,6 @@ def hex_to_ascii(hex_str):
         return unhexlify(hex_str).decode('utf-8')
     except Exception:
         return hex_str
-
 def clean_de_key(label):
     if not label.startswith(("DE", "BM")):
         return None

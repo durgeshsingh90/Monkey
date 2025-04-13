@@ -1,5 +1,3 @@
-{% load validate_tags  %}
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -29,13 +27,13 @@
       </thead>
       <tbody>
         {% for row in rows %}
-        {% with key=sheet|stringformat:"s::"|add:row|get_item:"Test Case ID" %}
-        {% with result=mismatch_map.key %}
+          {% with key=sheet|stringformat:"s::"|add:row."Test Case ID" %}
+            {% with result=mismatch_map.key %}
               <tr>
                 {% for col, val in row.items %}
                   {% with field=col|slice:":5"|cut:" " %}
-                  {% if field|slice:":2" == "DE" or field|slice:":2" == "BM" %}
-                  {% with normalized="DE"|add:field|slice:"2:" %}
+                    {% if field.startswith:"DE" or field.startswith:"BM" %}
+                      {% with normalized="DE"|add:field|slice:"2:" %}
                         {% if result.details.normalized %}
                           <td class="mismatched">{{ val }}</td>
                         {% elif val == "Client-defined" or val == "" %}
