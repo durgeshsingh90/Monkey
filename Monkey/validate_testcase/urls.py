@@ -5,4 +5,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('upload_excel/', views.upload_excel, name='upload_excel'),
     path('upload_logs/', views.upload_logs, name='upload_logs'),
+    path('comparison_result/', views.view_comparison_result, name='view_comparison_result'),
+    path('check_status/', views.check_status, name='check_status'),
+
 ]

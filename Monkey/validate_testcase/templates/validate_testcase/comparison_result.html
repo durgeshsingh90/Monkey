@@ -1,0 +1,60 @@
+{% load validate_tags  %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Comparison Result</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h2 { margin-top: 40px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 50px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    .matched { background-color: #d4edda; }   /* green */
+    .mismatched { background-color: #f8d7da; } /* red */
+    .skipped { background-color: #f0f0f0; }    /* gray */
+  </style>
+</head>
+<body>
+  <h1>🧾 Test Case Validation Result</h1>
+
+  {% for sheet, rows in excel_data.items %}
+    <h2>{{ sheet }}</h2>
+    <table>
+      <thead>
+        <tr>
+          {% for key in rows.0.keys %}
+            <th>{{ key }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        {% with key=sheet|stringformat:"s::"|add:row|get_item:"Test Case ID" %}
+        {% with result=mismatch_map.key %}
+              <tr>
+                {% for col, val in row.items %}
+                  {% with field=col|slice:":5"|cut:" " %}
+                  {% if field|slice:":2" == "DE" or field|slice:":2" == "BM" %}
+                  {% with normalized="DE"|add:field|slice:"2:" %}
+                        {% if result.details.normalized %}
+                          <td class="mismatched">{{ val }}</td>
+                        {% elif val == "Client-defined" or val == "" %}
+                          <td class="skipped">{{ val }}</td>
+                        {% else %}
+                          <td class="matched">{{ val }}</td>
+                        {% endif %}
+                      {% endwith %}
+                    {% else %}
+                      <td>{{ val }}</td>
+                    {% endif %}
+                  {% endwith %}
+                {% endfor %}
+              </tr>
+            {% endwith %}
+          {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endfor %}
+</body>
+</html>
