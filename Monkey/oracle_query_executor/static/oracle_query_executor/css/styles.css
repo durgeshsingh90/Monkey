@@ -317,8 +317,14 @@ tr:hover {
     
     .left {
         padding: 0;
+        overflow: visible !important; /* prevent inner scroll */
+
     }
-    
+    /* Let history list grow naturally without forcing scroll */
+#history_list {
+    max-height: unset !important;
+    overflow: visible !important;
+}
 
     .form-row,
     .editor-section,
@@ -350,4 +356,30 @@ tr:hover {
     padding: 6px 8px;
     font-size: 13px;
     height: 36px;
+}
+
+.history-controls {
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-controls input {
+    flex: 1;
+    padding: 6px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.history-actions button {
+    font-size: 18px;
+    margin-left: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+.history-actions button:hover {
+    transform: scale(1.2);
 }

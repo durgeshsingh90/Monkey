@@ -225,36 +225,32 @@ def save_query_history(query_text, format):
     with open(HISTORY_FILE_PATH, 'w') as history_file:
         json.dump(history, history_file, indent=4)
 
-
 @csrf_exempt
 @require_POST
 def execute_queries_view(request):
     try:
         data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return HttpResponseBadRequest("Invalid JSON data")
+        db_key = data.get('db_key', 'default')
+        db_config = settings.DATABASES.get(db_key)
 
-    db_key = data.get('db_key', 'default')
-    db_config = settings.DATABASES.get(db_key)
+        if not db_config:
+            return JsonResponse({"error": "Invalid database configuration key provided."}, status=400)
 
-    if not db_config:
-        return JsonResponse({"error": "Invalid database configuration key provided."}, status=400)
+        query_sets = data.get('query_sets')
+        if not query_sets:
+            return HttpResponseBadRequest("No query sets provided")
 
-    query_sets = data.get('query_sets')
-    if not query_sets:
-        return HttpResponseBadRequest("No query sets provided")
+        output_types = data.get('output_types', ['json', 'sql'])
 
-    output_types = data.get('output_types', ['json', 'sql'])
+        results = execute_multiple_query_sets(query_sets, output_types, db_config, db_key)
 
-    results = execute_multiple_query_sets(query_sets, output_types, db_config, db_key)
+        save_query_history(data.get('query_sets_text', ''), data.get('format', ''))
 
-    response_data = {
-        "results": results
-    }
+        return JsonResponse({ "results": results }, encoder=CustomJSONEncoder, safe=False)
 
-    save_query_history(data.get('query_sets_text', ''), data.get('format', ''))
-
-    return JsonResponse(response_data, encoder=CustomJSONEncoder, safe=False)
+    except Exception as e:
+        logger.exception("Error while executing queries:")
+        return JsonResponse({ "error": str(e) }, status=500)
 
 @csrf_exempt
 @require_POST
@@ -299,3 +295,38 @@ def load_scripts():
 
 def index(request):
     return render(request, 'oracle_query_executor/index.html')
+
+@csrf_exempt
+def load_history_view(request):
+    if os.path.exists(HISTORY_FILE_PATH):
+        try:
+            with open(HISTORY_FILE_PATH, 'r') as history_file:
+                history = json.load(history_file)
+                return JsonResponse(history, safe=False)
+        except Exception as e:
+            logger.error(f"Failed to load history: {e}")
+            return JsonResponse([], safe=False)
+    return JsonResponse([], safe=False)
+
+@csrf_exempt
+@require_POST
+def save_history_view(request):
+    try:
+        data = json.loads(request.body)
+        with open(HISTORY_FILE_PATH, 'w') as history_file:
+            json.dump(data, history_file, indent=4)
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        logger.error(f"Failed to save history: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@csrf_exempt
+@require_POST
+def clear_history_view(request):
+    try:
+        if os.path.exists(HISTORY_FILE_PATH):
+            os.remove(HISTORY_FILE_PATH)
+        return JsonResponse({'status': 'cleared'})
+    except Exception as e:
+        logger.error(f"Failed to clear history: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

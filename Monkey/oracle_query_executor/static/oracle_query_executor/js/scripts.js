@@ -377,11 +377,17 @@ function saveQueryHistory(queryText, format) {
     updateQueryHistoryList();
 }
 
-function updateQueryHistoryList() {
+function updateQueryHistoryList(filterText = "") {
     const historyListDiv = document.getElementById("history_list");
     historyListDiv.innerHTML = "";
-    
-    const history = JSON.parse(localStorage.getItem("query_history") || "[]");
+
+    let history = JSON.parse(localStorage.getItem("query_history") || "[]").reverse();
+
+    // Apply filter if provided
+    if (filterText) {
+        history = history.filter(entry => entry.query.toLowerCase().includes(filterText));
+    }
+
     const startIdx = (currentPage - 1) * itemsPerPage;
     const endIdx = Math.min(startIdx + itemsPerPage, history.length);
     const paginatedHistory = history.slice(startIdx, endIdx);
@@ -391,7 +397,7 @@ function updateQueryHistoryList() {
         div.classList.add("query-history-item");
         div.innerHTML = `
             <div>
-                <span class="query-sequence">Query ${startIdx + index + 1}</span>
+                <span class="query-sequence">Query ${history.length - (startIdx + index)}</span>
                 <span class="timestamp">${new Date(entry.timestamp).toLocaleString()}</span>
             </div>
             <pre>${entry.query.slice(0, 100)}...</pre>
@@ -411,6 +417,7 @@ function updateQueryHistoryList() {
     document.getElementById("prev-page").disabled = startIdx === 0;
     document.getElementById("next-page").disabled = endIdx >= history.length;
 }
+
 
 function exportResult(format) {
     const resultData = JSON.parse(document.getElementById('result').textContent);
@@ -634,3 +641,45 @@ function saveScriptAsNew() {
         }
     });
 }
+
+document.getElementById("clear-history-button").onclick = function () {
+    if (confirm("Are you sure you want to clear the query history?")) {
+        localStorage.removeItem("query_history");
+        currentPage = 1;
+        updateQueryHistoryList();
+    }
+};
+
+document.getElementById("history-search").addEventListener("input", function () {
+    updateQueryHistoryList(this.value.trim().toLowerCase());
+});
+
+
+document.getElementById("refresh-history-button").onclick = function () {
+    fetch('/oracle_query_executor/load_history/')
+        .then(res => res.json())
+        .then(serverHistory => {
+            if (Array.isArray(serverHistory)) {
+                localStorage.setItem("query_history", JSON.stringify(serverHistory));
+                updateQueryHistoryList();
+            }
+        })
+        .catch(err => {
+            alert("Failed to load history from server.");
+            console.error(err);
+        });
+};
+
+document.getElementById("download-history-button").onclick = function () {
+    const history = localStorage.getItem("query_history");
+    if (!history) {
+        alert("No history to download.");
+        return;
+    }
+
+    const blob = new Blob([history], { type: "application/json;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "query_history.json";
+    link.click();
+};
