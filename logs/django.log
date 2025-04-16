@@ -1,0 +1,63 @@
+2025-04-16 09:02:56,398 [ERROR] splunkparser: Failed to load field definitions: Expecting value: line 1 column 1 (char 0)
+2025-04-16 09:03:01,344 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-04-16 09:03:01,350 [ERROR] splunkparser: Failed to load field definitions: Expecting value: line 1 column 1 (char 0)
+2025-04-16 09:03:09,825 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 09:06:16,358 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:06:17,885 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 09:07:48,623 [INFO] django.utils.autoreload: C:\Projects\Monkey\Monkey\runquery\views.py changed, reloading.
+2025-04-16 09:07:49,287 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-04-16 09:07:49,294 [ERROR] splunkparser: Failed to load field definitions: Expecting value: line 1 column 1 (char 0)
+2025-04-16 09:07:57,679 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 09:07:58,515 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:07:59,348 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 09:08:43,813 [INFO] django.utils.autoreload: C:\Projects\Monkey\Monkey\runquery\views.py changed, reloading.
+2025-04-16 09:08:44,524 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-04-16 09:08:44,532 [ERROR] splunkparser: Failed to load field definitions: Expecting value: line 1 column 1 (char 0)
+2025-04-16 09:08:45,752 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:08:46,543 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 09:10:52,566 [INFO] django.utils.autoreload: C:\Projects\Monkey\Monkey\runquery\views.py changed, reloading.
+2025-04-16 09:10:53,210 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-04-16 09:10:53,217 [ERROR] splunkparser: Failed to load field definitions: Expecting value: line 1 column 1 (char 0)
+2025-04-16 09:10:54,245 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:11:06,195 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:11:07,413 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 09:11:32,568 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:11:32,876 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:11:33,093 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:11:33,269 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:11:33,467 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:11:33,600 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:11:34,705 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 09:12:20,141 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:12:21,117 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 09:12:34,532 [INFO] django.utils.autoreload: C:\Projects\Monkey\Monkey\runquery\views.py changed, reloading.
+2025-04-16 09:12:35,237 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-04-16 09:12:35,244 [ERROR] splunkparser: Failed to load field definitions: Expecting value: line 1 column 1 (char 0)
+2025-04-16 09:12:50,185 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:12:51,079 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 09:13:40,109 [INFO] django.utils.autoreload: C:\Projects\Monkey\Monkey\runquery\views.py changed, reloading.
+2025-04-16 09:13:40,793 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-04-16 09:13:40,800 [ERROR] splunkparser: Failed to load field definitions: Expecting value: line 1 column 1 (char 0)
+2025-04-16 09:13:50,213 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:13:50,709 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:13:52,104 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 09:14:20,448 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-04-16 09:14:20,454 [ERROR] splunkparser: Failed to load field definitions: Expecting value: line 1 column 1 (char 0)
+2025-04-16 09:14:30,013 [INFO] django.utils.autoreload: C:\Projects\Monkey\Monkey\Monkey\__init__.py changed, reloading.
+2025-04-16 09:14:30,710 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-04-16 09:14:30,718 [ERROR] splunkparser: Failed to load field definitions: Expecting value: line 1 column 1 (char 0)
+2025-04-16 09:14:38,499 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:14:40,677 [WARNING] django.request: Not Found: /favicon.ico
+2025-04-16 09:14:41,825 [ERROR] root: Database connection error: DPI-1047: Cannot locate a 64-bit Oracle Client library: "The specified module could not be found". See https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html for help
+Help: https://python-oracledb.readthedocs.io/en/latest/user_guide/troubleshooting.html#dpi-1047
+2025-04-16 22:52:35,458 [WARNING] django.request: Not Found: /favicon.ico

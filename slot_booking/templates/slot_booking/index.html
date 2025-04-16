@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Slot Booking</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <link href="{% static 'slot_booking/css/styles.css' %}" rel="stylesheet" />
+</head>
+<body>
+  <!-- Title + Legend + Search -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+    <div style="display: flex; flex-direction: column;">
+      <a href="{% url 'homepage' %}" style="text-decoration: none;">
+        <h1 style="margin-bottom: 0; font-family: 'Chewy', cursive;">Slot Booking</h1>
+      </a>
+      <div class="legend-container" style="margin-top: 4px;">
+        <strong>Color Coding:</strong>
+        <span style="background:#ffa500;"></span> Morning
+        <span style="background:#800080;"></span> Afternoon
+        <span style="background:#a52a2a;"></span> Overnight
+        <span style="background:#28a745;"></span> Open Slot
+        <span style="background:#777777;"></span> ❌Cancelled
+      </div>
+    </div>
+
+    <!-- Aligned Search Bar & Buttons -->
+    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+      <input type="text" id="globalSearchInput" placeholder="Search anything..."
+        style="height: 36px; font-size: 14px; padding: 0 12px; border-radius: 8px; border: 1px solid #ccc; width: 250px; line-height: 36px;" />
+
+      <button onclick="globalSearch()"
+        style="height: 36px; padding: 0 16px; font-size: 14px; border: none; border-radius: 8px; background-color: #ffb347; color: white; font-weight: 500; display: flex; align-items: center; justify-content: center;">
+        Search
+      </button>
+
+      <button onclick="clearSearch()"
+        style="height: 36px; padding: 0 16px; font-size: 14px; border: none; border-radius: 8px; background-color: #dc3545; color: white; font-weight: 500; display: flex; align-items: center; justify-content: center;">
+        Clear
+      </button>
+
+      <button onclick="goToSettings()"
+        style="height: 36px; width: 36px; font-size: 18px; border: none; background: none; display: flex; align-items: center; justify-content: center; padding: 0;"
+        title="Settings">
+        ⚙️
+      </button>
+    </div>
+  </div>
+
+  <div id="searchResult"></div>
+
+  <div class="container">
+    <!-- Booking Form -->
+    <div class="form-container">
+      <form id="projectForm">
+        {% csrf_token %}
+
+        <label for="projectName">Project Name:</label>
+        <input type="text" id="projectName" name="projectName" required />
+
+        <label for="projectID">Project ID:</label>
+        <input type="text" id="projectID" name="projectID" />
+
+        <label for="psp">PSP Name:</label>
+        <select id="psp" name="psp" required></select>
+
+        <label for="owner">Owner:</label>
+        <select id="owner" name="owner" required></select>
+
+        <label for="server">Server:</label>
+        <select id="server" name="server" required></select>
+
+        <label for="schemeType">Scheme Type:</label>
+        <select id="schemeType" name="schemeType" multiple required size="6" class="large-scheme-type"></select>
+        
+        <label for="simulator">Simulator:</label>
+        <select id="simulator" name="simulator" required></select>
+
+        <label for="dateRange">Date Range:</label>
+        <input type="text" id="dateRange" name="dateRange" placeholder="DD/MM/YYYY to DD/MM/YYYY" required />
+        
+        <label>Time Slot:</label>
+        <div class="checkboxes">
+          <label><input type="checkbox" name="timeSlot" value="morning" /> Morning</label>
+          <label><input type="checkbox" name="timeSlot" value="afternoon" /> Afternoon</label>
+          <label><input type="checkbox" name="timeSlot" value="overnight" /> Overnight</label>
+        </div>
+
+        <label for="openSlot">Open Slot (optional):</label>
+        <input type="checkbox" id="openSlot" name="openSlot" />
+
+        <label for="comments">Comments (optional):</label>
+        <input type="text" id="comments" name="comments" />
+
+        <button type="button" id="submitButton" onclick="submitForm()">Submit</button>
+        <div id="submissionMessage"></div>
+      </form>
+    </div>
+
+    <!-- Calendar View -->
+    <div class="calendar-container">
+      <div id="calendar"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <script src="{% static 'slot_booking/js/scripts.js' %}" defer></script>
+</body>
+</html>

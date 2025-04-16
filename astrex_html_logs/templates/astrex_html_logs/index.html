@@ -1,0 +1,57 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload HTML Logs</title>
+  <link rel="stylesheet" href="{% static 'astrex_html_logs/css/styles.css' %}">
+
+</head>
+<body>
+
+<div class="left-container">
+  <h3>HTML Logs Uploader</h3>
+  <a href="/astrex_html_logs/admin/" title="Admin Settings" style="position: absolute; top: 10px; left: 10px; font-size: 18px; cursor: pointer;">
+    ⚙️
+  </a>
+  
+  <input type="file" id="htmlLogFile" accept=".html">
+  <div id="logInfo" class="file-name" style="display: flex; justify-content: space-between; align-items: center;">
+    <span id="uploadedFileName" style="flex: 1;"></span>
+    <button id="copyFileNameBtn" title="Copy filename"
+      style="background: none; border: none; cursor: pointer; font-size: 14px;">
+      📋
+    </button>
+  </div>
+  
+  </div>
+
+<div class="main-container">
+  <div class="summary-container" id="summaryContainer">
+    <div class="summary-header">
+      <span class="summary-title">Summary</span>
+      <div class="right-items">
+        <button class="download-btn" id="downloadAllBtn" style="display: none;">Download All Files</button>
+        <span class="script-duration" id="scriptRunDuration">Script Run Duration: 0h 0m 0s</span>
+      </div>
+    </div>
+    <div id="summaryDetails" class="summary-details"></div>
+  </div>
+
+  <div class="right-container" id="de032Container"></div>
+</div>
+
+<div class="loading-screen" id="loadingScreen">
+  <img src="{% static 'astrex_html_logs/images/search-file1.gif' %}" alt="Loading" class="loading-media" id="gif1">
+  <img src="{% static 'astrex_html_logs/images/search-file2.gif' %}" alt="Loading" class="loading-media" id="gif2">
+  <img src="{% static 'astrex_html_logs/images/search-file3.gif' %}" alt="Loading" class="loading-media" id="gif3">
+  <video class="loading-media" id="mp41" src="{% static 'astrex_html_logs/videos/loading1.mp4' %}" type="video/mp4"></video>
+  <video class="loading-media" id="mp42" src="{% static 'astrex_html_logs/videos/loading2.mp4' %}" type="video/mp4"></video>
+  <div class="loading-timer" id="loadingTimer">0h 0m 0s</div>
+</div>
+
+<script src="{% static 'astrex_html_logs/js/scripts.js' %}"></script>
+
+
+</body>
+</html>

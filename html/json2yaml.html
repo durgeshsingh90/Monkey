@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced JSON to YAML Converter</title>
+
+    <!-- Load js-yaml -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    
+    <!-- Load Monaco Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+    
+    <style>
+        #container {
+            display: flex;
+            height: 90vh;
+            justify-content: space-between;
+        }
+        .editor {
+            width: 45%;
+            height: 100%;
+            border: 1px solid #ccc;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>JSON to YAML Converter</h2>
+    <div id="container">
+        <div id="jsonEditor" class="editor"></div>
+        <div id="yamlEditor" class="editor"></div>
+    </div>
+    <div id="error" class="error"></div>
+
+    <script>
+        // Load Monaco Editor without require.js
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js';
+            script.onload = function() {
+                require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
+                require(['vs/editor/editor.main'], function() {
+                    createEditors();
+                });
+            };
+            document.body.appendChild(script);
+        })();
+
+        // Function to create Monaco Editors
+        function createEditors() {
+            // JSON Editor
+            const jsonEditor = monaco.editor.create(document.getElementById('jsonEditor'), {
+                value: [
+                    '{',
+                    '    "name": "John Doe",',
+                    '    "age": 30,',
+                    '    "city": "New York"',
+                    '}'
+                ].join('\n'),
+                language: 'json',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                tabSize: 2 // Adjust for better readability for larger JSON files
+            });
+
+            // YAML Editor
+            const yamlEditor = monaco.editor.create(document.getElementById('yamlEditor'), {
+                value: '',
+                language: 'yaml',
+                theme: 'vs-dark',
+                readOnly: true,  // Set to read-only as it's the output
+                automaticLayout: true,
+                tabSize: 2 // For improved formatting in YAML
+            });
+
+            // Function to convert JSON to YAML
+            function convertJsonToYaml() {
+                const errorElement = document.getElementById('error');
+                errorElement.innerHTML = ''; // Clear previous error messages
+
+                try {
+                    // Get the content from the JSON editor
+                    const jsonValue = jsonEditor.getValue();
+
+                    // Parse JSON to an object
+                    const jsonObject = JSON.parse(jsonValue);
+
+                    // Convert the object to YAML
+                    const yamlString = jsyaml.dump(jsonObject, { indent: 2 });
+
+                    // Set the YAML content in the YAML editor
+                    yamlEditor.setValue(yamlString);
+                } catch (e) {
+                    // Handle invalid JSON errors and display a user-friendly message
+                    errorElement.innerHTML = 'Invalid JSON: ' + e.message;
+                    yamlEditor.setValue('');  // Clear YAML editor content
+                }
+            }
+
+            // Listen to changes in the JSON editor for real-time conversion
+            jsonEditor.onDidChangeModelContent(function () {
+                convertJsonToYaml();
+            });
+
+            // Perform initial conversion on load
+            convertJsonToYaml();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Modern Oracle Query UI</title>
+  <style>
+    :root {
+      --bg: #f9f9fb;
+      --accent: #4f46e5;
+      --text: #333;
+      --light: #fff;
+      --gray: #e5e7eb;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 0 20px 20px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      background-color: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--gray);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tabs button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--light);
+      color: var(--text);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tabs button.active {
+      background-color: var(--accent);
+      color: #fff;
+    }
+
+    .tabs button:hover:not(.active) {
+      background-color: #e0e7ff;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    select {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--gray);
+      background-color: #fff;
+      font-size: 14px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 24px;
+      cursor: pointer;
+    }
+
+    .slider:before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    textarea {
+      width: 100%;
+      height: 250px;
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--gray);
+      font-size: 14px;
+      font-family: Consolas, monospace;
+      background: white;
+      resize: vertical;
+    }
+
+    .controls {
+      margin-top: 16px;
+    }
+
+    .controls button {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      margin-right: 10px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .controls button:hover {
+      background-color: #3730a3;
+    }
+
+    #result, #columnResult {
+      margin-top: 24px;
+      background-color: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--gray);
+      font-family: monospace;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .loading {
+      font-style: italic;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="tabs">
+      <button class="tab-button" data-index="0">Tab 1</button>
+      <button class="tab-button" data-index="1">Tab 2</button>
+      <button class="tab-button" data-index="2">Tab 3</button>
+    </div>
+    <div class="top-controls">
+      <select id="dropdown1"></select>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleSwitch">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Tab Textareas -->
+  <div id="tab-0" class="tab-content"><textarea id="text-0" placeholder="Enter SQL for Tab 1"></textarea></div>
+  <div id="tab-1" class="tab-content"><textarea id="text-1" placeholder="Enter SQL for Tab 2"></textarea></div>
+  <div id="tab-2" class="tab-content"><textarea id="text-2" placeholder="Enter SQL for Tab 3"></textarea></div>
+
+  <div class="controls">
+    <button onclick="execute()">Execute</button>
+    <button onclick="countChars()">Count</button>
+  </div>
+
+  <div id="columnResult"></div>
+  <div id="result"></div>
+
+  <script>
+    const tabButtons = document.querySelectorAll(".tab-button");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    function showTab(index) {
+      tabButtons.forEach(btn => btn.classList.remove("active"));
+      tabContents.forEach(tab => tab.classList.remove("active"));
+      tabButtons[index].classList.add("active");
+      tabContents[index].classList.add("active");
+      localStorage.setItem("activeTab", index);
+    }
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const index = parseInt(btn.getAttribute("data-index"));
+        showTab(index);
+      });
+    });
+
+    const textareas = document.querySelectorAll("textarea");
+    textareas.forEach((textarea, idx) => {
+      const saved = localStorage.getItem(`text-${idx}`);
+      if (saved) textarea.value = saved;
+      textarea.addEventListener("input", () => {
+        localStorage.setItem(`text-${idx}`, textarea.value);
+      });
+    });
+
+    const savedTab = localStorage.getItem("activeTab") || 0;
+    showTab(parseInt(savedTab));
+
+    fetch("/runquery/get_oracle_dbs/")
+      .then(res => res.json())
+      .then(data => {
+        const dropdown = document.getElementById("dropdown1");
+        dropdown.innerHTML = '';
+        data.databases.forEach(db => {
+          const opt = document.createElement("option");
+          opt.value = db;
+          opt.textContent = db;
+          dropdown.appendChild(opt);
+        });
+        dropdown.value = "uat_ist";
+      });
+
+    // View toggle
+    document.getElementById("toggleSwitch").addEventListener("change", function () {
+      const isColumnView = this.checked;
+      document.getElementById("columnResult").style.display = isColumnView ? "block" : "none";
+      document.getElementById("result").style.display = isColumnView ? "none" : "block";
+    });
+
+    // Set default to column view
+    document.getElementById("toggleSwitch").checked = true;
+    document.getElementById("columnResult").style.display = "block";
+    document.getElementById("result").style.display = "none";
+
+    function countChars() {
+      const current = document.querySelector(".tab-content.active textarea");
+      alert("Characters: " + current.value.length);
+    }
+
+    function execute() {
+      const currentTab = document.querySelector(".tab-button.active").getAttribute("data-index");
+      const queryText = document.getElementById("text-" + currentTab).value.trim();
+      const dbAlias = document.getElementById("dropdown1").value;
+
+      if (!queryText) {
+        alert("Please enter a SQL query.");
+        return;
+      }
+
+      document.getElementById("result").innerHTML = '<div class="loading">Running query...</div>';
+      document.getElementById("columnResult").innerHTML = '<div class="loading">Running query...</div>';
+
+      fetch("/runquery/execute_oracle_queries/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          script_name: dbAlias,
+          query_sets: [[queryText]]
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const result = data.results || data;
+
+        // JSON result
+        document.getElementById("result").textContent = JSON.stringify(result, null, 2);
+
+        // Column view
+        const columnContainer = document.getElementById("columnResult");
+        columnContainer.innerHTML = "";
+
+        if (Array.isArray(result)) {
+          result.forEach((entry, idx) => {
+            const query = entry.query || "";
+            const error = entry.error || "";
+            const queryResult = entry.result;
+
+            const card = document.createElement("div");
+            card.style.border = "1px solid var(--gray)";
+            card.style.marginBottom = "16px";
+            card.style.padding = "12px";
+            card.style.borderRadius = "8px";
+            card.style.background = "#fff";
+
+            card.innerHTML = `<strong>Query ${idx + 1}:</strong><br><code>${query}</code><br><br>`;
+
+            if (error) {
+              card.innerHTML += `<div style="color:red">❌ ${error}</div>`;
+            } else if (Array.isArray(queryResult) && queryResult.length > 0) {
+              const table = document.createElement("table");
+              table.style.width = "100%";
+              table.style.borderCollapse = "collapse";
+
+              const headers = Object.keys(queryResult[0]);
+              const thead = document.createElement("thead");
+              const headerRow = document.createElement("tr");
+              headers.forEach(h => {
+                const th = document.createElement("th");
+                th.textContent = h;
+                th.style.borderBottom = "1px solid var(--gray)";
+                th.style.padding = "8px";
+                th.style.background = "#f3f4f6";
+                th.style.textAlign = "left";
+                headerRow.appendChild(th);
+              });
+              thead.appendChild(headerRow);
+              table.appendChild(thead);
+
+              const tbody = document.createElement("tbody");
+              queryResult.forEach(row => {
+                const tr = document.createElement("tr");
+                headers.forEach(h => {
+                  const td = document.createElement("td");
+                  td.textContent = row[h];
+                  td.style.padding = "8px";
+                  td.style.borderBottom = "1px solid #e5e7eb";
+                  tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+              });
+              table.appendChild(tbody);
+              card.appendChild(table);
+            } else {
+              card.innerHTML += `<div style="color:gray">No rows returned</div>`;
+            }
+
+            columnContainer.appendChild(card);
+          });
+        } else {
+          columnContainer.innerHTML = `<div style="color:red">Unexpected result format.</div>`;
+        }
+      })
+      .catch(err => {
+        document.getElementById("result").innerHTML = '<span style="color:red">Error: ' + err + '</span>';
+        document.getElementById("columnResult").innerHTML = '<span style="color:red">Error: ' + err + '</span>';
+      });
+    }
+  </script>
+</body>
+</html>

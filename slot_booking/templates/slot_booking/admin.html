@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Slot Booking Admin Panel</title>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      padding-left: 20px;
+    }
+
+    .main-container {
+      display: flex;
+      height: calc(100vh - 60px);
+      gap: 20px;
+      padding: 0 20px;
+    }
+
+    .left-panel, .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .save-button-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    #editorContainer,
+    #submissionsEditorContainer {
+      flex: 1;
+      border: 1px solid #ccc;
+      height: 100%;
+      width: 100%;
+    }
+
+    .monaco-editor,
+    .monaco-editor .overflow-guard,
+    .monaco-scrollable-element {
+      height: 100% !important;
+      width: 100% !important;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #errorContainer,
+    #submissionsErrorContainer {
+      color: red;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .top-right-button {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+}
+
+  </style>
+
+  <!-- Monaco Editor -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.1/min/vs/loader.min.js"></script>
+</head>
+<body>
+
+  <h2>Slot Booking Admin Panel</h2>
+  <div class="top-right-button">
+    <button onclick="exportExcel()">Export Bookings (Excel)</button>
+  </div>
+  
+  <div class="main-container">
+
+    <!-- Left: Config Editor -->
+    <div class="left-panel">
+      <div class="save-button-container">
+        <button id="saveButton" onclick="saveConfig()">Save Config</button>
+        <div id="errorContainer"></div>
+      </div>
+      <div id="editorContainer"></div>
+    </div>
+
+    <!-- Right: Submissions Editor -->
+    <div class="right-panel">
+      <div class="save-button-container">
+        <button id="saveSubmissionsButton" onclick="saveSubmissions()">Save Submissions</button>
+        <div id="submissionsErrorContainer"></div>
+      </div>
+      <div id="submissionsEditorContainer"></div>
+    </div>
+
+  </div>
+
+  <script>
+    let editor, submissionsEditor;
+
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.1/min/vs' } });
+
+    require(['vs/editor/editor.main'], function () {
+      editor = monaco.editor.create(document.getElementById('editorContainer'), {
+        language: 'json',
+        theme: 'vs-dark',
+        automaticLayout: true
+      });
+
+      submissionsEditor = monaco.editor.create(document.getElementById('submissionsEditorContainer'), {
+        language: 'json',
+        theme: 'vs-dark',
+        automaticLayout: true
+      });
+
+      loadConfig();
+      loadSubmissionsEditor();
+      setupSaveShortcut();
+    });
+
+    function getCSRFToken() {
+      const token = document.querySelector('[name=csrfmiddlewaretoken]');
+      return token ? token.value : '';
+    }
+
+    function loadConfig() {
+      fetch('/slot_booking/config.json')
+        .then(response => response.json())
+        .then(config => {
+          editor.setValue(JSON.stringify(config, null, 2));
+        });
+    }
+
+    function loadSubmissionsEditor() {
+      fetch('/slot_booking/submissions.json')
+        .then(response => response.json())
+        .then(data => {
+          submissionsEditor.setValue(JSON.stringify(data, null, 2));
+        });
+    }
+
+    function setupSaveShortcut() {
+      window.addEventListener('keydown', function (event) {
+        if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+          event.preventDefault();
+          saveConfig();
+          saveSubmissions();
+        }
+      });
+    }
+
+    function saveConfig() {
+      const config = editor.getValue();
+      const csrfToken = getCSRFToken();
+      const saveButton = document.getElementById('saveButton');
+      const errorContainer = document.getElementById('errorContainer');
+
+      try {
+        const parsedConfig = JSON.parse(config);
+
+        saveButton.textContent = 'Saving...';
+        saveButton.style.backgroundColor = '#007bff';
+
+        fetch('/slot_booking/config.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify(parsedConfig, null, 2)
+        }).then(response => {
+          if (response.ok) {
+            saveButton.textContent = 'Saved';
+            saveButton.style.backgroundColor = 'green';
+            errorContainer.textContent = '';
+            setTimeout(() => {
+              saveButton.textContent = 'Save Config';
+              saveButton.style.backgroundColor = '#007bff';
+            }, 1000);
+          } else {
+            response.text().then(text => {
+              throw new Error(text);
+            });
+          }
+        }).catch(error => {
+          handleSaveError(error);
+        });
+
+      } catch (error) {
+        handleSaveError(error);
+      }
+    }
+
+    function handleSaveError(error) {
+      const saveButton = document.getElementById('saveButton');
+      const errorContainer = document.getElementById('errorContainer');
+
+      saveButton.textContent = 'Error';
+      saveButton.style.backgroundColor = 'red';
+      errorContainer.textContent = `❗ ${error.message}`;
+
+      setTimeout(() => {
+        saveButton.textContent = 'Save Config';
+        saveButton.style.backgroundColor = '#007bff';
+      }, 1000);
+    }
+
+    function saveSubmissions() {
+      const data = submissionsEditor.getValue();
+      const csrfToken = getCSRFToken();
+      const button = document.getElementById('saveSubmissionsButton');
+      const errorContainer = document.getElementById('submissionsErrorContainer');
+
+      try {
+        const parsed = JSON.parse(data);
+
+        button.textContent = 'Saving...';
+        button.style.backgroundColor = '#007bff';
+
+        fetch('/slot_booking/submissions.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify(parsed, null, 2)
+        }).then(response => {
+          if (response.ok) {
+            button.textContent = 'Saved';
+            button.style.backgroundColor = 'green';
+            errorContainer.textContent = '';
+            setTimeout(() => {
+              button.textContent = 'Save Submissions';
+              button.style.backgroundColor = '#007bff';
+            }, 1000);
+          } else {
+            response.text().then(text => {
+              throw new Error(text);
+            });
+          }
+        }).catch(error => {
+          handleSubmissionsError(error);
+        });
+
+      } catch (error) {
+        handleSubmissionsError(error);
+      }
+    }
+
+    function handleSubmissionsError(error) {
+      const button = document.getElementById('saveSubmissionsButton');
+      const errorContainer = document.getElementById('submissionsErrorContainer');
+
+      button.textContent = 'Error';
+      button.style.backgroundColor = 'red';
+      errorContainer.textContent = `❗ ${error.message}`;
+
+      setTimeout(() => {
+        button.textContent = 'Save Submissions';
+        button.style.backgroundColor = '#007bff';
+      }, 1000);
+    }
+  </script>
+
+</body>
+</html>

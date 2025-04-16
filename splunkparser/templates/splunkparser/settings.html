@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings - Edit Config</title>
+
+  <!-- Bootstrap Icons (Optional) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background-color: #333;
+      color: #fff;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .buttons-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .buttons-bar button {
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+
+    .buttons-bar button:hover {
+      background-color: #0056b3;
+    }
+
+    .buttons-bar button.saved {
+      background-color: #28a745 !important; /* Green */
+    }
+
+    .buttons-bar button.error {
+      background-color: #dc3545 !important; /* Red */
+    }
+
+    .error-message-inline {
+      color: #ff6961;
+      font-size: 14px;
+      margin-left: 20px;
+    }
+
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #editor {
+      flex: 1;
+    }
+
+    .status-bar {
+      height: 25px;
+      padding: 5px 10px;
+      font-size: 12px;
+      background-color: #f5f5f5;
+      border-top: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header with buttons and error message -->
+  <div class="header-bar">
+    <div class="header-title">
+      <h2>Config Editor</h2>
+      <div id="errorMessage" class="error-message-inline"></div>
+    </div>
+
+    <div class="buttons-bar">
+      <button id="saveButton" onclick="saveConfig()">Save Changes</button>
+      <button onclick="goBack()">Back</button>
+    </div>
+  </div>
+
+  <!-- Monaco Editor Container -->
+  <div class="editor-container">
+    <div id="editor"></div>
+
+    <div class="status-bar">
+      <div>Selected: <span id="editorSelectionCount">0</span> characters</div>
+    </div>
+  </div>
+
+  <!-- Monaco Editor Loader -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.js"></script>
+
+  <script>
+    let editor;
+  
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' }});
+  
+    require(['vs/editor/editor.main'], function() {
+      editor = monaco.editor.create(document.getElementById('editor'), {
+        value: '',
+        language: 'json',
+        theme: 'vs-dark',
+        automaticLayout: true
+      });
+  
+      editor.onDidChangeCursorSelection(updateEditorSelection);
+  
+      // Load settings.json via Django backend
+      fetchSettingsJson();
+    });
+  
+    // ✅ Fetch settings.json from Django
+    function fetchSettingsJson() {
+      fetch('/splunkparser/settings-json/')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch settings.json');
+          }
+          return response.json();
+        })
+        .then(data => {
+          const jsonText = JSON.stringify(data, null, 2);
+          editor.setValue(jsonText);
+          console.log("✅ settings.json loaded");
+        })
+        .catch(error => {
+          console.error('❌ Error loading settings.json:', error);
+          document.getElementById('errorMessage').innerText = "Failed to load settings.json!";
+        });
+    }
+  
+    // ✅ Save changes to settings.json (optional)
+    function saveConfig() {
+      const saveBtn = document.getElementById('saveButton');
+      const errorBox = document.getElementById('errorMessage');
+      const configContent = editor.getValue();
+  
+      errorBox.innerText = '';
+  
+      try {
+        const parsedJson = JSON.parse(configContent);
+  
+        fetch('/splunkparser/save-settings/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify(parsedJson)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            saveBtn.textContent = 'Saved!';
+            saveBtn.classList.add('saved');
+          } else {
+            errorBox.innerText = `❌ Error saving: ${data.message}`;
+            saveBtn.textContent = 'Error';
+            saveBtn.classList.add('error');
+          }
+  
+          setTimeout(() => {
+            saveBtn.textContent = 'Save Changes';
+            saveBtn.classList.remove('saved', 'error');
+          }, 1000);
+        });
+  
+      } catch (error) {
+        console.error('❌ JSON Error:', error);
+        errorBox.innerText = `❌ JSON Error: ${error.message}`;
+        saveBtn.textContent = 'Error';
+        saveBtn.classList.add('error');
+  
+        setTimeout(() => {
+          saveBtn.textContent = 'Save Changes';
+          saveBtn.classList.remove('error');
+        }, 1000);
+      }
+    }
+  
+    function goBack() {
+      window.location.href = '/splunkparser/';
+    }
+  
+    function updateEditorSelection() {
+      const selection = editor.getSelection();
+      const selectedText = editor.getModel().getValueInRange(selection);
+      document.getElementById('editorSelectionCount').innerText = selectedText.length;
+    }
+  
+    // ✅ CSRF Helper (for POST requests)
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  
+    // ✅ Save shortcut Ctrl+S
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveConfig();
+      }
+    });
+  </script>
+  
+</body>
+</html>

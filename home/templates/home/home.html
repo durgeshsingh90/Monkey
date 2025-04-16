@@ -1,0 +1,134 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monkey</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chewy&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'home/styles.css' %}">
+    <link id="favicon" rel="icon" href="{% static 'home/images/frame1.png' %}">
+</head>
+<body>
+
+<header>
+    <h1>Monkey <span class="beta">BETA</span> <img src="{% static 'home/images/wip.gif' %}" alt="WIP GIF" class="wip-gif"></h1>
+    <div class="gif-container">
+        <img src="{% static 'home/images/monkey.gif' %}" alt="Monkey GIF" class="monkey-gif">
+    </div>
+    <div class="search-container">
+        <input type="text" placeholder="Search..." class="search-bar" id="searchBar">
+    </div>
+</header>
+
+<section class="container" id="appContainer">
+    <div class="app-card">
+        <h3>Slot Booking</h3>
+        <p>Book slots for clients.</p>
+        <a href="/slot_booking/" class="btn">Launch</a>
+    </div>
+
+    <div class="app-card">
+        <h3>Splunk Parser</h3>
+        <p>Parse Splunk logs to mango</p>
+        <a href="/splunkparser/" class="btn">Launch</a>
+    </div>
+
+    <div class="app-card">
+        <h3>Text Comparison</h3>
+        <p>Compare two pieces of texts.</p>
+        <a href="/compare/" class="btn">Launch</a>
+    </div>
+
+    <div class="app-card">
+        <h3>Splunk RRN</h3>
+        <p>Generate Splunk queries</p>
+        <a href="/splunkrrn/" class="btn">Launch</a>
+    </div>
+    <div class="app-card">
+        <h3>Database Query</h3>
+        <p>DB Query Executor</p>
+        <a href="/oracle_query_executor/" class="btn">Launch</a>
+    </div>
+    <div class="app-card">
+        <h3>Validate test cases</h3>
+        <p>Validate test cases</p>
+        <a href="/validate_testcase/" class="btn">Launch</a>
+    </div>
+    <div class="app-card">
+        <h3>Reversals</h3>
+        <p>Generate Reversal and Refunds</p>
+        <a href="/gen_reversals/" class="btn">Launch</a>
+    </div>
+
+    <div class="app-card">
+        <h3>JSON to YAML Converter</h3>
+        <p>Convert JSON to YAML.</p>
+        <a href="/json2yaml/" class="btn">Launch</a>
+    </div>
+
+    <div class="app-card">
+        <h3>PDF Merger</h3>
+        <p>Merge multiple PDFs in one click.</p>
+        <a href="/pdf_merger/" class="btn">Launch</a>
+    </div>
+
+    <div class="app-card">
+        <h3>Bin Block</h3>
+        <p>Block bins</p>
+        <a href="/binblock/" class="btn">Launch</a>
+    </div>
+    <div class="app-card">
+        <h3>Scheme Logs Processor</h3>
+        <p>Filter Astrex html logs or EMVCO logs</p>
+        <a href="/astrex_html_logs/" class="btn">Launch</a>
+    </div>
+</section>
+
+<footer>
+    <!-- &copy; 2025 Fiserv. All rights reserved. -->
+     Beta version 1.5
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchBar = document.getElementById('searchBar');
+    const appContainer = document.getElementById('appContainer');
+    const appCards = Array.from(appContainer.getElementsByClassName('app-card'));
+
+    searchBar.addEventListener('keyup', function() {
+        const query = searchBar.value.toLowerCase();
+
+        appCards.forEach(card => {
+            const title = card.getElementsByTagName('h3')[0].innerText.toLowerCase();
+            const description = card.getElementsByTagName('p')[0].innerText.toLowerCase();
+
+            if (title.includes(query) || description.includes(query)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+
+    // Favicon animation
+    const frames = [
+        "{% static 'home/images/frame1.png' %}",
+        // "{% static 'home/images/frame2.png' %}",
+        // "{% static 'home/images/frame3.png' %}",
+        // add more frames as necessary
+    ];
+    let currentFrame = 0;
+    
+    function animateFavicon() {
+        const favicon = document.getElementById('favicon');
+        favicon.href = frames[currentFrame];
+        currentFrame = (currentFrame + 1) % frames.length;
+    }
+
+    setInterval(animateFavicon, 500); // Change frame every 500 milliseconds
+
+});
+</script>
+
+</body>
+</html>

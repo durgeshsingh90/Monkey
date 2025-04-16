@@ -1,0 +1,34 @@
+SQL*Plus: Release 19.0.0.0.0 - Production on Tue Mar 25 12:00:47 2025
+Version 19.3.0.0.0
+Copyright (c) 1982, 2019, Oracle.  All rights reserved.
+Last Successful login time: Tue Mar 25 2025 11:38:34 +00:00
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.23.0.0.0
+SQL> 
+DESCRIPTION
+--------------------------------------------------
+AMEX
+BCMC
+CUP
+DAML
+Diners
+Discover
+EasyCash
+Europay
+JCB
+Maestro
+RUSSIAN-
+DESCRIPTION
+--------------------------------------------------
+RUSSIANE
+RUSSIANV
+SYRIAMC
+SYRIAV
+VAML
+VISA
+VISASMS
+VPAY
+19 rows selected.
+SQL> Disconnected from Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.23.0.0.0

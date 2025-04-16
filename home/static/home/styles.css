@@ -1,0 +1,156 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #f7e9a1;
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 2rem;
+  animation: fadeInDown 1s ease-out;
+  background: #ffb347;
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  font-family: 'Chewy', cursive;
+  font-weight: 800;
+  color: #8c1b13;
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  
+}
+.beta {
+    font-size: 0.5em; /* Smaller size */
+    vertical-align: top; /* Align to the top */
+    margin-left: 0.5em;
+}
+.wip-gif {
+  width: 60px; /* Adjust the size as needed */
+  height: auto;
+  vertical-align: top; /* Align to top */
+  margin-left: 0.0em;
+}
+.gif-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.monkey-gif {
+  width: 150px; /* Fixed width */
+  height: auto; /* Adjust height to maintain aspect ratio */
+}
+
+header p {
+  margin-top: 0.5rem;
+  font-size: 1.2rem;
+  color: #66110c;
+}
+
+.search-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.search-bar {
+  width: 80%;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 2rem;
+  font-size: 1rem;
+  outline: none;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+  flex: 1;
+  animation: fadeInUp 1s ease-out;
+}
+
+.app-card {
+  background: #ffe07a;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  background: #ffcc5c;
+}
+
+.app-card h3 {
+  margin-bottom: 1rem;
+  color: #8c1b13;
+}
+
+.app-card p {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.btn {
+  margin-top: 1.5rem;
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  color: #fff;
+  background: #8c1b13;
+  border-radius: 2rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background: #6e0f0a;
+}
+
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  background: #ffb347;
+  color: #66110c;
+  font-size: 0.9rem;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive tweak */
+@media(max-width: 600px) {
+  header h1 { font-size: 2rem; }
+  .search-bar {
+    width: 90%;
+  }
+}

@@ -1,0 +1,386 @@
+/* General Styles */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: auto; /* ✅ Allows scroll */
+}
+
+
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Left Panel Styles */
+.left {
+    flex: 1;
+    padding: 25px;
+    background-color: #ffffff;
+    border-right: 1px solid #e1e4e8;
+    max-width: 45%;
+    min-width: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.left h1 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 24px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.left h2 {
+    color: #2c3e50;
+    margin-top: 30px;
+    font-size: 18px;
+}
+
+/* Form Styles */
+#query-form {
+    background-color: transparent; /* Optional: if you want no background */
+    padding: 0; /* Remove all internal spacing */
+    border-radius: 0;
+    box-shadow: none;
+}
+
+#save-script-button {
+    transition: background-color 0.3s ease;
+}
+
+#execute-button {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    flex: 1;
+}
+
+.save-load-group {
+    flex: 1.5;
+}
+
+#query-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 13px;
+}
+
+#db_key, #format_selector, #load-script-dropdown {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    background-color: white;
+}
+
+#load-script-dropdown {
+    min-width: 150px;
+}
+
+
+.editor-section label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.editor-section {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor {
+    flex-grow: 1;
+    min-height: 600px;
+}
+
+
+/* Output Options */
+.output-options {
+    margin: 15px 0;
+}
+
+.checkbox-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 8px;
+}
+
+.checkbox-group label {
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Button Styles */
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+#get-count-button {
+    background-color: #27ae60;
+}
+
+#get-count-button:hover {
+    background-color: #219653;
+}
+
+#save-script-button {
+    background-color: #9b59b6;
+    width: 100%;
+}
+
+#save-script-button:hover {
+    background-color: #8e44ad;
+}
+
+/* Save/Load Container */
+#save-load-container {
+    display: flex;
+    gap: 10px;
+}
+
+/* History List */
+.history-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #f8f9fa;
+}
+
+.history-item {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background-color: white;
+    border-radius: 4px;
+    border-left: 3px solid #3498db;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.history-item:hover {
+    background-color: #eaf2f8;
+    border-left-color: #2980b9;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#prev-page, #next-page {
+    background-color: #bdc3c7;
+}
+
+#prev-page:hover, #next-page:hover {
+    background-color: #95a5a6;
+}
+
+/* Right Panel Styles */
+.right {
+    flex: 2;
+    padding: 25px;
+    background-color: #ffffff;
+    overflow-y: auto;
+}
+
+.right h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 18px;
+    border-bottom: 1px solid #e1e4e8;
+    padding-bottom: 10px;
+}
+
+/* View Buttons */
+.view-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.view-buttons button {
+    background-color: #95a5a6;
+}
+
+.view-buttons button:hover {
+    background-color: #7f8c8d;
+}
+
+#new-tab-button {
+    background-color: #e67e22;
+}
+
+#new-tab-button:hover {
+    background-color: #d35400;
+}
+
+.dropdown {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+}
+
+/* Table Container */
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e1e4e8;
+}
+
+th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+tr:hover {
+    background-color: #f5f7fa;
+}
+
+/* Result Pre */
+#result {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #e1e4e8;
+    white-space: pre-wrap;
+    font-family: 'Courier New', Courier, monospace;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .left, .right {
+        max-width: 100%;
+        min-width: auto;
+    }
+    
+    .left {
+        padding: 0;
+        overflow: visible !important; /* prevent inner scroll */
+
+    }
+    /* Let history list grow naturally without forcing scroll */
+#history_list {
+    max-height: unset !important;
+    overflow: visible !important;
+}
+
+    .form-row,
+    .editor-section,
+    .output-options,
+    .action-buttons {
+        margin-bottom: 10px;
+    }
+
+    .form-group, .save-load-group {
+        width: 100%;
+    }
+
+    #save-load-container {
+        width: 100%;
+    }
+}
+/* Make small dropdown row compact */
+.small-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.small-row .form-group {
+    flex: 1;
+}
+
+#db_key, #format_selector {
+    padding: 6px 8px;
+    font-size: 13px;
+    height: 36px;
+}
+
+.history-controls {
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-controls input {
+    flex: 1;
+    padding: 6px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.history-actions button {
+    font-size: 18px;
+    margin-left: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+.history-actions button:hover {
+    transform: scale(1.2);
+}

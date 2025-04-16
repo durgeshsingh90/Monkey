@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ISO 8583 Compact View</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f5f7;
+      margin: 0;
+      padding: 10px;
+    }
+
+    .transaction-box {
+      display: flex;
+      flex-wrap: wrap;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 6px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .field {
+      flex: 0 0 auto;
+      width: 280px;
+      max-width: 100%;
+      padding: 6px 8px;
+      margin: 4px;
+      font-size: 12px;
+      background-color: #f9fafc;
+      border-radius: 4px;
+      border: 1px solid #e0e0e0;
+      box-sizing: border-box;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #333;
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+
+    .value {
+      color: #111;
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h2>ISO 8583 Transaction - Field View</h2>
+
+  <div class="transaction-box">
+    <div class="field">
+      <div class="label">RRN</div>
+      <div class="value">123456789012</div>
+    </div>
+    <div class="field">
+      <div class="label">MTI</div>
+      <div class="value">0200</div>
+    </div>
+    <div class="field">
+      <div class="label">PAN</div>
+      <div class="value">456789******1234</div>
+    </div>
+    <div class="field">
+      <div class="label">DE102</div>
+      <div class="value">1234567890123456789012345</div>
+    </div>
+    <div class="field">
+      <div class="label">DE103</div>
+      <div class="value">5432109876543210987654321</div>
+    </div>
+    <div class="field">
+      <div class="label">DE055</div>
+      <div class="value">9F2608AABBCCDDEEFF119F2701809F101307010103A0B0000000000000000000000F</div>
+    </div>
+    <div class="field">
+      <div class="label">DE060</div>
+      <div class="value">123456789012345678901234567890</div>
+    </div>
+  </div>
+</body>
+</html>

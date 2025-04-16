@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Splunk RRN Search Builder</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            transition: background-color 0.3s ease;
+        }
+
+        #editorContainer {
+            position: relative;
+        }
+
+        #inputEditor {
+            height: 300px;
+            border: 1px solid #ced4da;
+            border-bottom: 0;
+            border-radius: 0.25rem 0.25rem 0 0;
+            padding: 10px;
+        }
+
+        #statusBar {
+            height: 30px;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 0 0 0.25rem 0.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 0.9rem;
+            color: #495057;
+            margin: 0;
+        }
+
+        .output-section textarea {
+            resize: none;
+            width: 100%;
+            height: calc(100vh - 200px);
+            font-family: monospace;
+            background-color: #f8f9fa;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+        }
+
+        .btn {
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #5a6268;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        #darkModeBtn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        @media (max-width: 768px) {
+            #inputEditor {
+                height: 200px;
+            }
+
+            .output-section textarea {
+                height: calc(100vh - 300px);
+            }
+
+            h2 {
+                font-size: 1.25rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #inputEditor {
+                height: 150px;
+            }
+
+            .output-section textarea {
+                height: calc(100vh - 350px);
+            }
+
+            .output-section {
+                margin-top: 20px;
+            }
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #2e2e2e;
+            color: #fff;
+        }
+
+        .output-section textarea.dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+
+        #statusBar.dark-mode {
+            background-color: #444;
+            color: #fff;
+        }
+
+        .btn-dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-3">
+        <button id="darkModeBtn" class="btn btn-sm btn-dark" onclick="toggleDarkMode()">Enable Dark Mode</button>
+        <h2 class="text-center mb-3">Splunk RRN Search Builder</h2>
+        <div class="row">
+            <!-- Input Section -->
+            <div class="col-md-6 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="font-weight-bold">Enter RRN numbers:</label>
+                    <button class="btn btn-sm btn-secondary" onclick="removeEmptyLines()">Remove Empty Lines</button>
+                </div>
+                <div id="editorContainer">
+                    <div id="inputEditor"></div>
+                    <div id="statusBar">
+                        <span id="lineInfo">Line: 1</span>
+                        <span id="textLength">Length: 0</span>
+                        <span id="selectedTextLength">Selected: 0</span>
+                    </div>
+                </div>
+
+                <!-- Options Section with two columns -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="addIndex" onchange="modifyNumbers()" checked>
+                            <label class="custom-control-label" for="addIndex">index = application_omnipay</label>
+                        </div>
+
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="addHost1" onchange="modifyNumbers()">
+                            <label class="custom-control-label" for="addHost1">host = a4pvap068</label>
+                        </div>
+
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="addHost2" onchange="modifyNumbers()">
+                            <label class="custom-control-label" for="addHost2">host = a5pvap039</label>
+                        </div>
+
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="addHost3" onchange="modifyNumbers()">
+                            <label class="custom-control-label" for="addHost3">host = a5pvap040</label>
+                        </div>
+                    </div>
+
+                    <!-- New column for the last two host options -->
+                    <div class="col-md-6">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="addHost4" onchange="modifyNumbers()">
+                            <label class="custom-control-label" for="addHost4">host = A5CVAP1003</label>
+                        </div>
+
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="addHost5" onchange="modifyNumbers()">
+                            <label class="custom-control-label" for="addHost5">host = A5CVAP1004</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="lineStatus" class="mt-2">Total Lines: 1</div>
+            </div>
+
+            <!-- Output Section -->
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="font-weight-bold">Splunk Search Output:</label>
+                    <button id="copyButton" class="btn btn-sm btn-primary" onclick="copyToClipboard()">Copy to Clipboard</button>
+                </div>
+                <div class="output-section">
+                    <textarea id="outputNumbers" class="form-control" readonly></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Monaco Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+
+    <script>
+        let inputEditor;
+        let darkModeEnabled = false;
+
+        // Load Monaco Editor
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            inputEditor = monaco.editor.create(document.getElementById('inputEditor'), {
+                value: '',
+                language: 'plaintext',
+                theme: 'vs-light',
+                automaticLayout: true
+            });
+
+            const savedInput = localStorage.getItem('inputNumbers');
+            if (savedInput) {
+                inputEditor.setValue(savedInput);
+                modifyNumbers();
+                updateStatusBar();
+            }
+
+            // Check localStorage for dark mode preference
+            const darkModePref = localStorage.getItem('darkMode');
+            if (darkModePref === 'enabled') {
+                enableDarkMode();
+            }
+
+            // Bind to input changes to update status bar and modify numbers in real-time
+            inputEditor.onDidChangeModelContent(() => {
+                updateStatusBar();
+                modifyNumbers();
+            });
+
+            inputEditor.onDidChangeCursorPosition(() => {
+                updateStatusBar();
+            });
+
+            inputEditor.onDidChangeCursorSelection(() => {
+                updateStatusBar();
+            });
+        });
+
+        function updateStatusBar() {
+            const model = inputEditor.getModel();
+            const currentPosition = inputEditor.getPosition();
+            const lineCount = model.getLineCount();
+            const textLength = model.getValueLength();
+            const selection = inputEditor.getSelection();
+            const selectedTextLength = model.getValueInRange(selection).length;
+
+            document.getElementById('lineInfo').textContent = `Line: ${currentPosition.lineNumber}`;
+            document.getElementById('textLength').textContent = `Length: ${textLength}`;
+            document.getElementById('selectedTextLength').textContent = `Selected: ${selectedTextLength}`;
+        }
+
+        function modifyNumbers() {
+            const input = inputEditor.getValue();
+            localStorage.setItem('inputNumbers', input);
+
+            const addIndex = document.getElementById('addIndex').checked;
+            const addHost1 = document.getElementById('addHost1').checked;
+            const addHost2 = document.getElementById('addHost2').checked;
+            const addHost3 = document.getElementById('addHost3').checked;
+            const addHost4 = document.getElementById('addHost4').checked;
+            const addHost5 = document.getElementById('addHost5').checked;
+
+            const lines = input.split('\n').filter(line => line.trim() !== '');
+            let modifiedLines = [];
+            let useAnd = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].replace(/\s/g, '');
+                let modifiedLine = line;
+
+                if (line.length > 30) {
+                    let cleanedNumber = '';
+                    for (let j = 0; j < line.length; j += 2) {
+                        if (line[j] === '3') {
+                            cleanedNumber += line[j + 1];
+                        }
+                    }
+                    modifiedLines.push(cleanedNumber);
+                    continue;
+                }
+
+                let match12 = line.match(/(\d{12})/);
+                let match24 = line.match(/(\d{24})/);
+
+                if (match12) {
+                    let originalNumber = match12[1];
+                    let modifiedNumber = '';
+                    for (let j = 0; j < originalNumber.length; j++) {
+                        modifiedNumber += '3' + originalNumber[j];
+                    }
+                    modifiedLine = line.replace(originalNumber, `${originalNumber} OR ${modifiedNumber}`);
+                }
+
+                if (match24) {
+                    let originalNumber = match24[1];
+                    let cleanedNumber = '';
+                    for (let j = 0; j < originalNumber.length; j += 2) {
+                        if (originalNumber[j] === '3') {
+                            cleanedNumber += originalNumber[j + 1];
+                        }
+                    }
+                    modifiedLine = line.replace(originalNumber, `${cleanedNumber}`);
+                }
+
+                if (line.trim().endsWith(" AND")) {
+                    useAnd = true;
+                    modifiedLine = modifiedLine.replace(" AND", "");
+                }
+
+                modifiedLines.push(modifiedLine);
+            }
+
+            let output = modifiedLines.join(useAnd ? ' AND ' : ' OR ');
+
+            if (addIndex) {
+                let hosts = '';
+                if (addHost1) hosts += ' host = a4pvap068';
+                if (addHost2) hosts += ' host = a5pvap039';
+                if (addHost3) hosts += ' host = a5pvap040';
+                if (addHost4) hosts += ' host = A5CVAP1003';
+                if (addHost5) hosts += ' host = A5CVAP1004';
+                output = `index = application_omnipay ${hosts} ${output} | reverse`;
+            }
+
+            document.getElementById('outputNumbers').value = output;
+        }
+
+        function removeEmptyLines() {
+            const input = inputEditor.getValue();
+            const nonEmptyLines = input.split('\n').filter(line => line.trim() !== '');
+            inputEditor.setValue(nonEmptyLines.join('\n'));
+            modifyNumbers();
+            updateStatusBar();
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('outputNumbers');
+            output.select();
+            output.setSelectionRange(0, 99999);
+
+            document.execCommand('copy');
+
+            const copyButton = document.getElementById('copyButton');
+            copyButton.textContent = 'Copied!';
+            setTimeout(() => {
+                copyButton.textContent = 'Copy';
+            }, 1000);
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            darkModeEnabled = !darkModeEnabled;
+            if (darkModeEnabled) {
+                enableDarkMode();
+            } else {
+                disableDarkMode();
+            }
+        }
+
+        function enableDarkMode() {
+            document.body.classList.add('dark-mode');
+            document.getElementById('outputNumbers').classList.add('dark-mode');
+            document.getElementById('statusBar').classList.add('dark-mode');
+            inputEditor.updateOptions({
+                theme: 'vs-dark'
+            });
+            document.getElementById('darkModeBtn').textContent = 'Disable Dark Mode';
+            localStorage.setItem('darkMode', 'enabled');  // Save preference
+        }
+
+        function disableDarkMode() {
+            document.body.classList.remove('dark-mode');
+            document.getElementById('outputNumbers').classList.remove('dark-mode');
+            document.getElementById('statusBar').classList.remove('dark-mode');
+            inputEditor.updateOptions({
+                theme: 'vs-light'
+            });
+            document.getElementById('darkModeBtn').textContent = 'Enable Dark Mode';
+            localStorage.setItem('darkMode', 'disabled');  // Save preference
+        }
+    </script>
+</body>
+
+</html>

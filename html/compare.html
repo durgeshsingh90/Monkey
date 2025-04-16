@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Language Comparison Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/editor/editor.main.min.css">
+    <style>
+        body.light-mode {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        /* Flexbox layout for the entire page */
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Container for the editor and status bar */
+        #editorContainerWrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header bar for text and buttons */
+        #headerBar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+        }
+
+        #headerBarText {
+            font-size: 16px;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        /* Empty spacer div to push the text to center */
+        .spacer {
+            flex-grow: 0;
+        }
+
+        /* Button styling - Smaller size */
+        .toggleButton {
+            padding: 5px 10px; /* Reduced padding for smaller size */
+            cursor: pointer;
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px; /* Reduced font size */
+            margin-left: 5px; /* Reduced margin for more compact spacing */
+            transition: background-color 0.3s, border 0.3s;
+        }
+
+        body.light-mode .toggleButton {
+            background-color: #ddd;
+            color: #333;
+        }
+
+        body.light-mode #headerBar {
+            background-color: #ddd;
+            color: #333;
+        }
+
+        /* Active button styling */
+        .toggleButton.active {
+            background-color: #007BFF; /* Blue for active */
+            border: 2px solid #0056b3;
+            color: white;
+        }
+
+        /* Hover effect */
+        .toggleButton:hover {
+            background-color: #666;
+        }
+
+        body.light-mode .toggleButton:hover {
+            background-color: #ccc;
+        }
+
+        /* Monaco editor should grow to fill available space */
+        #editorContainer {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            overflow: hidden;
+        }
+
+        /* Status bar at the bottom of the screen */
+        #statusBar {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            font-family: monospace;
+            font-size: 12px;
+            background-color: #2c2c2c;
+            color: #ffffff;
+            border-top: 1px solid #444;
+        }
+
+        /* Dark mode styling for status bar */
+        body.dark-mode #statusBar {
+            background-color: #2c2c2c;
+            color: #ffffff;
+        }
+
+        body.light-mode #statusBar {
+            background-color: #f5f5f5;
+            color: #333;
+            border-top: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <!-- Header Bar with centered text and Dark Mode Toggle Button -->
+    <div id="headerBar">
+        <div class="spacer"></div> <!-- Empty div to push the text to center -->
+        <span id="headerBarText">Comparison Editor</span>
+        <button id="darkModeToggle" class="toggleButton">Dark Mode</button>
+        <button id="ignoreWhitespaceToggle" class="toggleButton">Ignore Whitespace</button>
+        <button id="showDiffToggle" class="toggleButton">Show Differences</button>
+        <button id="showSimToggle" class="toggleButton">Show Similarities</button>
+        <button id="showAllToggle" class="toggleButton">Show All</button>
+    </div>
+
+    <!-- Editor Container Wrapper with flex layout -->
+    <div id="editorContainerWrapper">
+        <div id="editorContainer"></div>
+        <div id="statusBar">
+            <span id="lnCl">Ln 1, Col 1</span>
+            <span id="length">Length: 0</span>
+            <span id="spaces">Spaces: 0</span>
+            <span id="sel">Sel: 0</span>
+            <span id="lines">Lines: 0</span>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+    
+    <!-- Ensure RequireJS is loaded and then execute script -->
+    <script>
+        // Wait for the RequireJS library to be ready
+        window.require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' } });
+        window.require(['vs/editor/editor.main'], function() {
+
+            let isDarkMode = false;
+            let isIgnoringWhitespace = false;
+
+            // Helper to update active button
+            function setActiveButton(button) {
+                const buttons = document.querySelectorAll('.toggleButton');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            }
+
+            function toggleDarkMode() {
+                const body = document.body;
+                const darkModeToggle = document.getElementById('darkModeToggle');
+
+                if (isDarkMode) {
+                    body.classList.remove('dark-mode');
+                    body.classList.add('light-mode');
+                    darkModeToggle.textContent = 'Dark Mode';
+                    monaco.editor.setTheme('vs');
+                } else {
+                    body.classList.remove('light-mode');
+                    body.classList.add('dark-mode');
+                    darkModeToggle.textContent = 'Light Mode';
+                    monaco.editor.setTheme('vs-dark');
+                }
+                isDarkMode = !isDarkMode;
+                localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            }
+
+            function toggleWhitespace() {
+                const diffEditor = window.diffEditor;
+                isIgnoringWhitespace = !isIgnoringWhitespace;
+                diffEditor.updateOptions({
+                    ignoreTrimWhitespace: isIgnoringWhitespace,
+                });
+                document.getElementById('ignoreWhitespaceToggle').textContent = isIgnoringWhitespace ? 'Include Whitespace' : 'Ignore Whitespace';
+            }
+
+            // Show only differences (including lines present in one box and not in the other)
+            function showOnlyDifferences() {
+                const diffEditor = window.diffEditor;
+                const originalEditor = diffEditor.getOriginalEditor();
+                const modifiedEditor = diffEditor.getModifiedEditor();
+                const lineChanges = diffEditor.getLineChanges();
+
+                const similarOriginalLines = [];
+                const similarModifiedLines = [];
+
+                // Collect all lines from original and modified editors
+                for (let i = 1; i <= originalEditor.getModel().getLineCount(); i++) {
+                    similarOriginalLines.push(i);
+                }
+                for (let i = 1; i <= modifiedEditor.getModel().getLineCount(); i++) {
+                    similarModifiedLines.push(i);
+                }
+
+                // Remove lines that are different (from similar lines lists)
+                lineChanges.forEach(change => {
+                    // Handle original side (lines present in original but not modified)
+                    if (change.originalEndLineNumber !== null) {
+                        for (let i = change.originalStartLineNumber; i <= change.originalEndLineNumber; i++) {
+                            similarOriginalLines.splice(similarOriginalLines.indexOf(i), 1);
+                        }
+                    }
+                    // Handle modified side (lines present in modified but not original)
+                    if (change.modifiedEndLineNumber !== null) {
+                        for (let i = change.modifiedStartLineNumber; i <= change.modifiedEndLineNumber; i++) {
+                            similarModifiedLines.splice(similarModifiedLines.indexOf(i), 1);
+                        }
+                    }
+                });
+
+                // Hide the similar lines (lines not changed)
+                originalEditor.setHiddenAreas(similarOriginalLines.map(line => ({ startLineNumber: line, endLineNumber: line })));
+                modifiedEditor.setHiddenAreas(similarModifiedLines.map(line => ({ startLineNumber: line, endLineNumber: line })));
+            }
+
+            // Show only similarities (hide different lines)
+            function showOnlySimilarities() {
+                const diffEditor = window.diffEditor;
+                const originalEditor = diffEditor.getOriginalEditor();
+                const modifiedEditor = diffEditor.getModifiedEditor();
+                const lineChanges = diffEditor.getLineChanges();
+
+                const diffOriginalLines = [];
+                const diffModifiedLines = [];
+
+                // Collect the ranges of lines that are different
+                lineChanges.forEach(change => {
+                    if (change.originalEndLineNumber !== null) {
+                        for (let i = change.originalStartLineNumber; i <= change.originalEndLineNumber; i++) {
+                            diffOriginalLines.push({ startLineNumber: i, endLineNumber: i });
+                        }
+                    }
+                    if (change.modifiedEndLineNumber !== null) {
+                        for (let i = change.modifiedStartLineNumber; i <= change.modifiedEndLineNumber; i++) {
+                            diffModifiedLines.push({ startLineNumber: i, endLineNumber: i });
+                        }
+                    }
+                });
+
+                // Hide the different lines
+                originalEditor.setHiddenAreas(diffOriginalLines);
+                modifiedEditor.setHiddenAreas(diffModifiedLines);
+            }
+
+            // Show all (restore both similarities and differences)
+            function showAll() {
+                const diffEditor = window.diffEditor;
+                const originalEditor = diffEditor.getOriginalEditor();
+                const modifiedEditor = diffEditor.getModifiedEditor();
+
+                originalEditor.setHiddenAreas([]);
+                modifiedEditor.setHiddenAreas([]);
+            }
+
+            // Save the content to localStorage with a unique key for comparetexts
+            function saveEditorContent(originalModel, modifiedModel) {
+                const originalContent = originalModel.getValue();
+                const modifiedContent = modifiedModel.getValue();
+
+                // Use unique key 'comparetexts' to avoid conflicts
+                localStorage.setItem('comparetexts_originalContent', originalContent);
+                localStorage.setItem('comparetexts_modifiedContent', modifiedContent);
+            }
+
+            // Load content from localStorage with a unique key for comparetexts
+            function loadEditorContent() {
+                const originalContent = localStorage.getItem('comparetexts_originalContent') || 'Your original code or content goes here...';
+                const modifiedContent = localStorage.getItem('comparetexts_modifiedContent') || 'Your modified code or content goes here...';
+                return { originalContent, modifiedContent };
+            }
+
+            // Main script to initialize Monaco and set up saving/loading
+            const container = document.getElementById('editorContainer');
+            
+            // Load initial content from localStorage
+            const { originalContent, modifiedContent } = loadEditorContent();
+
+            // Create Monaco Diff Editor
+            const diffEditor = monaco.editor.createDiffEditor(container, {
+                enableSplitView: true,
+                readOnly: false,
+                renderSideBySide: true,
+                ignoreTrimWhitespace: false,
+                originalEditable: true,
+                theme: 'vs', // Default theme
+                wordWrap: 'on',
+                lineNumbers: 'on',
+                renderIndicators: true,
+                renderMinimap: true
+            });
+
+            window.diffEditor = diffEditor; // Attach diffEditor to window for global access
+
+            const originalModel = monaco.editor.createModel(originalContent, 'plaintext'); // Default to plaintext
+            const modifiedModel = monaco.editor.createModel(modifiedContent, 'plaintext'); // Default to plaintext
+
+            diffEditor.setModel({
+                original: originalModel,
+                modified: modifiedModel
+            });
+
+            // Status bar elements
+            const lnCl = document.getElementById('lnCl');
+            const spaces = document.getElementById('spaces');
+            const sel = document.getElementById('sel');
+            const length = document.getElementById('length');
+            const lines = document.getElementById('lines');
+
+            // Update the status bar
+            function updateStatusBar(editor) {
+                const position = editor.getPosition();
+                const selection = editor.getSelection();
+                const model = editor.getModel();
+
+                lnCl.textContent = `Ln ${position.lineNumber}, Col ${position.column}`;
+                const lineContent = model.getLineContent(position.lineNumber);
+                const spaceCount = (lineContent.match(/ /g) || []).length;
+                spaces.textContent = `Spaces: ${spaceCount}`;
+                const selectedText = model.getValueInRange(selection);
+                sel.textContent = `Sel: ${selectedText.length}`;
+                length.textContent = `Length: ${selectedText.length}`;
+                lines.textContent = `Lines: ${model.getLineCount()}`;
+            }
+
+            // Save on content change
+            originalModel.onDidChangeContent(() => {
+                saveEditorContent(originalModel, modifiedModel); // Save to localStorage
+            });
+            modifiedModel.onDidChangeContent(() => {
+                saveEditorContent(originalModel, modifiedModel); // Save to localStorage
+            });
+
+            // Hook into editors to track changes
+            [diffEditor.getOriginalEditor(), diffEditor.getModifiedEditor()].forEach(editor => {
+                editor.onDidChangeCursorPosition(() => updateStatusBar(editor));
+                editor.onDidChangeCursorSelection(() => updateStatusBar(editor));
+                updateStatusBar(editor); // Update status bar on load
+            });
+
+            // Restore the last saved theme from localStorage
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                toggleDarkMode();
+            }
+
+            // Add event listener for dark mode toggle
+            document.getElementById('darkModeToggle').addEventListener('click', (e) => {
+                toggleDarkMode();
+                setActiveButton(e.target);
+            });
+
+            // Add event listeners for the other buttons
+            document.getElementById('ignoreWhitespaceToggle').addEventListener('click', (e) => {
+                toggleWhitespace();
+                setActiveButton(e.target);
+            });
+            document.getElementById('showDiffToggle').addEventListener('click', (e) => {
+                showOnlyDifferences();
+                setActiveButton(e.target);
+            });
+            document.getElementById('showSimToggle').addEventListener('click', (e) => {
+                showOnlySimilarities();
+                setActiveButton(e.target);
+            });
+            document.getElementById('showAllToggle').addEventListener('click', (e) => {
+                showAll();
+                setActiveButton(e.target);
+            });
+        });
+    </script>
+</body>
+</html>
