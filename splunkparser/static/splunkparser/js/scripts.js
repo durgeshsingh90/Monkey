@@ -121,20 +121,51 @@ async function saveOutputFile(content) {
 function copyOutput() {
   const output = document.getElementById('outputArea').textContent;
   const copyButton = document.getElementById('copyButton');
-  navigator.clipboard.writeText(output).then(() => {
-    copyButton.textContent = 'Copied!';
-    setTimeout(() => { copyButton.textContent = 'Copy Output'; }, 1000);
-  }).catch(err => notify(`❌ Failed to copy: ${err.message}`));
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(output).then(() => {
+      copyButton.textContent = 'Copied!';
+      setTimeout(() => { copyButton.textContent = 'Copy Output'; }, 1000);
+    }).catch(err => notify(`❌ Clipboard error: ${err.message}`));
+  } else {
+    const textarea = document.createElement('textarea');
+    textarea.value = output;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = 0;
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        copyButton.textContent = 'Copied!';
+        setTimeout(() => { copyButton.textContent = 'Copy Output'; }, 1000);
+      } else {
+        notify('❌ Fallback copy failed');
+      }
+    } catch (err) {
+      notify(`❌ Fallback error: ${err.message}`);
+    }
+    document.body.removeChild(textarea);
+  }
 }
 
+
+
 async function setDefault() {
+  const logData = editor.getValue().trim();
+  const presentDEs = Array.from(logData.matchAll(/(?:in|out)\[\s*(\d+):?\s*\]</g))
+                          .map(match => match[1].padStart(3, '0'))
+                          .map(de => `DE${de}`);
+
   try {
     const response = await fetch('/splunkparser/set_default/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrftoken
-      }
+      },
+      body: JSON.stringify({ present_fields: presentDEs })  // ✅ pass only DEs found in text
     });
 
     const data = await response.json();
@@ -142,8 +173,6 @@ async function setDefault() {
     if (data.status === 'success') {
       const jsonOutput = JSON.stringify(data.result, null, 2);
       displayOutput(jsonOutput, 'language-json');
-
-      // ✅ Show scheme & card name in notification
       notify(`✅ Default values applied.\nScheme: ${data.scheme}\n | Card: ${data.cardName}`);
 
       const defaultBtn = document.getElementById('defaultButton');

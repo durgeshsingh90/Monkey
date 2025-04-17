@@ -65,7 +65,7 @@ LOGGING = {
     },
     'handlers': {
         'file': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': str(LOG_DIR / 'django.log'),
             'when': 'midnight',  # rotate daily at midnight
@@ -73,7 +73,7 @@ LOGGING = {
             'formatter': 'standard',
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
         },
@@ -81,7 +81,7 @@ LOGGING = {
     'loggers': {
         '': {
             'handlers': ['file', 'console'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': True
         },
     }

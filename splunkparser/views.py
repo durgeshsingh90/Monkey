@@ -3,20 +3,68 @@ import logging
 import os
 import re
 import random
-from django.http import JsonResponse
-from django.conf import settings
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
-#logger = logging.getLogger('splunkparser')
+# Configure logger for detailed logging
+logger = logging.getLogger('splunkparser')
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s')
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
+# File paths
 settings_file_path = os.path.join(settings.MEDIA_ROOT, 'splunkparser', 'settings.json')
 output_file_path = os.path.join(settings.MEDIA_ROOT, 'splunkparser', 'output.json')
 field_definitions_path = os.path.join(settings.MEDIA_ROOT, 'global', 'omnipay_fields_definitions.json')
 
+# Lazy global field definitions
+FIELD_DEFINITIONS = None
+
+def get_field_definitions():
+    global FIELD_DEFINITIONS
+    if FIELD_DEFINITIONS is None:
+        FIELD_DEFINITIONS = load_field_definitions()
+    return FIELD_DEFINITIONS
+
+def load_field_definitions():
+    try:
+        logger.info(f"Looking for field definitions at: {field_definitions_path}")
+        with open(field_definitions_path, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Failed to load field definitions: {e}")
+        return {}
+
+def ensure_field_definitions_file():
+    if not os.path.exists(field_definitions_path):
+        logger.warning(f"{field_definitions_path} not found. Creating default stub.")
+        default_stub = {
+            "003": {"length": 6},
+            "004": {"length": 12},
+            "055": {
+                "subfields": {
+                    "9F1A": {},
+                    "5F2A": {},
+                    "9C": {},
+                    "9F1E": {},
+                    "9F13": {}
+                }
+            }
+        }
+        os.makedirs(os.path.dirname(field_definitions_path), exist_ok=True)
+        with open(field_definitions_path, 'w') as f:
+            json.dump(default_stub, f, indent=4)
+        logger.info("Default field definitions stub created.")
+
 def editor_page(request):
     logger.info("Rendering the main editor page.")
+
+    # Ensure field definitions file exists
+    ensure_field_definitions_file()
 
     # Check and create default settings.json if not present
     if not os.path.exists(settings_file_path):
@@ -68,15 +116,13 @@ def editor_page(request):
   ]
 }
 
-        # Ensure the directory exists
         os.makedirs(os.path.dirname(settings_file_path), exist_ok=True)
-
-        # Write the default config
         with open(settings_file_path, 'w') as f:
             json.dump(default_config, f, indent=4)
         logger.info("Default settings.json created successfully.")
 
     return render(request, 'splunkparser/index.html')
+
 
 def config_editor_page(request):
     logger.info("Rendering the settings editor page.")
@@ -134,135 +180,6 @@ def save_output_file(request):
 def parse_logs(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            log_data = data.get('log_data', '')
-            logger.info("Received request for log parsing.")
-
-            parsed_output = parse_iso8583(log_data)
-
-            return JsonResponse({'status': 'success', 'result': parsed_output})
-        except Exception as e:
-            logger.exception("Unexpected error during log parsing")
-            return JsonResponse({'status': 'error', 'message': str(e)})
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
-
-@csrf_exempt
-def set_default_values(request):
-    if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
-
-    try:
-        # Load output.json (parsed ISO8583 message)
-        with open(output_file_path, 'r') as f:
-            output_data = json.load(f)
-
-        data_elements = output_data.get('data_elements', {})
-
-        # Load settings.json (default config)
-        with open(settings_file_path, 'r') as f:
-            settings_data = json.load(f)
-
-        # Extract DE002 value
-        de002_value = data_elements.get('DE002', '')
-        if not de002_value:
-            return JsonResponse({'status': 'error', 'message': 'DE002 not found in output.json'})
-
-        logger.info(f"Original DE002: {de002_value}")
-
-        # Progressive prefix matching
-        prefix_to_try = de002_value[:4]  # Start with first 4 digits
-        logger.info(f"Starting prefix search with: {prefix_to_try}")
-
-        match_found = False
-        default_card = None
-        scheme_name = None
-
-        # Keep reducing prefix length until at least 1 character is left
-        while len(prefix_to_try) > 0:
-            logger.info(f"Trying prefix: {prefix_to_try}")
-
-            # Find all matching cards for current prefix
-            matching_cards = []
-            for scheme in settings_data.get('configs', []):
-                for card in scheme.get('cards', []):
-                    card_de002 = card.get('DE002', '')
-                    if card_de002.startswith(prefix_to_try):
-                        matching_cards.append({
-                            'scheme': scheme.get('scheme'),
-                            'card': card
-                        })
-
-            if matching_cards:
-                match_found = True
-                # Pick one randomly if multiple found
-                selected = random.choice(matching_cards)
-                scheme_name = selected['scheme']
-                default_card = selected['card']
-                logger.info(f"Match found! Using scheme: {scheme_name}, card: {default_card.get('cardName')}")
-                break
-
-            # Reduce the prefix by 1 character
-            prefix_to_try = prefix_to_try[:-1]
-
-        if not match_found:
-            logger.error(f"No matching card found for prefix {de002_value[:4]}")
-            return JsonResponse({'status': 'error', 'message': f'No matching default card found for prefix {de002_value[:4]}'})
-
-        # Replace masked fields
-        for field in ['DE002', 'DE014', 'DE035', 'DE048','DE052','DE053']:
-            current_value = data_elements.get(field, '')
-            if '*' in current_value or current_value.strip('*') == '':
-                logger.info(f"Replacing masked {field} with default value {default_card.get(field)}")
-                data_elements[field] = default_card.get(field, '')
-
-        # Save updated output.json
-        with open(output_file_path, 'w') as f:
-            json.dump(output_data, f, indent=2)
-
-        # Return success response including scheme and card name
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Default values applied',
-            'result': output_data,
-            'scheme': scheme_name,
-            'cardName': default_card.get('cardName'),
-            'prefix_used': prefix_to_try
-        })
-
-    except Exception as e:
-        logger.exception("Error applying default values")
-        return JsonResponse({'status': 'error', 'message': str(e)})
-
-#=====================Do not edit below lines
-# Configure logger for detailed logging
-logger = logging.getLogger('splunkparser')
-
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-
-formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s')
-console_handler.setFormatter(formatter)
-
-logger.addHandler(console_handler)
-
-# Load field definitions from the JSON file
-def load_field_definitions():
-    try:
-        with open(field_definitions_path) as f:
-            field_definitions = json.load(f)
-            logger.info("Field definitions loaded successfully.")
-            return field_definitions.get("fields", {})
-    except Exception as e:
-        logger.error(f"Failed to load field definitions: {e}")
-        return {}
-
-# Load field definitions
-FIELD_DEFINITIONS = load_field_definitions()
-
-@csrf_exempt
-def parse_logs(request):
-    if request.method == 'POST':
-        try:
             content_type = request.content_type
             if content_type == 'application/json':
                 data = json.loads(request.body)
@@ -279,6 +196,10 @@ def parse_logs(request):
             logger.info("Received request for log parsing.")
             logger.debug(f"Raw log data received: {log_data}")
 
+            # 👇 Use lazy-loaded FIELD_DEFINITIONS now
+            global FIELD_DEFINITIONS
+            FIELD_DEFINITIONS = get_field_definitions()
+
             parsed_output = parse_iso8583(log_data)
 
             logger.info("Log data parsed successfully.")
@@ -294,6 +215,139 @@ def parse_logs(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+@csrf_exempt
+def set_default_values(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+    try:
+        # ✅ Get present fields from frontend payload
+        body = json.loads(request.body)
+        present_fields = body.get('present_fields', [])
+        logger.info(f"Present DEs from editor: {present_fields}")
+
+        # ✅ Load parsed ISO8583 output from output.json
+        with open(output_file_path, 'r') as f:
+            output_data = json.load(f)
+
+        data_elements = output_data.get('data_elements', {})
+        if not data_elements:
+            return JsonResponse({'status': 'error', 'message': 'No parsed data found in output.json'})
+
+        # ✅ Load settings.json (default config)
+        with open(settings_file_path, 'r') as f:
+            settings_data = json.load(f)
+
+        # ✅ Get DE002 to extract BIN prefix
+        de002_value = data_elements.get('DE002', '')
+        if not de002_value:
+            return JsonResponse({'status': 'error', 'message': 'DE002 not found in output.json'})
+
+        logger.info(f"Original DE002: {de002_value}")
+        prefix_to_try = de002_value[:4]
+
+        match_found = False
+        default_card = None
+        scheme_name = None
+
+        # ✅ Prefix-matching logic
+        while len(prefix_to_try) > 0:
+            matching_cards = []
+            for scheme in settings_data.get('configs', []):
+                for card in scheme.get('cards', []):
+                    card_de002 = card.get('DE002', '')
+                    if card_de002.startswith(prefix_to_try):
+                        matching_cards.append({'scheme': scheme.get('scheme'), 'card': card})
+
+            if matching_cards:
+                selected = random.choice(matching_cards)
+                scheme_name = selected['scheme']
+                default_card = selected['card']
+                logger.info(f"Match found for prefix {prefix_to_try} in scheme {scheme_name}, card: {default_card.get('cardName')}")
+                match_found = True
+                break
+
+            prefix_to_try = prefix_to_try[:-1]
+
+        if not match_found or not default_card:
+            return JsonResponse({'status': 'error', 'message': f'No matching default card found for prefix {de002_value[:4]}'})
+
+        # ✅ Apply defaults only for DEs that are:
+        # - present in the parsed log
+        # - included in the editor content's DEs
+        for field in ['DE002', 'DE014', 'DE035', 'DE048', 'DE052', 'DE053']:
+            if field in data_elements and field in present_fields:
+                current_value = data_elements.get(field, '')
+                if '*' in current_value or current_value.strip('*') == '':
+                    replacement = default_card.get(field)
+                    if replacement is not None:
+                        logger.info(f"Replacing masked {field} with default value: {replacement}")
+                        data_elements[field] = replacement
+
+        # ✅ Save updated data back to output.json
+        with open(output_file_path, 'w') as f:
+            json.dump(output_data, f, indent=2)
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Default values applied',
+            'result': output_data,
+            'scheme': scheme_name,
+            'cardName': default_card.get('cardName'),
+            'prefix_used': prefix_to_try
+        })
+
+    except Exception as e:
+        logger.exception("Error applying default values")
+        return JsonResponse({'status': 'error', 'message': str(e)})
+
+#=====================Do not edit below lines
+
+def load_field_definitions():
+    try:
+        json_path = os.path.join(settings.MEDIA_ROOT, 'global', 'omnipay_fields_definitions.json')
+        logger.info(f"Looking for field definitions at: {json_path}")
+        with open(json_path, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Failed to load field definitions: {e}")
+        return {}
+
+#     if request.method == 'POST':
+#         try:
+#             content_type = request.content_type
+#             if content_type == 'application/json':
+#                 data = json.loads(request.body)
+#                 log_data = data.get('log_data', '')
+#             elif content_type.startswith('multipart/form-data'):
+#                 file = request.FILES.get('file')
+#                 if file:
+#                     log_data = file.read().decode('utf-8')
+#                 else:
+#                     return JsonResponse({'status': 'error', 'message': 'File not provided'}, status=400)
+#             else:
+#                 return JsonResponse({'status': 'error', 'message': 'Unsupported content type'}, status=415)
+
+#             logger.info("Received request for log parsing.")
+#             logger.debug(f"Raw log data received: {log_data}")
+
+#             parsed_output = parse_iso8583(log_data)
+
+#             logger.info("Log data parsed successfully.")
+#             logger.debug(f"Parsed output: {parsed_output}")
+
+#             return JsonResponse({'status': 'success', 'result': parsed_output})
+
+#         except json.JSONDecodeError as e:
+#             logger.error(f"JSON decode error: {e}")
+#             return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'})
+#         except Exception as e:
+#             logger.critical(f"Unexpected error during log parsing: {e}")
+#             return JsonResponse({'status': 'error', 'message': str(e)})
+
+#     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
 def parse_iso8583(log_data):
     message = {}
     de007_parts = []
@@ -355,8 +409,9 @@ def parse_iso8583(log_data):
             logger.debug("Skipping empty line.")
             continue
 
-        if "in[129: ]" in line or "DE0129" in line:
-            logger.info(f"Skipping line with sensitive information: {line.strip()}")
+        # ✅ Skip DE129 explicitly regardless of direction or format
+        if re.search(r'\[\s*129\s*:\s*\]|DE0129', line):
+            logger.info(f"Omitting DE129: {line.strip()}")
             continue
 
         match = re.match(rf"{escaped_prefix}\s*(\d+):?\s*\]<(.+)>", line)
