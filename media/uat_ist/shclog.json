@@ -1,5 +1,0 @@
-{
-  "query": "select * from oasis77.shclog",
-  "result": null,
-  "error": "Unable to establish database connection"
-}

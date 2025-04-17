@@ -145,6 +145,9 @@ def save_submission(request):
         try:
             data = json.loads(request.body)
 
+            # 🔽 Print the incoming data for debugging
+            print("📦 Incoming Frontend Data:")
+            print(json.dumps(data, indent=4))  # Pretty-printed
             # Check for open slot duplicate booking if open slot is true
             is_open_slot, open_slot_booking_id = is_open_slot_duplicate(data)
             if is_open_slot:

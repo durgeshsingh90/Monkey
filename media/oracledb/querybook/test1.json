@@ -1,7 +1,0 @@
-{
-    "name": "test1",
-    "description": null,
-    "content": "select * from oasis77.shclog where refnum in ('12545')",
-    "format": "yaml",
-    "timestamp": "2025-04-12T23:18:22.274814"
-}

@@ -34,19 +34,26 @@ function setupDatePicker() {
     mode: "range",
     dateFormat: "d/m/Y",
     allowInput: true,
-    altInput: false,
+    autoApply: true,
+    onChange: function(selectedDates, dateStr, instance) {
+      if (selectedDates.length === 1) {
+        const formatted = instance.formatDate(selectedDates[0], "d/m/Y");
+        instance.input.value = `${formatted} to ${formatted}`;
+      }
+    },
     onClose: function(selectedDates, dateStr, instance) {
       if (selectedDates.length === 1) {
-        const singleDate = instance.formatDate(selectedDates[0], "d/m/Y");
-        instance.input.value = `${singleDate} to ${singleDate}`;
+        const formatted = instance.formatDate(selectedDates[0], "d/m/Y");
+        instance.input.value = `${formatted} to ${formatted}`;
       } else if (selectedDates.length === 2) {
-        const startDate = instance.formatDate(selectedDates[0], "d/m/Y");
-        const endDate = instance.formatDate(selectedDates[1], "d/m/Y");
-        instance.input.value = `${startDate} to ${endDate}`;
+        const start = instance.formatDate(selectedDates[0], "d/m/Y");
+        const end = instance.formatDate(selectedDates[1], "d/m/Y");
+        instance.input.value = `${start} to ${end}`;
       }
     }
   });
 }
+
 
 
 function populateSelect(elementId, options, isMultiple = false, isOwner = false, isServer = false, isSchemeType = false, isSimulator = false, isPSP = false) {

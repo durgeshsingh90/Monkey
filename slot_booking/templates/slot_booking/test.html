@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Date Range Picker (Auto Apply)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      background: #f0f2f5;
+    }
+
+    .card {
+      padding: 2rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    #daterange {
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 250px;
+    }
+
+    .output {
+      margin-top: 1rem;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <input type="text" id="daterange" placeholder="Select date range" />
+    <div class="output" id="output"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+  <script>
+    $(function() {
+      $('#daterange').daterangepicker({
+        autoApply: true,
+        autoUpdateInput: false,
+        locale: {
+          format: 'YYYY-MM-DD',
+          cancelLabel: 'Clear'
+        }
+      });
+
+      $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+        const start = picker.startDate.format('YYYY-MM-DD');
+        const end = picker.endDate.format('YYYY-MM-DD');
+        const display = `From ${start} to ${end}`;
+        $(this).val(display);
+        $('#output').text(display);
+      });
+
+      $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
+        $(this).val('');
+        $('#output').text('');
+      });
+    });
+  </script>
+</body>
+</html>
