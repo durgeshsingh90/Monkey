@@ -102,7 +102,7 @@ ROOT_URLCONF = 'monkey.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['html'],
+        'DIRS': [BASE_DIR / 'html'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
