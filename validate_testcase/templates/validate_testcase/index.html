@@ -1,215 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Validate Testcase</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      height: 100vh;
-      display: flex;
-    }
-
-    .container {
-      display: flex;
-      width: 100%;
-      height: 100%;
-    }
-
-    .left, .right {
-      flex: 1;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    .left {
-      background-color: #f0f8ff;
-      border-right: 2px solid #ccc;
-    }
-
-    .right {
-      background-color: #fffaf0;
-    }
-
-    h2 {
-      text-align: center;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .file-status {
-      margin-top: 10px;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    .checkmark {
-      color: green;
-      font-size: 20px;
-      display: none;
-      text-align: center;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Validate Test Case</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f9f9f9;
+        }
+        h2 {
+            color: #333;
+        }
+        .upload-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .form-section {
+            margin-bottom: 20px;
+        }
+        .form-section input[type="file"] {
+            margin-top: 5px;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #bbb;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #eee;
+        }
+        pre {
+            background: #eef;
+            padding: 15px;
+            border: 1px solid #ccd;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="left">
-      <h2>Upload Excel File</h2>
-      <form id="excel-form" action="{% url 'upload_excel' %}" method="POST" enctype="multipart/form-data">
+
+    <h2>Upload Excel or Log File to Validate Test Cases</h2>
+
+    <form method="post" enctype="multipart/form-data" class="upload-form">
         {% csrf_token %}
-        <input type="file" name="excel_file" id="excel-file" accept=".xlsx,.xls" onchange="submitExcel()">
-        <button type="button" onclick="document.getElementById('excel-file').click();">Upload Excel</button>
-        <div id="excel-file-name" class="file-status"></div>
-        <div id="excel-checkmark" class="checkmark">✅ File Uploaded</div>
-      </form>
-    </div>
 
-    <div class="right">
-      <h2>Upload Log File</h2>
-      <form id="log-form" action="{% url 'upload_logs' %}" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="file" name="log_file" id="log-file" accept=".txt,.log,.html,.xml,.json" onchange="submitLog()">
-        <button type="button" onclick="document.getElementById('log-file').click();">Upload Log</button>
-        <div id="log-file-name" class="file-status"></div>
-        <div id="log-checkmark" class="checkmark">✅ File Uploaded</div>
-      </form>
-    </div>
-  </div>
+        <div class="form-section">
+            <label><strong>Upload Excel File (.xlsx or .xls):</strong></label><br>
+            <input type="file" name="excel_file" accept=".xlsx,.xls">
+        </div>
 
-  <script>
-function submitExcel() {
-  const input = document.getElementById('excel-file');
-  const file = input.files[0];
-  if (!file) return;
+        <div class="form-section">
+            <label><strong>Upload Log File (.log, .txt, .html):</strong></label><br>
+            <input type="file" name="log_file" accept=".log,.txt,.html">
+        </div>
 
-  const formData = new FormData();
-  formData.append("excel_file", file);
-  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        <button type="submit">Upload</button>
+    </form>
 
-  // Reset status
-  document.getElementById('excel-checkmark').style.display = 'none';
-  document.getElementById('excel-file-name').textContent = 'Uploading...';
-
-  fetch("{% url 'upload_excel' %}", {
-    method: "POST",
-    headers: { "X-CSRFToken": csrfToken },
-    body: formData
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === "success") {
-      // ✅ Only after excel_data.json is created
-      sessionStorage.setItem("excelFileName", data.filename);
-      sessionStorage.setItem("excelUploaded", "true");
-      document.getElementById('excel-file-name').textContent = data.filename;
-      document.getElementById('excel-checkmark').style.display = 'block';
-      checkAndRedirect();  // ✅ Add this
-
-    } else {
-      alert("❌ Excel upload failed: " + (data.message || "Unknown error"));
-      document.getElementById('excel-file-name').textContent = '';
-    }
-  })
-  .catch(err => {
-    alert("❌ Upload error: " + err);
-    document.getElementById('excel-file-name').textContent = '';
-  });
-}
-
-function submitLog() {
-  const input = document.getElementById('log-file');
-  const file = input.files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append("log_file", file);
-  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-  // Reset display while waiting
-  document.getElementById('log-checkmark').style.display = 'none';
-  document.getElementById('log-file-name').textContent = 'Uploading...';
-
-  fetch("{% url 'upload_logs' %}", {
-    method: "POST",
-    headers: { "X-CSRFToken": csrfToken },
-    body: formData
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === "success") {
-      // ✅ Only show tick after log_data.json is confirmed created
-      sessionStorage.setItem("logFileName", data.filename);
-      sessionStorage.setItem("logUploaded", "true");
-      document.getElementById('log-file-name').textContent = data.filename;
-      document.getElementById('log-checkmark').style.display = 'block';
-      checkAndRedirect();  // ✅ Add this
-
-    } else {
-      alert("❌ Log upload failed: " + (data.message || "Unknown error"));
-      document.getElementById('log-file-name').textContent = '';
-    }
-  })
-  .catch(err => {
-    alert("❌ Upload error: " + err);
-    document.getElementById('log-file-name').textContent = '';
-  });
-}
+    {% if excel_sheets %}
+    <h3>Excel Data (All Sheets):</h3>
+    {% for sheet in excel_sheets %}
+        <h4>Sheet: {{ sheet.sheet_name }}</h4>
+        <table>
+            <thead>
+                <tr>
+                    {% for col in sheet.headers %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in sheet.table_data %}
+                    <tr>
+                        {% for cell in row %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+    {% endfor %}
+{% endif %}
 
 
-    window.onload = function () {
-      const excelFile = sessionStorage.getItem("excelFileName");
-      const logFile = sessionStorage.getItem("logFileName");
-  
-      // Restore Excel file status if uploaded
-      if (sessionStorage.getItem("excelUploaded") === "true" && excelFile) {
-        document.getElementById('excel-file-name').textContent = excelFile;
-        document.getElementById('excel-checkmark').style.display = 'block';
-      }
-  
-      // Restore Log file status if uploaded
-      if (sessionStorage.getItem("logUploaded") === "true" && logFile) {
-        document.getElementById('log-file-name').textContent = logFile;
-        document.getElementById('log-checkmark').style.display = 'block';
-      }
-  
-      // Clear sessionStorage if user did a hard reload (optional logic)
-      if (performance.navigation.type === 1) {
-        sessionStorage.clear();
-        document.getElementById('excel-file-name').textContent = '';
-        document.getElementById('excel-checkmark').style.display = 'none';
-        document.getElementById('log-file-name').textContent = '';
-        document.getElementById('log-checkmark').style.display = 'none';
-      }
-    };
-    function checkAndRedirect() {
-  const excelDone = sessionStorage.getItem("excelUploaded") === "true";
-  const logDone = sessionStorage.getItem("logUploaded") === "true";
-  if (excelDone && logDone) {
-    setTimeout(() => {
-      window.location.href = "/validate_testcase/comparison_result/";
-    }, 1200);  // Give backend time to generate comparison_result.json
-  }
-}
+    {% if parsed_log_results %}
+    <h3>Parsed Log Blocks:</h3>
+    {% for result in parsed_log_results %}
+        <div style="background: #f3f3f3; border: 1px solid #ccc; margin-bottom: 20px; padding: 10px;">
+            <pre>{{ result|safe }}</pre>
+        </div>
+    {% endfor %}
+{% endif %}
 
-  </script>
-  
+
 </body>
 </html>
