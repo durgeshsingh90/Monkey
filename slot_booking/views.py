@@ -49,6 +49,7 @@ def admin(request):
     ensure_files_exist()
     return render(request, 'slot_booking/admin.html')
 
+@csrf_exempt
 def config(request):
     ensure_files_exist()  # ✅ Ensure all files exist including config.json
 
@@ -138,6 +139,9 @@ def is_open_slot_duplicate(data):
                 return True, submission["bookingID"]
     return False, None
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 def save_submission(request):
     ensure_files_exist()
@@ -146,8 +150,8 @@ def save_submission(request):
             data = json.loads(request.body)
 
             # 🔽 Print the incoming data for debugging
-            print("📦 Incoming Frontend Data:")
-            print(json.dumps(data, indent=4))  # Pretty-printed
+            logger.info("📦 Incoming Frontend Data: %s", json.dumps(data, indent=4))
+            
             # Check for open slot duplicate booking if open slot is true
             is_open_slot, open_slot_booking_id = is_open_slot_duplicate(data)
             if is_open_slot:
@@ -186,6 +190,7 @@ def save_submission(request):
             }, status=200)
 
         except Exception as e:
+            logger.error("Error saving submission: %s", str(e), exc_info=True)
             return JsonResponse({"error": str(e)}, status=500)
 
     return HttpResponse(status=405)

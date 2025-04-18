@@ -276,9 +276,9 @@ function initCalendar() {
         <strong>Time Slots:</strong> ${sub.timeSlot.join(", ")}<br>
         <strong>Date Range:</strong> ${sub.dateRange.start} to ${sub.dateRange.end}<br>
         <strong>Open Slot:</strong> ${sub.openSlot ? 'Yes' : 'No'}<br>
-        <strong>Comments:</strong> ${sub.comments || 'N/A'}
-      `;
-      document.body.appendChild(tooltip);
+        <strong>Comments:</strong> ${sub.comments || 'N/A'}`;
+
+        document.body.appendChild(tooltip);
     
       // Positioning
       const moveTooltip = (e) => {
