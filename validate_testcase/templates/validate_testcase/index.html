@@ -9,7 +9,7 @@
             margin: 40px;
             background: #f9f9f9;
         }
-        h2 {
+        h2, h3, h4 {
             color: #333;
         }
         .upload-form {
@@ -65,26 +65,23 @@
 </head>
 <body>
 
-    <h2>Upload Excel or Log File to Validate Test Cases</h2>
+<h2>Upload Excel or Log File to Validate Test Cases</h2>
 
-    <form method="post" enctype="multipart/form-data" class="upload-form">
-        {% csrf_token %}
+<form method="post" enctype="multipart/form-data" class="upload-form">
+    {% csrf_token %}
+    <div class="form-section">
+        <label><strong>Upload Excel File (.xlsx or .xls):</strong></label><br>
+        <input type="file" name="excel_file" accept=".xlsx,.xls">
+    </div>
+    <div class="form-section">
+        <label><strong>Upload Log File (.log, .txt, .html):</strong></label><br>
+        <input type="file" name="log_file" accept=".log,.txt,.html">
+    </div>
+    <button type="submit">Upload</button>
+</form>
 
-        <div class="form-section">
-            <label><strong>Upload Excel File (.xlsx or .xls):</strong></label><br>
-            <input type="file" name="excel_file" accept=".xlsx,.xls">
-        </div>
-
-        <div class="form-section">
-            <label><strong>Upload Log File (.log, .txt, .html):</strong></label><br>
-            <input type="file" name="log_file" accept=".log,.txt,.html">
-        </div>
-
-        <button type="submit">Upload</button>
-    </form>
-
-    {% if excel_sheets %}
-    <h3>Excel Data (All Sheets):</h3>
+{% if excel_sheets %}
+    <h3>Excel Data (All Sheets)</h3>
     {% for sheet in excel_sheets %}
         <h4>Sheet: {{ sheet.sheet_name }}</h4>
         <table>
@@ -109,9 +106,8 @@
     {% endfor %}
 {% endif %}
 
-
-    {% if parsed_log_results %}
-    <h3>Parsed Log Blocks:</h3>
+{% if parsed_log_results %}
+    <h3>Parsed Log Blocks</h3>
     {% for result in parsed_log_results %}
         <div style="background: #f3f3f3; border: 1px solid #ccc; margin-bottom: 20px; padding: 10px;">
             <pre>{{ result|safe }}</pre>
@@ -119,6 +115,59 @@
     {% endfor %}
 {% endif %}
 
+{% if comparison_results %}
+    <h3>Comparison Results</h3>
+    {% for item in comparison_results %}
+        <div style="background: #fff; border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; border-radius: 5px;">
+            <p><strong>RRN:</strong> {{ item.rrn }} | <strong>MTI:</strong> {{ item.mti }}</p>
+
+            {% if item.differences %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th style="color: green;">Expected</th>
+                            <th style="color: red;">Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for field, diff in item.differences.items %}
+                        <tr>
+                            <td><strong>{{ field }}</strong></td>
+                            <td style="color: green;">{{ diff.expected }}</td>
+                            <td style="color: red;">{{ diff.actual }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="color: green;">✅ All fields matched for this RRN.</p>
+            {% endif %}
+
+            {% if item.test_case_row %}
+                <h4>Matched Excel Test Case Row</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            {% for key in item.test_case_row.keys %}
+                                <th>{{ key }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            {% for val in item.test_case_row.values %}
+                                <td>{{ val }}</td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% else %}
+    <p style="color: red;"><strong>No matching test case found for any parsed log.</strong></p>
+{% endif %}
 
 </body>
 </html>

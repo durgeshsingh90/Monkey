@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'oracle_query_executor',
     'validate_testcase',
     'splunkrrn',
-    'runquery'
+    'runquery',
 ]
 
 LOG_DIR = BASE_DIR / 'logs'
@@ -219,8 +219,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "gen_reversals/static",
     BASE_DIR / "astrex_html_logs/static",
     BASE_DIR / "oracle_query_executor/static",
-    BASE_DIR / "validate_testcase/static",
     BASE_DIR / "runquery/static",
+    
 ]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
