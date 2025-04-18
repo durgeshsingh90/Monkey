@@ -156,8 +156,25 @@
                     </thead>
                     <tbody>
                         <tr>
-                            {% for val in item.test_case_row.values %}
-                                <td>{{ val }}</td>
+                            {% for key, val in item.test_case_row.items %}
+                                {% with clean_key=key|upper|cut:" "|cut:"BM"|cut:"DE" %}
+                                    {% if clean_key|length == 2 %}
+                                        {% with de="DE0"|add:clean_key %}
+                                    {% elif clean_key|length == 3 %}
+                                        {% with de="DE"|add:clean_key %}
+                                    {% else %}
+                                        {% with de=key %}
+                                    {% endif %}
+
+                                    {% if de in item.differences %}
+                                        <td style="color: red;" title="Expected: {{ item.differences.de.expected }}"><strong>{{ val }}</strong></td>
+                                    {% elif de in item.test_case_row %}
+                                        <td style="color: green;">{{ val }}</td>
+                                    {% else %}
+                                        <td>{{ val }}</td>
+                                    {% endif %}
+                                {% endwith %}
+                                {% endwith %}
                             {% endfor %}
                         </tr>
                     </tbody>
