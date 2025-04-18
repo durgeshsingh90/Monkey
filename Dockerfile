@@ -34,3 +34,7 @@ EXPOSE 8000
 
 # Run Django
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+
+# docker build -t monkey-app .
+# docker run -p 8000:8000 monkey-app
