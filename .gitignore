@@ -2,3 +2,10 @@ __pycache__/
 *.pyc
 migrations
 media/
+*.logs
+
+
+# git rm --cached *.log
+# find . -name "*.log" -exec git rm --cached {} \;
+# git commit -m "Ignore all .log files"
+# git push origin your-branch-name

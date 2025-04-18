@@ -180,20 +180,20 @@
 
         <div class="section">
           <h4>✅ Include Hosts</h4>
-          <label><input type="checkbox" class="host-include" value="A5CVAP1003"> A5CVAP1003</label>
-          <label><input type="checkbox" class="host-include" value="A5CVAP1004"> A5CVAP1004</label>
-          <label><input type="checkbox" class="host-include" value="a5pvap039"> a5pvap039</label>
-          <label><input type="checkbox" class="host-include" value="a5pvap040"> a5pvap040</label>
-          <label><input type="checkbox" class="host-include" value="a4pvap068"> a4pvap068</label>
+          <label><input type="checkbox" class="host-include" value="A5CVAP1003" onchange="updateOutput()"> A5CVAP1003</label>
+          <label><input type="checkbox" class="host-include" value="A5CVAP1004" onchange="updateOutput()"> A5CVAP1004</label>
+          <label><input type="checkbox" class="host-include" value="a5pvap039"  onchange="updateOutput()"> a5pvap039</label>
+          <label><input type="checkbox" class="host-include" value="a5pvap040"  onchange="updateOutput()"> a5pvap040</label>
+          <label><input type="checkbox" class="host-include" value="a4pvap068"  onchange="updateOutput()"> a4pvap068</label>
         </div>
 
         <div class="section">
           <h4>🚫 Exclude Hosts</h4>
-          <label><input type="checkbox" class="host-exclude" value="A5CVAP1003"> A5CVAP1003</label>
-          <label><input type="checkbox" class="host-exclude" value="A5CVAP1004"> A5CVAP1004</label>
-          <label><input type="checkbox" class="host-exclude" value="a5pvap039"> a5pvap039</label>
-          <label><input type="checkbox" class="host-exclude" value="a5pvap040"> a5pvap040</label>
-          <label><input type="checkbox" class="host-exclude" value="a4pvap068"> a4pvap068</label>
+          <label><input type="checkbox" class="host-exclude" value="A5CVAP1003" onchange="updateOutput()"> A5CVAP1003</label>
+          <label><input type="checkbox" class="host-exclude" value="A5CVAP1004" onchange="updateOutput()"> A5CVAP1004</label>
+          <label><input type="checkbox" class="host-exclude" value="a5pvap039"  onchange="updateOutput()"> a5pvap039</label>
+          <label><input type="checkbox" class="host-exclude" value="a5pvap040"  onchange="updateOutput()"> a5pvap040</label>
+          <label><input type="checkbox" class="host-exclude" value="a4pvap068"  onchange="updateOutput()"> a4pvap068</label>
         </div>
 
         <div class="section">
@@ -298,54 +298,81 @@
     }
 
     function updateOutput() {
-      const lines = textarea.value.split('\n');
-      const transformedValues = [];
+  const lines = textarea.value.split('\n');
+  const transformedValues = [];
 
-      for (const line of lines) {
-        const result = transformInput(line);
-        if (result) transformedValues.push(result);
-      }
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
 
-      const timeRange = document.getElementById('timeRange').value;
-      const eventLimit = document.getElementById('eventLimit').value;
-      const durationValue = document.getElementById('durationRange').value;
-      const groupBy = document.getElementById('groupByField').value;
-      const showStats = document.getElementById('statsSummary').checked;
-      const sortTimeOnly = document.getElementById('sortByTimeOnly').checked;
-      document.getElementById('durationDisplay').textContent = `> ${durationValue}ms`;
+    const lastItem = transformedValues[transformedValues.length - 1];
 
-      let result = `index=application_omnipay`;
-
-      if (timeRange === "today") {
-        result += ` earliest=@d latest=now`;
-      } else if (timeRange === "yesterday") {
-        result += ` earliest=-1d@d latest=@d`;
-      } else if (timeRange) {
-        result += ` earliest=${timeRange} latest=now`;
-      }
-
-      if (transformedValues.length > 0) {
-        result += ` ` + transformedValues.join(' ');
-      }
-
-      result += ` | reverse`;
-
-      const includeHosts = Array.from(document.querySelectorAll('.host-include:checked')).map(cb => `host=${cb.value}`);
-      const excludeHosts = Array.from(document.querySelectorAll('.host-exclude:checked')).map(cb => `host!=${cb.value}`);
-
-      if (includeHosts.length || excludeHosts.length) {
-        result += ` | search `;
-        if (includeHosts.length) result += includeHosts.join(" ");
-        if (excludeHosts.length) result += " " + excludeHosts.join(" ");
-      }
-
-      if (sortByTime || sortTimeOnly) result += ` | sort _time`;
-      if (durationValue > 0) result += ` | where duration > ${durationValue}`;
-      if (groupBy) result += ` | stats count by ${groupBy}`;
-      if (eventLimit) result += ` | head ${eventLimit}`;
-
-      output.textContent = result;
+    if (/^\d{12}$/.test(line)) {
+      transformedValues.push(line);
+      transformedValues.push('OR');
+      transformedValues.push(stringToHex(line));
+      transformedValues.push('OR');
+    } else if (/^[0-9a-fA-F]{24}$/.test(line)) {
+      transformedValues.push(line);
+      transformedValues.push('OR');
+      transformedValues.push(hexToString(line));
+      transformedValues.push('OR');
+    } else if (/^"[^"]+"$/.test(line)) {
+      transformedValues.push(line);
+      transformedValues.push('OR');
+    } else if (/^AND\s+"[^"]+"$/i.test(line)) {
+      // Remove the trailing OR if it exists
+      if (lastItem === 'OR') transformedValues.pop();
+      transformedValues.push(line);
+      transformedValues.push('OR');
     }
+  }
+
+  // Clean up final OR if it exists
+  if (transformedValues[transformedValues.length - 1] === 'OR') {
+    transformedValues.pop();
+  }
+
+  const timeRange = document.getElementById('timeRange').value;
+  const eventLimit = document.getElementById('eventLimit').value;
+  const durationValue = document.getElementById('durationRange').value;
+  const groupBy = document.getElementById('groupByField').value;
+  const showStats = document.getElementById('statsSummary').checked;
+  const sortTimeOnly = document.getElementById('sortByTimeOnly').checked;
+  document.getElementById('durationDisplay').textContent = `> ${durationValue}ms`;
+
+  let result = `index=application_omnipay`;
+
+  if (timeRange === "today") {
+    result += ` earliest=@d latest=now`;
+  } else if (timeRange === "yesterday") {
+    result += ` earliest=-1d@d latest=@d`;
+  } else if (timeRange) {
+    result += ` earliest=${timeRange} latest=now`;
+  }
+
+  if (transformedValues.length > 0) {
+    result += ` ` + transformedValues.join(' ');
+  }
+
+  result += ` | reverse`;
+
+  const includeHosts = Array.from(document.querySelectorAll('.host-include:checked')).map(cb => `host=${cb.value}`);
+  const excludeHosts = Array.from(document.querySelectorAll('.host-exclude:checked')).map(cb => `host!=${cb.value}`);
+
+  if (includeHosts.length || excludeHosts.length) {
+    result += ` | search `;
+    if (includeHosts.length) result += includeHosts.join(" ");
+    if (excludeHosts.length) result += " " + excludeHosts.join(" ");
+  }
+
+  if (sortByTime || sortTimeOnly) result += ` | sort _time`;
+  if (durationValue > 0) result += ` | where duration > ${durationValue}`;
+  if (groupBy) result += ` | stats count by ${groupBy}`;
+  if (eventLimit) result += ` | head ${eventLimit}`;
+
+  output.textContent = result;
+}
 
     function copyText() {
       const text = output.textContent;

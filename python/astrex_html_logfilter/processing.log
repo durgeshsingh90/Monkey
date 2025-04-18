@@ -1,0 +1,407 @@
+2025-04-02 19:06:44,915 - INFO - Running script: 1_breakhtml.py
+2025-04-02 19:06:46,169 - INFO - 1_breakhtml.py ran successfully in 0 hours, 0 minutes, 1.25 seconds.
+2025-04-02 19:06:46,169 - INFO - Running script: 2_adjusthtml.py
+2025-04-02 19:07:27,841 - INFO - 2_adjusthtml.py ran successfully in 0 hours, 0 minutes, 41.67 seconds.
+2025-04-02 19:07:27,841 - INFO - Running script: 3_unique_de32_html.py
+2025-04-02 19:07:28,404 - INFO - Found 25 files to process.
+2025-04-02 19:07:29,562 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part0.html
+2025-04-02 19:07:29,635 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html
+2025-04-02 19:07:29,873 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html
+2025-04-02 19:07:29,933 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html
+2025-04-02 19:07:29,953 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part4.html
+2025-04-02 19:07:30,263 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part5.html
+2025-04-02 19:07:30,286 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part6.html
+2025-04-02 19:07:30,296 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part7.html
+2025-04-02 19:07:30,310 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part8.html
+2025-04-02 19:07:31,546 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part9.html
+2025-04-02 19:09:15,015 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html
+2025-04-02 19:09:15,252 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part10.html
+2025-04-02 19:09:25,638 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html
+2025-04-02 19:09:25,856 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part11.html
+2025-04-02 19:09:30,519 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part7.html
+2025-04-02 19:09:30,615 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part12.html
+2025-04-02 19:09:32,898 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html
+2025-04-02 19:09:33,138 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part13.html
+2025-04-02 19:09:34,302 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part8.html
+2025-04-02 19:09:34,333 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part14.html
+2025-04-02 19:09:36,473 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part4.html
+2025-04-02 19:09:36,692 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part15.html
+2025-04-02 19:09:47,749 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part5.html
+2025-04-02 19:09:48,207 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part16.html
+2025-04-02 19:09:53,625 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part0.html
+2025-04-02 19:09:53,773 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part17.html
+2025-04-02 19:09:57,519 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part9.html
+2025-04-02 19:09:57,566 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part18.html
+2025-04-02 19:10:59,997 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part6.html
+2025-04-02 19:11:00,219 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part19.html
+2025-04-02 19:11:50,630 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part18.html
+2025-04-02 19:11:50,747 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html
+2025-04-02 19:11:56,354 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part14.html
+2025-04-02 19:11:56,428 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part21.html
+2025-04-02 19:12:04,267 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part17.html
+2025-04-02 19:12:04,492 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html
+2025-04-02 19:12:06,543 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part16.html
+2025-04-02 19:12:06,912 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part23.html
+2025-04-02 19:12:06,969 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part23.html
+2025-04-02 19:12:07,102 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part24.html
+2025-04-02 19:12:07,433 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part24.html
+2025-04-02 19:12:15,680 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part13.html
+2025-04-02 19:12:19,498 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part12.html
+2025-04-02 19:12:31,798 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part19.html
+2025-04-02 19:12:32,404 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part10.html
+2025-04-02 19:12:33,264 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part11.html
+2025-04-02 19:12:37,049 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part15.html
+2025-04-02 19:13:10,651 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html
+2025-04-02 19:13:27,314 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part21.html
+2025-04-02 19:13:28,284 - INFO - Finished processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html
+2025-04-02 19:13:29,346 - INFO - 
+Total execution time: 0 hours, 6 minutes, 0.92 seconds
+2025-04-02 19:13:29,394 - INFO - 
+Results have been saved to C:\Users\f94gdos\Desktop\2025-03-31\unique_bm32.json
+2025-04-02 19:13:29,695 - INFO - 3_unique_de32_html.py ran successfully in 0 hours, 6 minutes, 1.84 seconds.
+2025-04-02 19:13:29,715 - INFO - Running script: 4_astrex_html_filter.py
+2025-04-02 19:13:34,915 - INFO - Processing with condition [01/26]: 456896
+2025-04-02 19:13:35,910 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part0.html with conditions: ['456896']
+2025-04-02 19:13:36,050 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html with conditions: ['456896']
+2025-04-02 19:13:36,185 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['456896']
+2025-04-02 19:13:36,217 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html with conditions: ['456896']
+2025-04-02 19:13:36,499 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part4.html with conditions: ['456896']
+2025-04-02 19:13:37,076 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part5.html with conditions: ['456896']
+2025-04-02 19:13:37,107 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part6.html with conditions: ['456896']
+2025-04-02 19:13:37,134 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part7.html with conditions: ['456896']
+2025-04-02 19:13:37,217 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part8.html with conditions: ['456896']
+2025-04-02 19:13:37,279 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part9.html with conditions: ['456896']
+2025-04-02 19:13:48,916 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:13:49,031 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part10.html with conditions: ['456896']
+2025-04-02 19:13:50,088 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:13:50,292 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part11.html with conditions: ['456896']
+2025-04-02 19:13:52,666 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:13:52,808 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part13.html with conditions: ['456896']
+2025-04-02 19:13:52,886 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:13:53,211 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part15.html with conditions: ['456896']
+2025-04-02 19:13:54,517 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:13:54,868 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part16.html with conditions: ['456896']
+2025-04-02 19:13:55,866 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:13:56,097 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part17.html with conditions: ['456896']
+2025-04-02 19:13:59,863 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:00,073 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part18.html with conditions: ['456896']
+2025-04-02 19:14:02,315 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:02,450 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part19.html with conditions: ['456896']
+2025-04-02 19:14:03,542 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:03,654 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['456896']
+2025-04-02 19:14:04,843 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:05,097 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part21.html with conditions: ['456896']
+2025-04-02 19:14:08,838 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:09,174 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html with conditions: ['456896']
+2025-04-02 19:14:09,873 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:13,064 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:15,483 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:15,631 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:18,165 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:18,766 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:20,052 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:20,114 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:22,075 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:22,184 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_456896.html
+2025-04-02 19:14:22,247 - INFO - Processing with condition [02/26]: 411975
+2025-04-02 19:14:23,242 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part0.html with conditions: ['411975']
+2025-04-02 19:14:23,354 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html with conditions: ['411975']
+2025-04-02 19:14:23,542 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['411975']
+2025-04-02 19:14:23,839 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html with conditions: ['411975']
+2025-04-02 19:14:23,947 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part4.html with conditions: ['411975']
+2025-04-02 19:14:24,397 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part5.html with conditions: ['411975']
+2025-04-02 19:14:24,443 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part6.html with conditions: ['411975']
+2025-04-02 19:14:24,649 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part9.html with conditions: ['411975']
+2025-04-02 19:14:24,731 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part10.html with conditions: ['411975']
+2025-04-02 19:14:24,741 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part11.html with conditions: ['411975']
+2025-04-02 19:14:33,997 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:34,095 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part12.html with conditions: ['411975']
+2025-04-02 19:14:34,290 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:34,444 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part13.html with conditions: ['411975']
+2025-04-02 19:14:37,631 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:37,798 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part15.html with conditions: ['411975']
+2025-04-02 19:14:38,115 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:38,181 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part16.html with conditions: ['411975']
+2025-04-02 19:14:41,250 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:41,423 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part17.html with conditions: ['411975']
+2025-04-02 19:14:41,684 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:41,781 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part18.html with conditions: ['411975']
+2025-04-02 19:14:42,191 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:42,417 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part19.html with conditions: ['411975']
+2025-04-02 19:14:45,764 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:45,940 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['411975']
+2025-04-02 19:14:49,652 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:49,747 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part21.html with conditions: ['411975']
+2025-04-02 19:14:49,758 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:49,848 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html with conditions: ['411975']
+2025-04-02 19:14:52,203 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:53,462 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:54,519 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:55,378 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:56,182 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:57,752 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:14:59,662 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:15:01,903 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:15:02,233 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:15:05,209 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_411975.html
+2025-04-02 19:15:05,347 - INFO - Processing with condition [03/26]: 440524
+2025-04-02 19:15:06,966 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part0.html with conditions: ['440524']
+2025-04-02 19:15:07,610 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['440524']
+2025-04-02 19:15:07,691 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html with conditions: ['440524']
+2025-04-02 19:15:08,128 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part4.html with conditions: ['440524']
+2025-04-02 19:15:08,144 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part5.html with conditions: ['440524']
+2025-04-02 19:15:08,386 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part6.html with conditions: ['440524']
+2025-04-02 19:15:09,003 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part11.html with conditions: ['440524']
+2025-04-02 19:15:09,913 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part15.html with conditions: ['440524']
+2025-04-02 19:15:10,184 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part16.html with conditions: ['440524']
+2025-04-02 19:15:10,287 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part18.html with conditions: ['440524']
+2025-04-02 19:15:21,246 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:21,481 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part19.html with conditions: ['440524']
+2025-04-02 19:15:22,764 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:22,946 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['440524']
+2025-04-02 19:15:23,336 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:23,528 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html with conditions: ['440524']
+2025-04-02 19:15:25,908 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:26,403 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:28,309 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:29,796 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:30,941 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:32,147 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:32,878 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:34,419 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:35,253 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:36,716 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_440524.html
+2025-04-02 19:15:36,766 - INFO - Processing with condition [04/26]: 400855
+2025-04-02 19:15:37,411 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part0.html with conditions: ['400855']
+2025-04-02 19:15:37,542 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html with conditions: ['400855']
+2025-04-02 19:15:37,618 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['400855']
+2025-04-02 19:15:37,645 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['400855']
+2025-04-02 19:15:47,355 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400855.html
+2025-04-02 19:15:47,571 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400855.html
+2025-04-02 19:15:47,991 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400855.html
+2025-04-02 19:15:48,100 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400855.html
+2025-04-02 19:15:48,163 - INFO - Processing with condition [05/26]: 459304
+2025-04-02 19:15:48,946 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part0.html with conditions: ['459304']
+2025-04-02 19:15:49,112 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['459304']
+2025-04-02 19:15:49,133 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html with conditions: ['459304']
+2025-04-02 19:15:49,158 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part17.html with conditions: ['459304']
+2025-04-02 19:15:49,230 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part18.html with conditions: ['459304']
+2025-04-02 19:15:49,864 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['459304']
+2025-04-02 19:15:50,341 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html with conditions: ['459304']
+2025-04-02 19:15:50,291 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part21.html with conditions: ['459304']
+2025-04-02 19:16:00,594 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459304.html
+2025-04-02 19:16:00,641 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459304.html
+2025-04-02 19:16:01,094 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459304.html
+2025-04-02 19:16:01,874 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459304.html
+2025-04-02 19:16:02,313 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459304.html
+2025-04-02 19:16:03,491 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459304.html
+2025-04-02 19:16:03,850 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459304.html
+2025-04-02 19:16:03,908 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459304.html
+2025-04-02 19:16:03,962 - INFO - Processing with condition [06/26]: 417264
+2025-04-02 19:16:04,921 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part0.html with conditions: ['417264']
+2025-04-02 19:16:04,978 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html with conditions: ['417264']
+2025-04-02 19:16:05,006 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['417264']
+2025-04-02 19:16:05,035 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html with conditions: ['417264']
+2025-04-02 19:16:12,775 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_417264.html
+2025-04-02 19:16:14,551 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_417264.html
+2025-04-02 19:16:15,113 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_417264.html
+2025-04-02 19:16:15,180 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_417264.html
+2025-04-02 19:16:15,217 - INFO - Processing with condition [07/26]: 421198
+2025-04-02 19:16:16,032 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part0.html with conditions: ['421198']
+2025-04-02 19:16:16,082 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['421198']
+2025-04-02 19:16:16,167 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part21.html with conditions: ['421198']
+2025-04-02 19:16:25,092 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_421198.html
+2025-04-02 19:16:25,360 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_421198.html
+2025-04-02 19:16:25,535 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_421198.html
+2025-04-02 19:16:25,584 - INFO - Processing with condition [08/26]: 408912
+2025-04-02 19:16:26,533 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part0.html with conditions: ['408912']
+2025-04-02 19:16:26,620 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html with conditions: ['408912']
+2025-04-02 19:16:27,197 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['408912']
+2025-04-02 19:16:27,899 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part15.html with conditions: ['408912']
+2025-04-02 19:16:28,181 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part17.html with conditions: ['408912']
+2025-04-02 19:16:28,193 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['408912']
+2025-04-02 19:16:36,606 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_408912.html
+2025-04-02 19:16:37,268 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_408912.html
+2025-04-02 19:16:38,179 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_408912.html
+2025-04-02 19:16:38,694 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_408912.html
+2025-04-02 19:16:39,927 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_408912.html
+2025-04-02 19:16:40,243 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_408912.html
+2025-04-02 19:16:40,301 - INFO - Processing with condition [09/26]: 400850
+2025-04-02 19:16:41,241 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html with conditions: ['400850']
+2025-04-02 19:16:41,286 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['400850']
+2025-04-02 19:16:41,329 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part17.html with conditions: ['400850']
+2025-04-02 19:16:41,404 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part18.html with conditions: ['400850']
+2025-04-02 19:16:42,217 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['400850']
+2025-04-02 19:16:42,292 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part21.html with conditions: ['400850']
+2025-04-02 19:16:42,427 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html with conditions: ['400850']
+2025-04-02 19:16:51,982 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400850.html
+2025-04-02 19:16:52,151 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400850.html
+2025-04-02 19:16:52,167 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400850.html
+2025-04-02 19:16:52,174 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400850.html
+2025-04-02 19:16:55,014 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400850.html
+2025-04-02 19:16:55,404 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400850.html
+2025-04-02 19:16:55,420 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400850.html
+2025-04-02 19:16:55,500 - INFO - Processing with condition [10/26]: 469179
+2025-04-02 19:16:56,302 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html with conditions: ['469179']
+2025-04-02 19:16:56,592 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html with conditions: ['469179']
+2025-04-02 19:16:56,629 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part4.html with conditions: ['469179']
+2025-04-02 19:16:57,145 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part5.html with conditions: ['469179']
+2025-04-02 19:16:57,157 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part6.html with conditions: ['469179']
+2025-04-02 19:16:57,244 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part9.html with conditions: ['469179']
+2025-04-02 19:16:57,258 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part18.html with conditions: ['469179']
+2025-04-02 19:16:57,307 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part19.html with conditions: ['469179']
+2025-04-02 19:16:57,574 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['469179']
+2025-04-02 19:16:57,881 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part21.html with conditions: ['469179']
+2025-04-02 19:17:10,909 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_469179.html
+2025-04-02 19:17:12,880 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_469179.html
+2025-04-02 19:17:13,241 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_469179.html
+2025-04-02 19:17:14,013 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_469179.html
+2025-04-02 19:17:14,946 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_469179.html
+2025-04-02 19:17:15,024 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_469179.html
+2025-04-02 19:17:15,544 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_469179.html
+2025-04-02 19:17:16,746 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_469179.html
+2025-04-02 19:17:17,189 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_469179.html
+2025-04-02 19:17:17,532 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_469179.html
+2025-04-02 19:17:17,575 - INFO - Processing with condition [11/26]: 437880
+2025-04-02 19:17:18,290 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html with conditions: ['437880']
+2025-04-02 19:17:18,407 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part21.html with conditions: ['437880']
+2025-04-02 19:17:26,230 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_437880.html
+2025-04-02 19:17:26,305 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_437880.html
+2025-04-02 19:17:26,361 - INFO - Processing with condition [12/26]: 400857
+2025-04-02 19:17:26,906 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part1.html with conditions: ['400857']
+2025-04-02 19:17:27,216 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part21.html with conditions: ['400857']
+2025-04-02 19:17:35,984 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400857.html
+2025-04-02 19:17:36,591 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400857.html
+2025-04-02 19:17:36,653 - INFO - Processing with condition [13/26]: 405686
+2025-04-02 19:17:37,774 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['405686']
+2025-04-02 19:17:44,440 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_405686.html
+2025-04-02 19:17:44,475 - INFO - Processing with condition [14/26]: 422518
+2025-04-02 19:17:45,009 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['422518']
+2025-04-02 19:17:45,245 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part5.html with conditions: ['422518']
+2025-04-02 19:17:52,774 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_422518.html
+2025-04-02 19:17:53,174 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_422518.html
+2025-04-02 19:17:53,219 - INFO - Processing with condition [15/26]: 424192
+2025-04-02 19:17:53,850 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['424192']
+2025-04-02 19:17:53,899 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part17.html with conditions: ['424192']
+2025-04-02 19:17:53,931 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html with conditions: ['424192']
+2025-04-02 19:17:59,857 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_424192.html
+2025-04-02 19:18:01,694 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_424192.html
+2025-04-02 19:18:01,813 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_424192.html
+2025-04-02 19:18:01,952 - INFO - Processing with condition [16/26]: 425518
+2025-04-02 19:18:02,990 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['425518']
+2025-04-02 19:18:03,103 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html with conditions: ['425518']
+2025-04-02 19:18:03,148 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part18.html with conditions: ['425518']
+2025-04-02 19:18:03,170 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html with conditions: ['425518']
+2025-04-02 19:18:10,757 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_425518.html
+2025-04-02 19:18:12,273 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_425518.html
+2025-04-02 19:18:12,339 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_425518.html
+2025-04-02 19:18:12,422 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_425518.html
+2025-04-02 19:18:12,462 - INFO - Processing with condition [17/26]: 453760
+2025-04-02 19:18:13,169 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['453760']
+2025-04-02 19:18:13,261 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html with conditions: ['453760']
+2025-04-02 19:18:13,443 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part4.html with conditions: ['453760']
+2025-04-02 19:18:13,545 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part5.html with conditions: ['453760']
+2025-04-02 19:18:13,601 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part15.html with conditions: ['453760']
+2025-04-02 19:18:13,690 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html with conditions: ['453760']
+2025-04-02 19:18:22,328 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_453760.html
+2025-04-02 19:18:23,860 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_453760.html
+2025-04-02 19:18:23,882 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_453760.html
+2025-04-02 19:18:23,991 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_453760.html
+2025-04-02 19:18:24,124 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_453760.html
+2025-04-02 19:18:24,218 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_453760.html
+2025-04-02 19:18:24,271 - INFO - Processing with condition [18/26]: 405684
+2025-04-02 19:18:25,179 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['405684']
+2025-04-02 19:18:31,725 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_405684.html
+2025-04-02 19:18:31,763 - INFO - Processing with condition [19/26]: 459558
+2025-04-02 19:18:32,442 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['459558']
+2025-04-02 19:18:32,507 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html with conditions: ['459558']
+2025-04-02 19:18:32,565 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part4.html with conditions: ['459558']
+2025-04-02 19:18:32,792 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part5.html with conditions: ['459558']
+2025-04-02 19:18:33,182 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part6.html with conditions: ['459558']
+2025-04-02 19:18:33,273 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part7.html with conditions: ['459558']
+2025-04-02 19:18:33,340 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part8.html with conditions: ['459558']
+2025-04-02 19:18:33,648 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part9.html with conditions: ['459558']
+2025-04-02 19:18:33,790 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part10.html with conditions: ['459558']
+2025-04-02 19:18:34,020 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part11.html with conditions: ['459558']
+2025-04-02 19:18:44,670 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:18:44,826 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part12.html with conditions: ['459558']
+2025-04-02 19:18:45,844 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:18:45,982 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part13.html with conditions: ['459558']
+2025-04-02 19:18:48,162 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:18:48,256 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part14.html with conditions: ['459558']
+2025-04-02 19:18:49,157 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:18:49,243 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part15.html with conditions: ['459558']
+2025-04-02 19:18:51,333 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:18:51,418 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part16.html with conditions: ['459558']
+2025-04-02 19:18:52,420 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:18:52,473 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part17.html with conditions: ['459558']
+2025-04-02 19:18:53,209 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:18:53,290 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['459558']
+2025-04-02 19:18:53,679 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:18:56,966 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:18:57,075 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:18:59,928 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:19:00,241 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:19:03,227 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:19:04,633 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:19:05,146 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:19:05,389 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:19:05,824 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_459558.html
+2025-04-02 19:19:05,887 - INFO - Processing with condition [20/26]: 408600
+2025-04-02 19:19:07,118 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['408600']
+2025-04-02 19:19:13,949 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_408600.html
+2025-04-02 19:19:13,999 - INFO - Processing with condition [21/26]: 417404
+2025-04-02 19:19:14,588 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['417404']
+2025-04-02 19:19:14,602 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part16.html with conditions: ['417404']
+2025-04-02 19:19:20,938 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_417404.html
+2025-04-02 19:19:20,954 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_417404.html
+2025-04-02 19:19:20,990 - INFO - Processing with condition [22/26]: 400851
+2025-04-02 19:19:21,550 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part2.html with conditions: ['400851']
+2025-04-02 19:19:21,640 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html with conditions: ['400851']
+2025-04-02 19:19:21,690 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part8.html with conditions: ['400851']
+2025-04-02 19:19:21,956 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part16.html with conditions: ['400851']
+2025-04-02 19:19:22,056 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part18.html with conditions: ['400851']
+2025-04-02 19:19:22,193 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part19.html with conditions: ['400851']
+2025-04-02 19:19:22,328 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part20.html with conditions: ['400851']
+2025-04-02 19:19:32,412 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400851.html
+2025-04-02 19:19:33,292 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400851.html
+2025-04-02 19:19:36,194 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400851.html
+2025-04-02 19:19:36,198 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400851.html
+2025-04-02 19:19:36,278 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400851.html
+2025-04-02 19:19:36,787 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400851.html
+2025-04-02 19:19:38,905 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_400851.html
+2025-04-02 19:19:38,979 - INFO - Processing with condition [23/26]: 438306
+2025-04-02 19:19:39,806 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part3.html with conditions: ['438306']
+2025-04-02 19:19:39,895 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part15.html with conditions: ['438306']
+2025-04-02 19:19:39,973 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part16.html with conditions: ['438306']
+2025-04-02 19:19:48,681 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_438306.html
+2025-04-02 19:19:48,692 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_438306.html
+2025-04-02 19:19:48,830 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_438306.html
+2025-04-02 19:19:48,867 - INFO - Processing with condition [24/26]: 477270
+2025-04-02 19:19:49,468 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part4.html with conditions: ['477270']
+2025-04-02 19:19:49,556 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part5.html with conditions: ['477270']
+2025-04-02 19:19:49,623 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part16.html with conditions: ['477270']
+2025-04-02 19:19:49,690 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part17.html with conditions: ['477270']
+2025-04-02 19:19:58,277 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_477270.html
+2025-04-02 19:19:58,337 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_477270.html
+2025-04-02 19:19:58,459 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_477270.html
+2025-04-02 19:19:58,740 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_477270.html
+2025-04-02 19:19:58,780 - INFO - Processing with condition [25/26]: 487831
+2025-04-02 19:19:59,427 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part11.html with conditions: ['487831']
+2025-04-02 19:19:59,472 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part13.html with conditions: ['487831']
+2025-04-02 19:20:07,770 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_487831.html
+2025-04-02 19:20:07,799 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_487831.html
+2025-04-02 19:20:07,840 - INFO - Processing with condition [26/26]: 499886
+2025-04-02 19:20:08,461 - INFO - Processing file: C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer__part22.html with conditions: ['499886']
+2025-04-02 19:20:14,010 - INFO - Filtered HTML appended to C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewer_filtered_499886.html
+2025-04-02 19:20:19,263 - INFO - All filtered files have been zipped into C:\Users\f94gdos\Desktop\2025-03-31\ID-7121-Visa_BASE_I_(Standard)_Message_viewerpspfiltered_20250402192014.zip
+2025-04-02 19:20:19,263 - INFO - Processing completed in 0 hours, 6 minutes, and 48 seconds.
+2025-04-02 19:20:19,314 - INFO - 4_astrex_html_filter.py ran successfully in 0 hours, 6 minutes, 49.60 seconds.
+2025-04-02 19:20:19,316 - INFO - 
+Detailed Execution Times:
+2025-04-02 19:20:19,316 - INFO - 1_breakhtml.py: 0 hours, 0 minutes, 1.25 seconds
+2025-04-02 19:20:19,316 - INFO - 2_adjusthtml.py: 0 hours, 0 minutes, 41.67 seconds
+2025-04-02 19:20:19,316 - INFO - 3_unique_de32_html.py: 0 hours, 6 minutes, 1.84 seconds
+2025-04-02 19:20:19,316 - INFO - 4_astrex_html_filter.py: 0 hours, 6 minutes, 49.60 seconds
+2025-04-02 19:20:19,316 - INFO - 
+Total time to run all scripts: 0 hours, 13 minutes, 34.40 seconds.
