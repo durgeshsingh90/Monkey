@@ -4888,3 +4888,5 @@ Bitmap: [f23c648108e180184000000000000000]
 2025-04-17 17:38:23,763 [INFO] splunkparser: Parsed DE 061: {'': ''}
 2025-04-17 17:38:23,764 [DEBUG] splunkparser: Field 061 detected with value: 00710Test301911FromJohn'sAccount01412James Malcom01513Marienplatz 101214MxFCnchen00516276004170100418FD01220John Docks01622Bayview Avenue00523CAN00524CAN00928Toronto0042900017633335454678     01486BestShopEver01987StreetforMerchant
 2025-04-17 17:38:23,765 [CRITICAL] splunkparser: Unexpected error during log parsing: invalid literal for int() with base 10: 'e00'
+2025-04-18 03:05:40,062 [INFO] django.utils.autoreload: Watching for file changes with StatReloader
+2025-04-18 03:05:44,443 [WARNING] django.request: Not Found: /favicon.ico

@@ -1,62 +1,36 @@
-FROM registry.access.redhat.com/ubi8/ubi
+FROM python:3.12-slim
 
 # Set environment variables
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Dublin
 
-# Install essential packages
-RUN yum update -y && \
-    yum install -y \
-    sudo \
-    git \
-    wget \
-    curl \
-    gcc \
-    make \
-    zlib-devel \
-    bzip2-devel \
-    readline-devel \
-    libffi-devel \
-    openssl-devel \
-    shadow-utils \
-    which \
-    passwd \
-    python312 && \
-    yum clean all
+# Install system packages
+RUN apt update && \
+    apt install -y tzdata sudo git python-is-python3 python3-pip && \
+    ln -fs /usr/share/zoneinfo/Europe/Dublin /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
 
-# Install pip for Python 3.12
-RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
-    python3.12 get-pip.py && \
-    ln -sf /usr/local/bin/pip3.12 /usr/bin/pip && \
-    ln -sf /usr/local/bin/pip3.12 /usr/bin/pip3 && \
-    ln -sf /usr/bin/python3.12 /usr/bin/python && \
-    ln -sf /usr/bin/python3.12 /usr/bin/python3
-
-# Create non-root user
-RUN useradd monkey && \
+# Create user 'monkey' with password 'admin' and sudo access
+RUN adduser --disabled-password --gecos "" monkey && \
     echo "monkey:admin" | chpasswd && \
-    usermod -aG wheel monkey
+    usermod -aG sudo monkey && \
+    echo "monkey ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/monkey && \
+    chmod 0440 /etc/sudoers.d/monkey
 
-# Switch to monkey user and clone the repo
+# Switch to the monkey user
 USER monkey
 WORKDIR /home/monkey
 
-RUN git clone https://github.com/durgeshsingh90/Monkey.git && \
-    cd Monkey && \
-    pip install --upgrade pip && \
-    pip install -r requirements.txt
+# Clone the repo
+RUN git clone https://github.com/durgeshsingh90/monkey.git app
 
-# Set working directory to the project
-WORKDIR /home/monkey/Monkey
+WORKDIR /home/monkey/app
 
-# Expose the port your Django app will run on
+# Install requirements
+RUN pip install --break-system-packages -r requirements.txt
+
+# Expose the Django port
 EXPOSE 8000
 
-# Run Django app (you can customize this)
+# Run Django
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
-
-# docker build -t monkey-django .
-# docker run -it -p 8000:8000 monkey-django
