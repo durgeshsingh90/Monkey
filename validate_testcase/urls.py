@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import validate_testcase_view
+from . import views
 
 urlpatterns = [
-    path('', validate_testcase_view, name='validate_testcase'),
+    path('', views.upload_excel, name='upload_excel'),
 ]

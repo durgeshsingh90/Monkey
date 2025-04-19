@@ -1,99 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Validate Test Case</title>
+    <title>Validate Testcases</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
-            background: #f9f9f9;
-        }
-        h2, h3, h4 {
-            color: #333;
-        }
-        .upload-form {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        .form-section {
-            margin-bottom: 20px;
-        }
-        .form-section input[type="file"] {
-            margin-top: 5px;
-        }
-        button {
-            padding: 8px 16px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
+            padding: 2rem;
         }
         table {
-            width: 100%;
             border-collapse: collapse;
-            background: white;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #bbb;
+            width: 100%;
+            margin-top: 2rem;
         }
         th, td {
-            padding: 10px;
+            border: 1px solid #aaa;
+            padding: 8px;
             text-align: left;
         }
         th {
-            background-color: #eee;
+            background-color: #f0f0f0;
         }
-        pre {
-            background: #eef;
-            padding: 15px;
-            border: 1px solid #ccd;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            border-radius: 5px;
+        .upload-section {
+            margin-bottom: 2rem;
         }
     </style>
 </head>
 <body>
+    <h1>Upload Excel File - Validate Testcases</h1>
 
-<h2>Upload Excel or Log File to Validate Test Cases</h2>
+    <form method="POST" enctype="multipart/form-data" class="upload-section">
+        {% csrf_token %}
+        <input type="file" name="excel_file" required />
+        <button type="submit">Upload</button>
+    </form>
 
-<form method="post" enctype="multipart/form-data" class="upload-form">
-    {% csrf_token %}
-    <div class="form-section">
-        <label><strong>Upload Excel File (.xlsx or .xls):</strong></label><br>
-        <input type="file" name="excel_file" accept=".xlsx,.xls">
-    </div>
-    <div class="form-section">
-        <label><strong>Upload Log File (.log, .txt, .html):</strong></label><br>
-        <input type="file" name="log_file" accept=".log,.txt,.html">
-    </div>
-    <button type="submit">Upload</button>
-</form>
-
-{% if excel_sheets %}
-    <h3>Excel Data (All Sheets)</h3>
-    {% for sheet in excel_sheets %}
-        <h4>Sheet: {{ sheet.sheet_name }}</h4>
+    {% if df is not None %}
+    <h2>Excel Data Preview</h2>
         <table>
             <thead>
                 <tr>
-                    {% for col in sheet.headers %}
+                    {% for col in df.columns %}
                         <th>{{ col }}</th>
                     {% endfor %}
                 </tr>
             </thead>
             <tbody>
-                {% for row in sheet.table_data %}
+                {% for row in df.values %}
                     <tr>
                         {% for cell in row %}
                             <td>{{ cell }}</td>
@@ -102,89 +54,6 @@
                 {% endfor %}
             </tbody>
         </table>
-        <br>
-    {% endfor %}
-{% endif %}
-
-{% if parsed_log_results %}
-    <h3>Parsed Log Blocks</h3>
-    {% for result in parsed_log_results %}
-        <div style="background: #f3f3f3; border: 1px solid #ccc; margin-bottom: 20px; padding: 10px;">
-            <pre>{{ result|safe }}</pre>
-        </div>
-    {% endfor %}
-{% endif %}
-
-{% if comparison_results %}
-    <h3>Comparison Results</h3>
-    {% for item in comparison_results %}
-        <div style="background: #fff; border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; border-radius: 5px;">
-            <p><strong>RRN:</strong> {{ item.rrn }} | <strong>MTI:</strong> {{ item.mti }}</p>
-
-            {% if item.differences %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Field</th>
-                            <th style="color: green;">Expected</th>
-                            <th style="color: red;">Actual</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for field, diff in item.differences.items %}
-                        <tr>
-                            <td><strong>{{ field }}</strong></td>
-                            <td style="color: green;">{{ diff.expected }}</td>
-                            <td style="color: red;">{{ diff.actual }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p style="color: green;">✅ All fields matched for this RRN.</p>
-            {% endif %}
-
-            {% if item.test_case_row %}
-                <h4>Matched Excel Test Case Row</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            {% for key in item.test_case_row.keys %}
-                                <th>{{ key }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            {% for key, val in item.test_case_row.items %}
-                                {% with clean_key=key|upper|cut:" "|cut:"BM"|cut:"DE" %}
-                                    {% if clean_key|length == 2 %}
-                                        {% with de="DE0"|add:clean_key %}
-                                    {% elif clean_key|length == 3 %}
-                                        {% with de="DE"|add:clean_key %}
-                                    {% else %}
-                                        {% with de=key %}
-                                    {% endif %}
-
-                                    {% if de in item.differences %}
-                                        <td style="color: red;" title="Expected: {{ item.differences.de.expected }}"><strong>{{ val }}</strong></td>
-                                    {% elif de in item.test_case_row %}
-                                        <td style="color: green;">{{ val }}</td>
-                                    {% else %}
-                                        <td>{{ val }}</td>
-                                    {% endif %}
-                                {% endwith %}
-                                {% endwith %}
-                            {% endfor %}
-                        </tr>
-                    </tbody>
-                </table>
-            {% endif %}
-        </div>
-    {% endfor %}
-{% else %}
-    <p style="color: red;"><strong>No matching test case found for any parsed log.</strong></p>
-{% endif %}
-
+    {% endif %}
 </body>
 </html>
