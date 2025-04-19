@@ -42,7 +42,7 @@ urlpatterns = [
     # path('emvco_logs/', include('emvco_logs.urls')),
     # path('xml_logs/', include('xml_logs.urls')),
     path('oracle_query_executor/', include('oracle_query_executor.urls')),
-    path('validate_testcase/', include('validate_testcase.urls')),
+    # path('validate_testcase/', include('validate_testcase.urls')),
     path('splunkrrn/', include('splunkrrn.urls')),
     path('runquery/', include('runquery.urls')),
 

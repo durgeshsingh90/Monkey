@@ -205,7 +205,14 @@ def parse_logs(request):
             logger.info("Log data parsed successfully.")
             logger.debug(f"Parsed output: {parsed_output}")
 
-            return JsonResponse({'status': 'success', 'result': parsed_output})
+            return JsonResponse({
+                                'status': 'success',
+                                'timestamp': extract_timestamp(log_data),
+                                'route': extract_route(log_data),
+                                'message_id': extract_message_id(log_data),
+                                'result': parsed_output
+                                })
+
 
         except json.JSONDecodeError as e:
             logger.error(f"JSON decode error: {e}")
@@ -215,6 +222,18 @@ def parse_logs(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+def extract_timestamp(log_data):
+    match = re.search(r'\d{2}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}\.\d{3}', log_data)
+    return match.group(0) if match else None
+
+def extract_route(log_data):
+    match = re.search(r'\[\s*([A-Za-z]+:\d+)\s*\]', log_data)
+    return match.group(1).strip() if match else None
+
+def extract_message_id(log_data):
+    match = re.search(r'MESSAGE ID\[(.*?)\]', log_data)
+    return match.group(1).strip() if match else None
 
 @csrf_exempt
 def set_default_values(request):
