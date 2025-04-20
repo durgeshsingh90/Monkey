@@ -129,19 +129,17 @@ def split_log_blocks(log_file_path):
 all_responses = []
 
 # Function to send a log block to the API
-def send_to_api(log_block, block_index, route=None, message_id=None, url=None):
-    url = 'http://localhost:8000/splunkparser/parse/'
+def send_to_api(log_block, block_index, route=None, message_id=None, url=None, session=None):
+    session = session or requests  # fallback in case session is not passed
     try:
         logging.info("\n================== 📨 Sending Block %d ==================", block_index)
         logging.info("📌 Route: %s", route)
         logging.info("📌 Message ID: %s", message_id)
-        logging.info("📜 Block Content:\n%s", log_block)
-        logging.info("====================================================")
+        logging.debug("📜 Block Content:\n%s", log_block)
 
-        response = requests.post(url, json={'log_data': log_block})
+        response = session.post(url, json={'log_data': log_block})
         response_json = response.json()
 
-        # Add metadata
         response_json['block_index'] = block_index
         response_json['route'] = route
         response_json['message_id'] = message_id
@@ -149,7 +147,7 @@ def send_to_api(log_block, block_index, route=None, message_id=None, url=None):
         all_responses.append(response_json)
 
         logging.info("\n================== 📩 Response for Block %d ==================", block_index)
-        logging.info(json.dumps(response_json, indent=2))
+        logging.debug(json.dumps(response_json, indent=2))
         logging.info("====================================================\n")
 
     except Exception as e:
@@ -161,18 +159,21 @@ def process_log_file(log_file_path):
     blocks = split_log_blocks(log_file_path)
     logging.info("📦 Found %d message blocks.\n", len(blocks))
 
+    session = requests.Session()  # ✅ persistent connection
+
     for i, block_data in enumerate(blocks, start=1):
         block_content = block_data['block']
         route, message_id = extract_route_and_message_id(block_content)
 
         if route:
-            route_key = route.lower().split(":")[0]  # e.g., 'FromIso:1234' → 'fromiso'
-            api_url = ROUTE_TO_API_MAP.get(route_key, ROUTE_TO_API_MAP["default"])  # fallback if not found
-
+            route_key = route.lower().split(":")[0]
+            api_url = ROUTE_TO_API_MAP.get(route_key, ROUTE_TO_API_MAP["default"])
             logging.info("🚀 Sending block %d [Route: %s] to %s", i, route, api_url)
-            send_to_api(block_content, i, route, message_id, url=api_url)
+            send_to_api(block_content, i, route, message_id, url=api_url, session=session)
         else:
             logging.info("⏭️ Skipping block %d — No route detected.", i)
+
+    session.close()  # ✅ close when done
 
 # Function to convert HEX to ASCII, if possible
 def hex_to_ascii(value):
