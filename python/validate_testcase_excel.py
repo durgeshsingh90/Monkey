@@ -175,30 +175,63 @@ def process_log_file(log_file_path):
 
     session.close()  # ✅ close when done
 
+def is_hex(s):
+    try:
+        int(s, 16)
+        return True
+    except ValueError:
+        return False
+
 # Function to convert HEX to ASCII, if possible
 def hex_to_ascii(value):
     try:
         return bytes.fromhex(value).decode('ascii')
     except:
-        return value  # already ASCII
+        return value  # fallback if it's not valid hex or not decodable
+
 
 # Function to group responses by RRN or STAN
 def group_responses_by_rrn(responses):
     grouped = defaultdict(list)
+    rrn_to_stan = {}  # Map STAN to RRN group key
+
     for response in responses:
         data_elements = response.get('result', {}).get('data_elements', {})
         rrn = data_elements.get('DE037')
         stan = data_elements.get('DE011')
 
         if rrn:
-            normalized_rrn = hex_to_ascii(rrn)
-            grouped[normalized_rrn].append(response)
+            normalized_rrn = hex_to_ascii(rrn) if is_hex(rrn) else rrn
+            group_key = f"RRN_{normalized_rrn}"
+            logging.debug("📌 Grouping block by RRN: %s", group_key)
+
+            grouped[group_key].append(response)
+
+            if stan:
+                rrn_to_stan[stan] = group_key
+
         elif stan:
-            grouped[f'STAN_{stan}'].append(response)
+            matched_group = rrn_to_stan.get(stan)
+
+            if matched_group:
+                logging.debug("🔁 Found matching RRN group for STAN %s → %s", stan, matched_group)
+                grouped[matched_group].append(response)
+            else:
+                group_key = f"STAN_{stan}"
+                logging.warning("⚠️ No RRN match found for STAN %s — grouping under %s", stan, group_key)
+                grouped[group_key].append(response)
+
         else:
+            logging.warning("❌ Response has neither RRN (DE037) nor STAN (DE011)")
             grouped['UNKNOWN'].append(response)
 
+    # ✅ Log summary of grouped results
+    logging.info("\n📊 Grouping Summary:")
+    for group_key, entries in grouped.items():
+        logging.info("• %s → %d block(s)", group_key, len(entries))
+
     return dict(grouped)
+
 
 if __name__ == "__main__":
     excel_file_path = r"D:\Projects\VSCode\MangoData\ISO8583_eCommerce_TestCases (1).xlsx"
