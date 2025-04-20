@@ -189,11 +189,39 @@ def hex_to_ascii(value):
     except:
         return value  # fallback if it's not valid hex or not decodable
 
+def ascii_to_hex(s):
+    return ''.join(format(ord(c), '02x') for c in s)
+
+def normalize_rrn(rrn, existing_rrns):
+    if not isinstance(rrn, str):
+        return rrn
+
+    # Case 1: Already present as-is (normal RRN)
+    if rrn in existing_rrns:
+        return rrn
+
+    # Case 2: Looks like hex → decode it
+    if is_hex(rrn):
+        try:
+            decoded = bytes.fromhex(rrn).decode('ascii')
+            if decoded.isprintable() and decoded.isdigit():
+                return decoded
+        except:
+            pass
+
+    # Case 3: Convert normal RRN to hex and check reverse match
+    hex_version = ascii_to_hex(rrn)
+    for existing in existing_rrns:
+        if ascii_to_hex(existing) == rrn:
+            return existing
+
+    return rrn  # fallback
 
 # Function to group responses by RRN or STAN
 def group_responses_by_rrn(responses):
     grouped = defaultdict(list)
-    rrn_to_stan = {}  # Map STAN to RRN group key
+    rrn_to_stan = {}
+    existing_rrns = set()
 
     for response in responses:
         data_elements = response.get('result', {}).get('data_elements', {})
@@ -201,37 +229,30 @@ def group_responses_by_rrn(responses):
         stan = data_elements.get('DE011')
 
         if rrn:
-            normalized_rrn = hex_to_ascii(rrn) if is_hex(rrn) else rrn
+            normalized_rrn = normalize_rrn(rrn, existing_rrns)
             group_key = f"RRN_{normalized_rrn}"
-            logging.debug("📌 Grouping block by RRN: %s", group_key)
-
             grouped[group_key].append(response)
+            existing_rrns.add(normalized_rrn)
 
             if stan:
                 rrn_to_stan[stan] = group_key
 
         elif stan:
             matched_group = rrn_to_stan.get(stan)
-
             if matched_group:
-                logging.debug("🔁 Found matching RRN group for STAN %s → %s", stan, matched_group)
                 grouped[matched_group].append(response)
             else:
-                group_key = f"STAN_{stan}"
-                logging.warning("⚠️ No RRN match found for STAN %s — grouping under %s", stan, group_key)
-                grouped[group_key].append(response)
+                grouped[f"STAN_{stan}"].append(response)
 
         else:
-            logging.warning("❌ Response has neither RRN (DE037) nor STAN (DE011)")
             grouped['UNKNOWN'].append(response)
 
-    # ✅ Log summary of grouped results
+    # ✅ Log summary
     logging.info("\n📊 Grouping Summary:")
     for group_key, entries in grouped.items():
         logging.info("• %s → %d block(s)", group_key, len(entries))
 
     return dict(grouped)
-
 
 if __name__ == "__main__":
     excel_file_path = r"D:\Projects\VSCode\MangoData\ISO8583_eCommerce_TestCases (1).xlsx"
