@@ -679,15 +679,46 @@ def update_de55(de55_data):
 def parse_bm6x(value):
     subfields = []
     values = []
+    errors = []
     i = 0
+    offset = 0  # for better error logging
 
     while i < len(value):
-        subfield_length = int(value[i:i + 3])
-        subfield = value[i + 3:i + 5]
-        subfields.append(subfield)
-        values.append(value[i + 5:i + 5 + subfield_length - 2])
-        i += 5 + subfield_length - 2
+        try:
+            if i + 5 > len(value):
+                raise ValueError(f"Incomplete header at offset {i}: '{value[i:]}'")
 
-    parsed_fields = {subfield: values[idx] for idx, subfield in enumerate(subfields)}
+            subfield_length_str = value[i:i + 3]
+            if not subfield_length_str.isdigit():
+                raise ValueError(f"Non-numeric subfield length '{subfield_length_str}' at offset {i}")
+
+            subfield_length = int(subfield_length_str)
+            subfield = value[i + 3:i + 5]
+            data_start = i + 5
+            data_end = data_start + subfield_length - 2
+
+            if subfield_length < 2:
+                raise ValueError(f"Invalid subfield length {subfield_length} for subfield {subfield} at offset {i}")
+
+            if data_end > len(value):
+                raise ValueError(f"Incomplete data for subfield {subfield} at offset {i}. Needed till {data_end}, only {len(value)} available.")
+
+            value_str = value[data_start:data_end]
+            logger.debug(f"Parsed subfield {subfield} ({subfield_length}): {value_str}")
+
+            subfields.append(subfield)
+            values.append(value_str)
+
+            i += 5 + subfield_length - 2
+        except Exception as e:
+            error_msg = f"Subfield at offset {i} failed: {e}"
+            logger.warning(error_msg)
+            errors.append(error_msg)
+            break  # Or optionally: i += 1 and continue to keep parsing
+
+    parsed_fields = {subfields[idx]: values[idx] for idx in range(len(subfields))}
+    if errors:
+        parsed_fields['__errors__'] = errors
+
     logger.debug(f"DE6x parsed fields: {parsed_fields}")
     return parsed_fields
