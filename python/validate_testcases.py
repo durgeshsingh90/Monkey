@@ -280,32 +280,82 @@ def load_excel_and_find_row(rrn, excel_path):
     return df, None
 
 # === Apply green/red coloring to matched/mismatched cells
-def apply_color_coding(df, row_index, parsed_data, excel_path):
+def apply_color_coding_with_status(df, row_index, parsed_data, excel_path, status_map):
+    from openpyxl import load_workbook
+    from openpyxl.styles import PatternFill
+
+    green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+    red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+
     wb = load_workbook(excel_path)
     ws = wb.active
+
+    header_row = 1
+    status_col_index = len(df.columns) + 1
+    ws.cell(row=header_row, column=status_col_index).value = "ValidationStatus"
+
+    all_match = True
     for col_index, col_name in enumerate(df.columns, start=1):
         expected = str(df.loc[row_index, col_name]).strip()
         key = col_name.split()[0].replace("BM", "DE")
         actual = str(parsed_data.get(key, "")).strip()
+
         if expected == actual or expected.lower() == "client-defined":
             ws.cell(row=row_index + 2, column=col_index).fill = green_fill
         else:
+            all_match = False
             ws.cell(row=row_index + 2, column=col_index).fill = red_fill
+
+    if all_match:
+        status = "Passed"
+    else:
+        status = "Failed"
+
+    ws.cell(row=row_index + 2, column=status_col_index).value = status
+    status_map[row_index] = status
+
     wb.save("validated_output.xlsx")
 
 # === Validate each group by matching FromISO data with Excel test case
 def validate_groups_against_excel(grouped_data, excel_path):
+    status_map = {}
+    df = pd.read_excel(excel_path, sheet_name=0)
+    df = df.dropna(how="all")
+
+    matched_rows = set()
+
     for rrn_group_key, group_blocks in grouped_data.items():
         if not rrn_group_key.startswith("RRN_"):
             continue
+
         rrn = rrn_group_key.replace("RRN_", "")
-        df, matched_row = load_excel_and_find_row(rrn, excel_path)
-        if matched_row is None:
+        found = False
+
+        for i, row in df.iterrows():
+            for col in df.columns:
+                if str(row[col]).strip() == str(rrn):
+                    fromiso_block = get_fromiso_block(group_blocks)
+                    parsed_data = fromiso_block.get("result", {}).get("data_elements", {})
+                    apply_color_coding_with_status(df, i, parsed_data, excel_path, status_map)
+                    matched_rows.add(i)
+                    found = True
+                    break
+            if found:
+                break
+
+        if not found:
             logging.warning("⚠️ No matching row found in Excel for RRN: %s", rrn)
-            continue
-        fromiso_block = get_fromiso_block(group_blocks)
-        parsed_data = fromiso_block.get("result", {}).get("data_elements", {})
-        apply_color_coding(df, matched_row, parsed_data, excel_path)
+
+    # Mark skipped rows
+    wb = load_workbook(excel_path)
+    ws = wb.active
+    status_col_index = len(df.columns) + 1
+    ws.cell(row=1, column=status_col_index).value = "ValidationStatus"
+    for i in range(len(df)):
+        if i not in matched_rows:
+            ws.cell(row=i + 2, column=status_col_index).value = "Skipped"
+
+    wb.save("validated_output.xlsx")
 
 # === Final call added to your existing __main__ block:
 if __name__ == "__main__":
