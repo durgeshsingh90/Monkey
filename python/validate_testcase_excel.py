@@ -102,6 +102,13 @@ def send_to_api(log_block, block_index, route=None, message_id=None):
     url = 'http://localhost:8000/splunkparser/parse/'
 
     try:
+        print(f"\n================== 📨 Sending Block {block_index} ==================")
+        print(f"📌 Route: {route}")
+        print(f"📌 Message ID: {message_id}")
+        print(f"📜 Block Content:\n{log_block}")
+        print("====================================================")
+
+        # Send to API
         response = requests.post(url, json={'log_data': log_block})
         response_json = response.json()
 
@@ -114,6 +121,7 @@ def send_to_api(log_block, block_index, route=None, message_id=None):
 
         print(f"\n================== 📩 Response for Block {block_index} ==================")
         print(json.dumps(response_json, indent=2))
+        print("====================================================\n")
 
     except Exception as e:
         print(f"❌ Error sending Block {block_index}: {e}")
