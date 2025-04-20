@@ -254,21 +254,74 @@ def group_responses_by_rrn(responses):
 
     return dict(grouped)
 
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+
+# === Fills for match/mismatch
+green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+
+# === Get FROMISO block from a group
+def get_fromiso_block(group):
+    for block in group:
+        route = block.get("route", "").lower()
+        if route.startswith("fromiso"):
+            return block
+    return group[0]
+
+# === Load Excel and find matching row based on RRN
+def load_excel_and_find_row(rrn, excel_path):
+    df = pd.read_excel(excel_path, sheet_name=0)
+    df = df.dropna(how="all")
+    for i, row in df.iterrows():
+        for col in df.columns:
+            if str(row[col]).strip() == str(rrn):
+                return df, i
+    return df, None
+
+# === Apply green/red coloring to matched/mismatched cells
+def apply_color_coding(df, row_index, parsed_data, excel_path):
+    wb = load_workbook(excel_path)
+    ws = wb.active
+    for col_index, col_name in enumerate(df.columns, start=1):
+        expected = str(df.loc[row_index, col_name]).strip()
+        key = col_name.split()[0].replace("BM", "DE")
+        actual = str(parsed_data.get(key, "")).strip()
+        if expected == actual or expected.lower() == "client-defined":
+            ws.cell(row=row_index + 2, column=col_index).fill = green_fill
+        else:
+            ws.cell(row=row_index + 2, column=col_index).fill = red_fill
+    wb.save("validated_output.xlsx")
+
+# === Validate each group by matching FromISO data with Excel test case
+def validate_groups_against_excel(grouped_data, excel_path):
+    for rrn_group_key, group_blocks in grouped_data.items():
+        if not rrn_group_key.startswith("RRN_"):
+            continue
+        rrn = rrn_group_key.replace("RRN_", "")
+        df, matched_row = load_excel_and_find_row(rrn, excel_path)
+        if matched_row is None:
+            logging.warning("⚠️ No matching row found in Excel for RRN: %s", rrn)
+            continue
+        fromiso_block = get_fromiso_block(group_blocks)
+        parsed_data = fromiso_block.get("result", {}).get("data_elements", {})
+        apply_color_coding(df, matched_row, parsed_data, excel_path)
+
+# === Final call added to your existing __main__ block:
 if __name__ == "__main__":
     excel_file_path = r"D:\Projects\VSCode\MangoData\ISO8583_eCommerce_TestCases (1).xlsx"
     log_file_path = r"D:\Projects\VSCode\MangoData\splunk_log.txt"
     read_and_print_excel(excel_file_path)
 
-    # 🧺 Init list to collect all responses globally
     all_responses = []
-
-    # 📨 Send and collect parsed blocks
     process_log_file(log_file_path)
-
-    # 📊 Group by RRN/STAN and save
     grouped_data = group_responses_by_rrn(all_responses)
 
     with open("grouped_by_rrn.json", "w") as f:
         json.dump(grouped_data, f, indent=2)
 
     logging.info("✅ Grouped data saved to grouped_by_rrn.json")
+
+    # ✅ Add this at the end of your script
+    validate_groups_against_excel(grouped_data, excel_file_path)
+    logging.info("✅ Validation complete. Check 'validated_output.xlsx' for colored results.")
