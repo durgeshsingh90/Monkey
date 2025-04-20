@@ -60,7 +60,9 @@ def split_log_blocks(log_file_path):
     current_message_id = None
 
     for line in lines:
-        if 'INBOUND MESSAGE ID' in line:
+        timestamp_match = TIMESTAMP_PATTERN.match(line)
+
+        if timestamp_match:
             # Save previous block
             if current_block:
                 blocks.append({
@@ -70,11 +72,16 @@ def split_log_blocks(log_file_path):
                 })
                 current_block = []
 
+            # New block start
+            current_route = None
+            current_message_id = None
+
+        # Check for route and message ID in the line
+        if 'INBOUND MESSAGE ID' in line:
             # Extract route
             route_match = re.search(r'\[\s*([A-Za-z]+:\d+)\s*\]', line)
             if route_match:
                 current_route = route_match.group(1).strip()
-
 
             # Extract message_id
             msgid_match = re.search(r'MESSAGE ID\[(.*?)\]', line)
@@ -168,8 +175,8 @@ def group_responses_by_rrn(responses):
 # === MAIN ===
 import json
 if __name__ == "__main__":
-    excel_file_path = r"D:\Projects\VSCode\MangoData\ISO8583_eCommerce_TestCases (1).xlsx"
-    log_file_path = r"D:\Projects\VSCode\MangoData\splunk_log.txt"
+    excel_file_path = r"C:\Users\f94gdos\Desktop\New folder (6)\Visa AFT DMS _Ecom_Moto_Test cases_v1_13032025 - OFFLINE.xlsx"
+    log_file_path = r"C:\Users\f94gdos\Desktop\New folder (6)\RAW.txt"
 
     read_and_print_excel(excel_file_path)
 
