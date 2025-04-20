@@ -129,7 +129,7 @@ def split_log_blocks(log_file_path):
 all_responses = []
 
 # Function to send a log block to the API
-def send_to_api(log_block, block_index, route=None, message_id=None):
+def send_to_api(log_block, block_index, route=None, message_id=None, url=None):
     url = 'http://localhost:8000/splunkparser/parse/'
     try:
         logging.info("\n================== 📨 Sending Block %d ==================", block_index)
@@ -200,9 +200,8 @@ def group_responses_by_rrn(responses):
     return dict(grouped)
 
 if __name__ == "__main__":
-    excel_file_path = r"C:\Users\f94gdos\Desktop\New folder (6)\CNP Integrated Test cases spreadsheet v6.1.xlsx"
-    log_file_path = r"C:\Users\f94gdos\Desktop\New folder (6)\RAW.txt"
-
+    excel_file_path = r"D:\Projects\VSCode\MangoData\ISO8583_eCommerce_TestCases (1).xlsx"
+    log_file_path = r"D:\Projects\VSCode\MangoData\splunk_log.txt"
     read_and_print_excel(excel_file_path)
 
     # 🧺 Init list to collect all responses globally
