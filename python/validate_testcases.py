@@ -279,51 +279,8 @@ def load_excel_and_find_row(rrn, excel_path):
                 return df, i
     return df, None
 
-# === Apply green/red coloring to matched/mismatched cells
-def apply_color_coding_with_status(df, row_index, parsed_data, excel_path, status_map):
-    from openpyxl import load_workbook
-    from openpyxl.styles import PatternFill
-
-    green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
-    red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
-
-    wb = load_workbook(excel_path)
-    ws = wb.active
-
-    header_row = 1
-    status_col_index = len(df.columns) + 1
-    ws.cell(row=header_row, column=status_col_index).value = "ValidationStatus"
-
-    all_match = True
-    for col_index, col_name in enumerate(df.columns, start=1):
-        expected = str(df.loc[row_index, col_name]).strip()
-        key = col_name.split()[0].replace("BM", "DE")
-        actual = str(parsed_data.get(key, "")).strip()
-
-        if expected == actual or expected.lower() == "client-defined":
-            ws.cell(row=row_index + 2, column=col_index).fill = green_fill
-        else:
-            all_match = False
-            ws.cell(row=row_index + 2, column=col_index).fill = red_fill
-
-    if all_match:
-        status = "Passed"
-    else:
-        status = "Failed"
-
-    ws.cell(row=row_index + 2, column=status_col_index).value = status
-    status_map[row_index] = status
-
-    wb.save("validated_output.xlsx")
-
 # === Validate each group by matching FromISO data with Excel test case
-def validate_groups_against_excel(grouped_data, excel_path):
-    import pprint  # Optional, if you want prettier logs (not used in this version)
-
-    status_map = {}
-    df = pd.read_excel(excel_path, sheet_name=0)
-    df = df.dropna(how="all")
-
+def validate_groups_against_excel(grouped_data, df, excel_path):
     matched_rows = set()
 
     for rrn_group_key, group_blocks in grouped_data.items():
@@ -338,14 +295,13 @@ def validate_groups_against_excel(grouped_data, excel_path):
                 if str(row[col]).strip() == str(rrn):
                     fromiso_block = get_fromiso_block(group_blocks)
                     parsed_data = fromiso_block.get("result", {}).get("data_elements", {})
-                    apply_color_coding_with_status(df, i, parsed_data, excel_path, status_map)
-                    matched_rows.add(i)
 
                     # ✅ Logging matched row for the given RRN
                     logging.info("✅ Found matching RRN in Excel for %s. Row contents:", rrn)
                     row_dict = {col: str(row[col]).strip() for col in df.columns}
                     logging.info(json.dumps(row_dict, indent=2))
 
+                    matched_rows.add(i)
                     found = True
                     break
             if found:
@@ -369,7 +325,20 @@ def validate_groups_against_excel(grouped_data, excel_path):
 if __name__ == "__main__":
     excel_file_path = r"D:\Projects\VSCode\MangoData\testcase.xlsx"
     log_file_path = r"D:\Projects\VSCode\MangoData\splunk_log.txt"
-    read_and_print_excel(excel_file_path)
+
+    # Load Excel once and get parsed DataFrame
+    all_sheets = pd.read_excel(excel_file_path, sheet_name=None, header=None)
+    df = None
+    for sheet_name, sheet_df in all_sheets.items():
+        for i, row in sheet_df.iterrows():
+            if is_valid_header(row):
+                sheet_df.columns = sheet_df.iloc[i]
+                df = sheet_df[(i + 1):].reset_index(drop=True)
+                break
+
+    if df is None:
+        logging.error("❌ No valid header found in any sheet of the Excel.")
+        exit()
 
     all_responses = []
     process_log_file(log_file_path)
@@ -380,6 +349,5 @@ if __name__ == "__main__":
 
     logging.info("✅ Grouped data saved to grouped_by_rrn.json")
 
-    # ✅ Add this at the end of your script
-    validate_groups_against_excel(grouped_data, excel_file_path)
-    logging.info("✅ Validation complete. Check 'validated_output.xlsx' for colored results.")
+    validate_groups_against_excel(grouped_data, df, excel_file_path)
+    logging.info("✅ Validation complete. Check 'validated_output.xlsx' for status.")
