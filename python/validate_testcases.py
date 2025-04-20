@@ -318,6 +318,8 @@ def apply_color_coding_with_status(df, row_index, parsed_data, excel_path, statu
 
 # === Validate each group by matching FromISO data with Excel test case
 def validate_groups_against_excel(grouped_data, excel_path):
+    import pprint  # Optional, if you want prettier logs (not used in this version)
+
     status_map = {}
     df = pd.read_excel(excel_path, sheet_name=0)
     df = df.dropna(how="all")
@@ -338,6 +340,12 @@ def validate_groups_against_excel(grouped_data, excel_path):
                     parsed_data = fromiso_block.get("result", {}).get("data_elements", {})
                     apply_color_coding_with_status(df, i, parsed_data, excel_path, status_map)
                     matched_rows.add(i)
+
+                    # ✅ Logging matched row for the given RRN
+                    logging.info("✅ Found matching RRN in Excel for %s. Row contents:", rrn)
+                    row_dict = {col: str(row[col]).strip() for col in df.columns}
+                    logging.info(json.dumps(row_dict, indent=2))
+
                     found = True
                     break
             if found:
@@ -346,7 +354,7 @@ def validate_groups_against_excel(grouped_data, excel_path):
         if not found:
             logging.warning("⚠️ No matching row found in Excel for RRN: %s", rrn)
 
-    # Mark skipped rows
+    # Mark skipped rows in Excel
     wb = load_workbook(excel_path)
     ws = wb.active
     status_col_index = len(df.columns) + 1
@@ -359,7 +367,7 @@ def validate_groups_against_excel(grouped_data, excel_path):
 
 # === Final call added to your existing __main__ block:
 if __name__ == "__main__":
-    excel_file_path = r"D:\Projects\VSCode\MangoData\ISO8583_eCommerce_TestCases (1).xlsx"
+    excel_file_path = r"D:\Projects\VSCode\MangoData\testcase.xlsx"
     log_file_path = r"D:\Projects\VSCode\MangoData\splunk_log.txt"
     read_and_print_excel(excel_file_path)
 
