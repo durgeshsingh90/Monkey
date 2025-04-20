@@ -1,0 +1,430 @@
+25.03.13 08:10:51.417 [ FromIso:11207092]************** INBOUND MESSAGE ID[AAEAqwG0Z9KTCwAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:10:51.488 [   ToIso:24576272]************** OUTBOUND MESSAGE ID[AAEAqwG0Z9KTCwAA] ***************
+msgno[  0]<110>
+25.03.13 08:10:51.466 [  ToVisa:23855404]*********** Out Bound Message ID[AAEAqwG0Z9KTCwAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:10:51.480 [FromVisa:22151670]*********** Inbound Message ID[AAEBIAGgZ9KTCwAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:10:52.627 [ FromIso:22348210]************** INBOUND MESSAGE ID[AAEBVQGyZ9KTDAAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:10:52.693 [   ToIso:18612590]************** OUTBOUND MESSAGE ID[AAEBVQGyZ9KTDAAA] ***************
+msgno[  0]<110>
+25.03.13 08:10:52.670 [  ToVisa:25493946]*********** Out Bound Message ID[AAEBVQGyZ9KTDAAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:10:52.683 [FromVisa:22675880]*********** Inbound Message ID[AAEBIAGgZ9KTDAAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:10:53.475 [ FromIso:16187902]************** INBOUND MESSAGE ID[AAEA9wH+Z9KTDQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:10:53.547 [   ToIso:16777502]************** OUTBOUND MESSAGE ID[AAEA9wH+Z9KTDQAA] ***************
+msgno[  0]<110>
+25.03.13 08:10:53.520 [  ToVisa:25756010]*********** Out Bound Message ID[AAEA9wH+Z9KTDQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:10:53.539 [FromVisa:21889404]*********** Inbound Message ID[AAEBIAGgZ9KTDQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:10:54.737 [ FromIso:18743756]************** INBOUND MESSAGE ID[AAEBHgHMZ9KTDgAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:10:54.803 [   ToIso:20382092]************** OUTBOUND MESSAGE ID[AAEBHgHMZ9KTDgAA] ***************
+msgno[  0]<110>
+25.03.13 08:10:54.781 [  ToVisa:25100692]*********** Out Bound Message ID[AAEBHgHMZ9KTDgAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:10:54.794 [FromVisa:23593452]*********** Inbound Message ID[AAEBIAGgZ9KTDgAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:10:56.013 [ FromIso:24510820]************** INBOUND MESSAGE ID[AAEBdgFkZ9KTEAAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:10:56.077 [   ToIso:20119960]************** OUTBOUND MESSAGE ID[AAEBdgFkZ9KTEAAA] ***************
+msgno[  0]<110>
+25.03.13 08:10:56.057 [  ToVisa:25231664]*********** Out Bound Message ID[AAEBdgFkZ9KTEAAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:10:56.070 [FromVisa:23134474]*********** Inbound Message ID[AAEBIAGgZ9KTEAAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:10:57.012 [ FromIso:20709800]************** INBOUND MESSAGE ID[AAEBPAGoZ9KTEQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:10:57.107 [   ToIso:27459990]************** OUTBOUND MESSAGE ID[AAEBPAGoZ9KTEQAA] ***************
+msgno[  0]<110>
+25.03.13 08:10:57.081 [  ToVisa:24904164]*********** Out Bound Message ID[AAEBPAGoZ9KTEQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:10:57.099 [FromVisa:22741280]*********** Inbound Message ID[AAEBIAGgZ9KTEQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:10:58.261 [ FromIso:23462228]************** INBOUND MESSAGE ID[AAEBZgFUZ9KTEgAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:10:58.365 [   ToIso:18678166]************** OUTBOUND MESSAGE ID[AAEBZgFUZ9KTEgAA] ***************
+msgno[  0]<110>
+25.03.13 08:10:58.329 [  ToVisa:25559474]*********** Out Bound Message ID[AAEBZgFUZ9KTEgAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:10:58.357 [FromVisa:24248702]*********** Inbound Message ID[AAEBIAGgZ9KTEgAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:00.847 [ FromIso:18612590]************** INBOUND MESSAGE ID[AAEBHAFuZ9KTFAAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:00.912 [   ToIso:15728920]************** OUTBOUND MESSAGE ID[AAEBHAFuZ9KTFAAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:00.891 [  ToVisa:25887038]*********** Out Bound Message ID[AAEBHAFuZ9KTFAAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:00.903 [FromVisa:25428430]*********** Inbound Message ID[AAEBIAGgZ9KTFAAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:01.778 [ FromIso:21692760]************** INBOUND MESSAGE ID[AAEBSwFYZ9KTFQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:01.852 [   ToIso:14221640]************** OUTBOUND MESSAGE ID[AAEBSwFYZ9KTFQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:01.825 [  ToVisa:25821568]*********** Out Bound Message ID[AAEBSwFYZ9KTFQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:01.841 [FromVisa:12255714]*********** Inbound Message ID[AAEBIAGgZ9KTFQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:03.093 [ FromIso:15466864]************** INBOUND MESSAGE ID[AAEA7AFwZ9KTFwAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:03.158 [   ToIso:20644244]************** OUTBOUND MESSAGE ID[AAEA7AFwZ9KTFwAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:03.137 [  ToVisa:25690560]*********** Out Bound Message ID[AAEA7AFwZ9KTFwAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:03.150 [FromVisa:24117746]*********** Inbound Message ID[AAEBIAGgZ9KTFwAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:04.400 [ FromIso:16777502]************** INBOUND MESSAGE ID[AAEBAAEeZ9KTGAAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:04.461 [   ToIso:16712092]************** OUTBOUND MESSAGE ID[AAEBAAEeZ9KTGAAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:04.441 [  ToVisa:23855404]*********** Out Bound Message ID[AAEBAAEeZ9KTGAAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:04.453 [FromVisa:22151670]*********** Inbound Message ID[AAEBIAGgZ9KTGAAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:05.361 [ FromIso:27656698]************** INBOUND MESSAGE ID[AAEBpgH6Z9KTGQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:05.435 [   ToIso:15073762]************** OUTBOUND MESSAGE ID[AAEBpgH6Z9KTGQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:05.414 [  ToVisa:25493946]*********** Out Bound Message ID[AAEBpgH6Z9KTGQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:05.427 [FromVisa:22675880]*********** Inbound Message ID[AAEBIAGgZ9KTGQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:06.186 [ FromIso:16056762]************** INBOUND MESSAGE ID[AAEA9QG6Z9KTGgAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:06.249 [   ToIso:18743756]************** OUTBOUND MESSAGE ID[AAEA9QG6Z9KTGgAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:06.228 [  ToVisa:25756010]*********** Out Bound Message ID[AAEA9QG6Z9KTGgAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:06.241 [FromVisa:21889404]*********** Inbound Message ID[AAEBIAGgZ9KTGgAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:07.700 [ FromIso:20119960]************** INBOUND MESSAGE ID[AAEBMwGYZ9KTGwAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:07.771 [   ToIso:17957158]************** OUTBOUND MESSAGE ID[AAEBMwGYZ9KTGwAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:07.743 [  ToVisa:25100692]*********** Out Bound Message ID[AAEBMwGYZ9KTGwAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:07.759 [FromVisa:23593452]*********** Inbound Message ID[AAEBIAGgZ9KTGwAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:08.928 [ FromIso:7733748]************** INBOUND MESSAGE ID[AAEAdgH0Z9KTHAAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:08.997 [   ToIso:19595728]************** OUTBOUND MESSAGE ID[AAEAdgH0Z9KTHAAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:08.975 [  ToVisa:25231664]*********** Out Bound Message ID[AAEAdgH0Z9KTHAAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:08.988 [FromVisa:23134474]*********** Inbound Message ID[AAEBIAGgZ9KTHAAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:09.775 [ FromIso:27459990]************** INBOUND MESSAGE ID[AAEBowGWZ9KTHQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:09.839 [   ToIso:17760664]************** OUTBOUND MESSAGE ID[AAEBowGWZ9KTHQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:09.817 [  ToVisa:24904164]*********** Out Bound Message ID[AAEBowGWZ9KTHQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:09.831 [FromVisa:22741280]*********** Inbound Message ID[AAEBIAGgZ9KTHQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:10.589 [ FromIso:14680496]************** INBOUND MESSAGE ID[AAEA4AGwZ9KTHgAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:10.654 [   ToIso:23462228]************** OUTBOUND MESSAGE ID[AAEA4AGwZ9KTHgAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:10.631 [  ToVisa:25559474]*********** Out Bound Message ID[AAEA4AGwZ9KTHgAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:10.646 [FromVisa:24248702]*********** Inbound Message ID[AAEBIAGgZ9KTHgAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:11.741 [ FromIso:18678166]************** INBOUND MESSAGE ID[AAEBHQGWZ9KTHwAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:11.857 [   ToIso:24576272]************** OUTBOUND MESSAGE ID[AAEBHQGWZ9KTHwAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:11.836 [  ToVisa:25887038]*********** Out Bound Message ID[AAEBHQGWZ9KTHwAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:11.849 [FromVisa:25428430]*********** Inbound Message ID[AAEBIAGgZ9KTHwAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:13.171 [ FromIso:15728920]************** INBOUND MESSAGE ID[AAEA8AEYZ9KTIQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:13.238 [   ToIso:21692760]************** OUTBOUND MESSAGE ID[AAEA8AEYZ9KTIQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:13.960 [ FromIso:14221640]************** INBOUND MESSAGE ID[AAEA2QFIZ9KTIQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:13.217 [  ToVisa:25821568]*********** Out Bound Message ID[AAEA8AEYZ9KTIQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:13.230 [FromVisa:12255714]*********** Inbound Message ID[AAEBIAGgZ9KTIQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:14.094 [   ToIso:15466864]************** OUTBOUND MESSAGE ID[AAEA2QFIZ9KTIQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:14.753 [ FromIso:16187902]************** INBOUND MESSAGE ID[AAEA9wH+Z9KTIgAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:14.814 [   ToIso:16777502]************** OUTBOUND MESSAGE ID[AAEA9wH+Z9KTIgAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:14.033 [  ToVisa:25690560]*********** Out Bound Message ID[AAEA2QFIZ9KTIQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:14.053 [FromVisa:24117746]*********** Inbound Message ID[AAEBIAGgZ9KTIgAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:14.794 [  ToVisa:23855404]*********** Out Bound Message ID[AAEA9wH+Z9KTIgAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:14.807 [FromVisa:22151670]*********** Inbound Message ID[AAEBIAGgZ9KTIgAB] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:15.932 [ FromIso:16712092]************** INBOUND MESSAGE ID[AAEA/wGcZ9KTIwAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:15.997 [   ToIso:27656698]************** OUTBOUND MESSAGE ID[AAEA/wGcZ9KTIwAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:15.975 [  ToVisa:25493946]*********** Out Bound Message ID[AAEA/wGcZ9KTIwAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:15.988 [FromVisa:22675880]*********** Inbound Message ID[AAEBIAGgZ9KTIwAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:17.105 [ FromIso:15073762]************** INBOUND MESSAGE ID[AAEA5gHiZ9KTJQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:17.169 [   ToIso:16056762]************** OUTBOUND MESSAGE ID[AAEA5gHiZ9KTJQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:17.890 [ FromIso:18743756]************** INBOUND MESSAGE ID[AAEBHgHMZ9KTJQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:17.954 [   ToIso:20382092]************** OUTBOUND MESSAGE ID[AAEBHgHMZ9KTJQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:17.148 [  ToVisa:25756010]*********** Out Bound Message ID[AAEA5gHiZ9KTJQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:17.160 [FromVisa:21889404]*********** Inbound Message ID[AAEBIAGgZ9KTJQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:17.933 [  ToVisa:25100692]*********** Out Bound Message ID[AAEBHgHMZ9KTJQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:17.946 [FromVisa:23593452]*********** Inbound Message ID[AAEBIAGgZ9KTJQAB] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:18.609 [ FromIso:24510820]************** INBOUND MESSAGE ID[AAEBdgFkZ9KTJgAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:18.674 [   ToIso:20119960]************** OUTBOUND MESSAGE ID[AAEBdgFkZ9KTJgAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:18.653 [  ToVisa:25231664]*********** Out Bound Message ID[AAEBdgFkZ9KTJgAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:18.665 [FromVisa:23134474]*********** Inbound Message ID[AAEBIAGgZ9KTJgAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:21.300 [ FromIso:17957158]************** INBOUND MESSAGE ID[AAEBEgEmZ9KTKQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:21.364 [   ToIso:7733748]************** OUTBOUND MESSAGE ID[AAEBEgEmZ9KTKQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:21.343 [  ToVisa:24904164]*********** Out Bound Message ID[AAEBEgEmZ9KTKQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:21.355 [FromVisa:22741280]*********** Inbound Message ID[AAEBIAGgZ9KTKQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:22.466 [ FromIso:19595728]************** INBOUND MESSAGE ID[AAEBKwHQZ9KTKgAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:22.530 [   ToIso:19464472]************** OUTBOUND MESSAGE ID[AAEBKwHQZ9KTKgAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:22.509 [  ToVisa:25559474]*********** Out Bound Message ID[AAEBKwHQZ9KTKgAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:22.521 [FromVisa:24248702]*********** Inbound Message ID[AAEBIAGgZ9KTKgAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:23.176 [ FromIso:20709800]************** INBOUND MESSAGE ID[AAEBPAGoZ9KTKwAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:23.242 [   ToIso:27459990]************** OUTBOUND MESSAGE ID[AAEBPAGoZ9KTKwAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:23.906 [ FromIso:17760664]************** INBOUND MESSAGE ID[AAEBDwGYZ9KTKwAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:23.970 [   ToIso:14680496]************** OUTBOUND MESSAGE ID[AAEBDwGYZ9KTKwAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:23.219 [  ToVisa:25887038]*********** Out Bound Message ID[AAEBPAGoZ9KTKwAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:23.234 [FromVisa:25428430]*********** Inbound Message ID[AAEBIAGgZ9KTKwAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:23.948 [  ToVisa:25821568]*********** Out Bound Message ID[AAEBDwGYZ9KTKwAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:23.961 [FromVisa:12255714]*********** Inbound Message ID[AAEBIAGgZ9KTKwAB] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:25.209 [ FromIso:23462228]************** INBOUND MESSAGE ID[AAEBZgFUZ9KTLQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:25.295 [   ToIso:18678166]************** OUTBOUND MESSAGE ID[AAEBZgFUZ9KTLQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:25.257 [  ToVisa:25690560]*********** Out Bound Message ID[AAEBZgFUZ9KTLQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:25.286 [FromVisa:24117746]*********** Inbound Message ID[AAEBIAGgZ9KTLQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:26.510 [ FromIso:11207092]************** INBOUND MESSAGE ID[AAEAqwG0Z9KTLgAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:26.606 [   ToIso:20971958]************** OUTBOUND MESSAGE ID[AAEAqwG0Z9KTLgAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:26.566 [  ToVisa:23855404]*********** Out Bound Message ID[AAEAqwG0Z9KTLgAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:26.598 [FromVisa:22151670]*********** Inbound Message ID[AAEBIAGgZ9KTLgAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:27.984 [ FromIso:18612590]************** INBOUND MESSAGE ID[AAEBHAFuZ9KTLwAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:27.269 [ FromIso:24576272]************** INBOUND MESSAGE ID[AAEBdwEQZ9KTLwAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:27.335 [   ToIso:22348210]************** OUTBOUND MESSAGE ID[AAEBdwEQZ9KTLwAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:27.311 [  ToVisa:25493946]*********** Out Bound Message ID[AAEBdwEQZ9KTLwAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:27.327 [FromVisa:22675880]*********** Inbound Message ID[AAEBIAGgZ9KTLwAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:28.074 [   ToIso:15728920]************** OUTBOUND MESSAGE ID[AAEBHAFuZ9KTLwAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:28.051 [  ToVisa:25756010]*********** Out Bound Message ID[AAEBHAFuZ9KTLwAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:28.065 [FromVisa:21889404]*********** Inbound Message ID[AAEBIAGgZ9KTMAAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:29.129 [ FromIso:21692760]************** INBOUND MESSAGE ID[AAEBSwFYZ9KTMQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:29.193 [   ToIso:14221640]************** OUTBOUND MESSAGE ID[AAEBSwFYZ9KTMQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:29.871 [ FromIso:15466864]************** INBOUND MESSAGE ID[AAEA7AFwZ9KTMQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:29.939 [   ToIso:20644244]************** OUTBOUND MESSAGE ID[AAEA7AFwZ9KTMQAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:29.171 [  ToVisa:25100692]*********** Out Bound Message ID[AAEBSwFYZ9KTMQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:29.184 [FromVisa:23593452]*********** Inbound Message ID[AAEBIAGgZ9KTMQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:29.915 [  ToVisa:25231664]*********** Out Bound Message ID[AAEA7AFwZ9KTMQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:29.927 [FromVisa:23134474]*********** Inbound Message ID[AAEBIAGgZ9KTMQAB] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:30.650 [ FromIso:22872402]************** INBOUND MESSAGE ID[AAEBXQFSZ9KTMgAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:30.716 [   ToIso:16187902]************** OUTBOUND MESSAGE ID[AAEBXQFSZ9KTMgAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:30.695 [  ToVisa:24904164]*********** Out Bound Message ID[AAEBXQFSZ9KTMgAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:30.708 [FromVisa:22741280]*********** Inbound Message ID[AAEBIAGgZ9KTMgAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:31.416 [ FromIso:16777502]************** INBOUND MESSAGE ID[AAEBAAEeZ9KTMwAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:31.496 [   ToIso:16712092]************** OUTBOUND MESSAGE ID[AAEBAAEeZ9KTMwAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:31.457 [  ToVisa:25559474]*********** Out Bound Message ID[AAEBAAEeZ9KTMwAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:31.488 [FromVisa:24248702]*********** Inbound Message ID[AAEBIAGgZ9KTMwAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:11:32.373 [ FromIso:27656698]************** INBOUND MESSAGE ID[AAEBpgH6Z9KTNAAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:11:32.435 [   ToIso:15073762]************** OUTBOUND MESSAGE ID[AAEBpgH6Z9KTNAAA] ***************
+msgno[  0]<110>
+25.03.13 08:11:32.415 [  ToVisa:25887038]*********** Out Bound Message ID[AAEBpgH6Z9KTNAAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:11:32.427 [FromVisa:25428430]*********** Inbound Message ID[AAEBIAGgZ9KTNAAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:14:31.632 [ FromIso:19464472]************** INBOUND MESSAGE ID[AAEBKQEYZ9KT5wAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:14:31.701 [   ToIso:20709800]************** OUTBOUND MESSAGE ID[AAEBKQEYZ9KT5wAA] ***************
+msgno[  0]<110>
+25.03.13 08:14:31.676 [  ToVisa:25821568]*********** Out Bound Message ID[AAEBKQEYZ9KT5wAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:14:31.690 [FromVisa:12255714]*********** Inbound Message ID[AAEBIAGgZ9KT5wAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:14:44.403 [ FromIso:18678166]************** INBOUND MESSAGE ID[AAEBHQGWZ9KT9AAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:14:44.467 [   ToIso:11207092]************** OUTBOUND MESSAGE ID[AAEBHQGWZ9KT9AAA] ***************
+msgno[  0]<110>
+25.03.13 08:14:44.446 [  ToVisa:25690560]*********** Out Bound Message ID[AAEBHQGWZ9KT9AAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:14:44.459 [FromVisa:24117746]*********** Inbound Message ID[AAEBIAGgZ9KT9AAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:14:56.814 [ FromIso:27459990]************** INBOUND MESSAGE ID[AAEBowGWZ9KUAAAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:14:56.886 [   ToIso:17760664]************** OUTBOUND MESSAGE ID[AAEBowGWZ9KUAAAA] ***************
+msgno[  0]<110>
+25.03.13 08:14:56.858 [  ToVisa:23855404]*********** Out Bound Message ID[AAEBowGWZ9KUAAAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:14:56.878 [FromVisa:22151670]*********** Inbound Message ID[AAEBIAGgZ9KUAAAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:15:09.200 [ FromIso:21692760]************** INBOUND MESSAGE ID[AAEBSwFYZ9KUDQAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:15:09.264 [   ToIso:14221640]************** OUTBOUND MESSAGE ID[AAEBSwFYZ9KUDQAA] ***************
+msgno[  0]<110>
+25.03.13 08:15:09.242 [  ToVisa:25493946]*********** Out Bound Message ID[AAEBSwFYZ9KUDQAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:15:09.256 [FromVisa:22675880]*********** Inbound Message ID[AAEBIAGgZ9KUDQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>
+25.03.13 08:15:20.873 [ FromIso:15466864]************** INBOUND MESSAGE ID[AAEA7AFwZ9KUGAAA] ***************
+msgno[  0]<100>
+ in[  3: ]<100000>
+25.03.13 08:15:20.926 [  ToVisa:25756010]*********** Out Bound Message ID[AAEA7AFwZ9KUGAAA] **********
+U-VFMT-0033: msgno[  0]<100>
+25.03.13 08:15:21.044 [   ToIso:20644244]************** OUTBOUND MESSAGE ID[AAEA7AFwZ9KUGAAA] ***************
+msgno[  0]<110>
+25.03.13 08:15:21.036 [FromVisa:21889404]*********** Inbound Message ID[AAEBIAGgZ9KUGQAA] **********
+U-VFMT-0033: msgno[  0]<110>
+ in[  3: ]<100000>

@@ -45,7 +45,7 @@ def read_and_print_excel(file_path):
 
 TIMESTAMP_PATTERN = re.compile(r'^\d{2}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}\.\d{3}')
 ROUTE_PATTERN = re.compile(r'\[\s*([A-Za-z]+:\d+)\s*\]')
-MSGID_PATTERN = re.compile(r'MESSAGE ID\[(.*?)\]')
+MSGID_PATTERN = re.compile(r'message id\[(.*?)\]', re.IGNORECASE)
 
 # Function to extract route and message ID from a block of text
 def extract_route_and_message_id(block):
@@ -167,8 +167,8 @@ def group_responses_by_rrn(responses):
     return dict(grouped)
 
 if __name__ == "__main__":
-    excel_file_path = r"C:\Users\f94gdos\Desktop\New folder (6)\Visa AFT DMS _Ecom_Moto_Test cases_v1_13032025 - OFFLINE.xlsx"
-    log_file_path = r"C:\Users\f94gdos\Desktop\New folder (6)\RAW.txt"
+    excel_file_path = r"D:\Projects\VSCode\MangoData\ISO8583_eCommerce_TestCases (1).xlsx"
+    log_file_path = r"D:\Projects\VSCode\MangoData\splunk_log.txt"
 
     read_and_print_excel(excel_file_path)
 
