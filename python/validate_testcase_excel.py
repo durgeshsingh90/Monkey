@@ -3,12 +3,32 @@ import re
 import requests
 from collections import defaultdict
 import json
+import logging
 
 # Configure pandas to print everything
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
+
+# Custom logging handler to handle Unicode characters
+class UnicodeStreamHandler(logging.StreamHandler):
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            stream = self.stream
+            if not hasattr(stream, 'encoding') or stream.encoding == 'ANSI_X3.4-1968':
+                stream.write(msg.encode('utf-8', 'ignore').decode('utf-8') + self.terminator)
+            else:
+                stream.write(msg + self.terminator)
+            self.flush()
+        except Exception:
+            self.handleError(record)
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s',
+                    handlers=[logging.FileHandler("debug.log", mode='w', encoding='utf-8'),
+                              UnicodeStreamHandler()])
 
 # ISO8583 HEADER DETECTION
 
@@ -39,7 +59,7 @@ def read_and_print_excel(file_path):
             df.columns = df.iloc[header_row_index]
             df = df[(header_row_index + 1):].reset_index(drop=True)
         else:
-            print("⚠️ No valid header with >5 ISO8583 DEs found.")
+            logging.warning("No valid header with >5 ISO8583 DEs found in sheet '%s'.", sheet_name)
 
 # === LOG PARSER + API SENDER ===
 
@@ -52,30 +72,30 @@ def extract_route_and_message_id(block):
     route = None
     message_id = None
 
-    print("\nExtracting route and message ID...")
+    logging.debug("Extracting route and message ID...")
     for line in block.split('\n'):
         line = line.strip()
-        print(f"Analyzing line: '{line}'")  # Debug log to see the current line being analyzed
+        logging.debug("Analyzing line: '%s'", line)  # Debug log to see the current line being analyzed
         
         # Extract route if not yet found
         if not route:
             route_match = ROUTE_PATTERN.search(line)
             if route_match:
                 route = route_match.group(1).strip()
-                print(f"Found route: {route}")  # Debug log for route detection
+                logging.debug("Found route: %s", route)  # Debug log for route detection
 
         # Extract message_id if not yet found
         if not message_id:
             msgid_match = MSGID_PATTERN.search(line)
             if msgid_match:
                 message_id = msgid_match.group(1).strip()
-                print(f"Found message ID: {message_id}")  # Debug log for message ID detection
+                logging.debug("Found message ID: %s", message_id)  # Debug log for message ID detection
 
         # If both route and message ID are found, no need to continue searching
         if route and message_id:
             break
 
-    print(f"Finished route extraction: {route}, message ID extraction: {message_id}")
+    logging.debug("Finished route extraction: %s, message ID extraction: %s", route, message_id)
     return route, message_id
 
 # Function to split the log file into blocks based on timestamps
@@ -97,7 +117,7 @@ def split_log_blocks(log_file_path):
     if current_block:
         blocks.append("".join(current_block))
 
-    print(f"Split into {len(blocks)} blocks")
+    logging.info("Split into %d blocks", len(blocks))
     return [{"block": block} for block in blocks]
 
 all_responses = []
@@ -106,11 +126,11 @@ all_responses = []
 def send_to_api(log_block, block_index, route=None, message_id=None):
     url = 'http://localhost:8000/splunkparser/parse/'
     try:
-        print(f"\n================== 📨 Sending Block {block_index} ==================")
-        print(f"📌 Route: {route}")
-        print(f"📌 Message ID: {message_id}")
-        print(f"📜 Block Content:\n{log_block}")
-        print("====================================================")
+        logging.info("\n================== 📨 Sending Block %d ==================", block_index)
+        logging.info("📌 Route: %s", route)
+        logging.info("📌 Message ID: %s", message_id)
+        logging.info("📜 Block Content:\n%s", log_block)
+        logging.info("====================================================")
 
         response = requests.post(url, json={'log_data': log_block})
         response_json = response.json()
@@ -122,23 +142,23 @@ def send_to_api(log_block, block_index, route=None, message_id=None):
 
         all_responses.append(response_json)
 
-        print(f"\n================== 📩 Response for Block {block_index} ==================")
-        print(json.dumps(response_json, indent=2))
-        print("====================================================\n")
+        logging.info("\n================== 📩 Response for Block %d ==================", block_index)
+        logging.info(json.dumps(response_json, indent=2))
+        logging.info("====================================================\n")
 
     except Exception as e:
-        print(f"❌ Error sending Block {block_index}: {e}")
+        logging.error("Error sending Block %d: %s", block_index, e)
 
 # Function to process the log file, split into blocks, and send to the API
 def process_log_file(log_file_path):
-    print("\n📄 Reading Log File and Sending Blocks:")
+    logging.info("\n📄 Reading Log File and Sending Blocks:")
     blocks = split_log_blocks(log_file_path)
-    print(f"📦 Found {len(blocks)} message blocks.\n")
+    logging.info("📦 Found %d message blocks.\n", len(blocks))
 
     for i, block_data in enumerate(blocks, start=1):
         block_content = block_data['block']
         route, message_id = extract_route_and_message_id(block_content)
-        print(f"🚀 Sending block {i}...")
+        logging.info("🚀 Sending block %d...", i)
         send_to_api(block_content, i, route, message_id)
 
 # Function to convert HEX to ASCII, if possible
@@ -167,8 +187,8 @@ def group_responses_by_rrn(responses):
     return dict(grouped)
 
 if __name__ == "__main__":
-    excel_file_path = r"D:\Projects\VSCode\MangoData\ISO8583_eCommerce_TestCases (1).xlsx"
-    log_file_path = r"D:\Projects\VSCode\MangoData\splunk_log.txt"
+    excel_file_path = r"C:\Users\f94gdos\Desktop\New folder (6)\CNP Integrated Test cases spreadsheet v6.1.xlsx"
+    log_file_path = r"C:\Users\f94gdos\Desktop\New folder (6)\RAW.txt"
 
     read_and_print_excel(excel_file_path)
 
@@ -184,4 +204,4 @@ if __name__ == "__main__":
     with open("grouped_by_rrn.json", "w") as f:
         json.dump(grouped_data, f, indent=2)
 
-    print("✅ Grouped data saved to grouped_by_rrn.json")
+    logging.info("✅ Grouped data saved to grouped_by_rrn.json")
