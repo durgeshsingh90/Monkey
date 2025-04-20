@@ -11,6 +11,12 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
 
+ROUTE_TO_API_MAP = {
+    "fromiso": "http://localhost:8000/splunkparser/parse/",
+    "toiso": "http://localhost:8000/splunkparser/parse/",
+    "default": "http://localhost:8000/genericparser/parse_fallback/",  # <-- handles the rest
+}
+
 # Custom logging handler to handle Unicode characters
 class UnicodeStreamHandler(logging.StreamHandler):
     def emit(self, record):
@@ -158,8 +164,15 @@ def process_log_file(log_file_path):
     for i, block_data in enumerate(blocks, start=1):
         block_content = block_data['block']
         route, message_id = extract_route_and_message_id(block_content)
-        logging.info("🚀 Sending block %d...", i)
-        send_to_api(block_content, i, route, message_id)
+
+        if route:
+            route_key = route.lower().split(":")[0]  # e.g., 'FromIso:1234' → 'fromiso'
+            api_url = ROUTE_TO_API_MAP.get(route_key, ROUTE_TO_API_MAP["default"])  # fallback if not found
+
+            logging.info("🚀 Sending block %d [Route: %s] to %s", i, route, api_url)
+            send_to_api(block_content, i, route, message_id, url=api_url)
+        else:
+            logging.info("⏭️ Skipping block %d — No route detected.", i)
 
 # Function to convert HEX to ASCII, if possible
 def hex_to_ascii(value):
