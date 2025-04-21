@@ -296,25 +296,43 @@ def validate_groups_against_excel(grouped_data, df, excel_path):
                     fromiso_block = get_fromiso_block(group_blocks)
                     parsed_data = fromiso_block.get("result", {}).get("data_elements", {})
 
-                    # ✅ Log that we found the matching Excel row
-                    logging.info("\n✅ Found matching RRN in Excel for %s (Row %d):", rrn, i + 2)
-                    row_dict = {col: str(row[col]).strip() for col in df.columns}
-                    logging.info(json.dumps(row_dict, indent=2))
-
-                    # ✅ Begin field-by-field comparison
+                    # Extract expected fields from Excel row
+                    expected_data = {}
                     for col_name in df.columns:
-                        excel_value = str(row[col_name]).strip()
-                        if excel_value.lower() == "client-defined":
-                            continue
+                        field_code = str(col_name).split()[0].replace("BM", "DE")
+                        expected_value = str(row[col_name]).strip()
+                        if expected_value.lower() != "client-defined":
+                            expected_data[field_code] = expected_value
 
-                        # Column names like "DE003 (Processing Code)" → Extract DE003
-                        field_code = col_name.split()[0].replace("BM", "DE")
-                        parsed_value = str(parsed_data.get(field_code, "")).strip()
+                    # Log header
+                    logging.info("\n🔎 Comparing RRN: %s (Row %d)", rrn, i + 2)
+                    logging.info("📄 Expected from Excel:\n%s", json.dumps(expected_data, indent=2))
+                    logging.info("📥 Parsed from FROMISO log:\n%s", json.dumps(parsed_data, indent=2))
 
-                        if excel_value == parsed_value:
-                            logging.info("✅ Match - %s: Excel='%s' == Log='%s'", field_code, excel_value, parsed_value)
+                    matched_fields = {}
+                    mismatched_fields = {}
+
+                    for field_code, expected_value in expected_data.items():
+                        actual_value = str(parsed_data.get(field_code, "")).strip()
+                        if expected_value == actual_value:
+                            matched_fields[field_code] = actual_value
                         else:
-                            logging.warning("❌ Mismatch - %s: Excel='%s' ≠ Log='%s'", field_code, excel_value, parsed_value)
+                            mismatched_fields[field_code] = {
+                                "expected": expected_value,
+                                "actual": actual_value
+                            }
+
+                    # ✅ Log matched fields
+                    if matched_fields:
+                        logging.info("✅ Matched Fields:")
+                        for k, v in matched_fields.items():
+                            logging.info("  • %s = '%s'", k, v)
+
+                    # ❌ Log mismatched fields
+                    if mismatched_fields:
+                        logging.warning("❌ Mismatched Fields:")
+                        for k, mismatch in mismatched_fields.items():
+                            logging.warning("  • %s → Excel='%s', Log='%s'", k, mismatch['expected'], mismatch['actual'])
 
                     matched_rows.add(i)
                     found = True
