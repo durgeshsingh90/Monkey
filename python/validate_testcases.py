@@ -296,10 +296,25 @@ def validate_groups_against_excel(grouped_data, df, excel_path):
                     fromiso_block = get_fromiso_block(group_blocks)
                     parsed_data = fromiso_block.get("result", {}).get("data_elements", {})
 
-                    # ✅ Logging matched row for the given RRN
-                    logging.info("✅ Found matching RRN in Excel for %s. Row contents:", rrn)
+                    # ✅ Log that we found the matching Excel row
+                    logging.info("\n✅ Found matching RRN in Excel for %s (Row %d):", rrn, i + 2)
                     row_dict = {col: str(row[col]).strip() for col in df.columns}
                     logging.info(json.dumps(row_dict, indent=2))
+
+                    # ✅ Begin field-by-field comparison
+                    for col_name in df.columns:
+                        excel_value = str(row[col_name]).strip()
+                        if excel_value.lower() == "client-defined":
+                            continue
+
+                        # Column names like "DE003 (Processing Code)" → Extract DE003
+                        field_code = col_name.split()[0].replace("BM", "DE")
+                        parsed_value = str(parsed_data.get(field_code, "")).strip()
+
+                        if excel_value == parsed_value:
+                            logging.info("✅ Match - %s: Excel='%s' == Log='%s'", field_code, excel_value, parsed_value)
+                        else:
+                            logging.warning("❌ Mismatch - %s: Excel='%s' ≠ Log='%s'", field_code, excel_value, parsed_value)
 
                     matched_rows.add(i)
                     found = True
