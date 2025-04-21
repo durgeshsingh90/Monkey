@@ -321,7 +321,6 @@ def validate_groups_against_excel(grouped_data, df, excel_path):
 
     wb.save("validated_output.xlsx")
 
-# === Final call added to your existing __main__ block:
 if __name__ == "__main__":
     excel_file_path = r"D:\Projects\VSCode\MangoData\testcase.xlsx"
     log_file_path = r"D:\Projects\VSCode\MangoData\splunk_log.txt"
