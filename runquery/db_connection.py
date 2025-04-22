@@ -7,9 +7,8 @@ from datetime import datetime
 import base64
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
-import time
-
 from django.conf import settings
+from pathlib import Path
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)
@@ -118,9 +117,6 @@ def execute_multiple_query_sets(query_sets_dict, script_name="manual_script"):
                 all_results.append({"db_key": db_key, "error": str(e)})
     return all_results
 
-import os
-from pathlib import Path
-
 def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
     metadata_dir = Path(settings.MEDIA_ROOT) / "runquery" / "metadata"
     metadata_file = metadata_dir / f"{db_key}.json"
@@ -139,11 +135,11 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
     metadata = {}
     try:
         cursor = connection.cursor()
-        cursor.execute("SELECT table_name FROM user_tables")
+        cursor.execute("SELECT table_name FROM user_tables ORDER BY table_name ASC")
         tables = [row[0] for row in cursor.fetchall()]
 
         for table in tables:
-            cursor.execute("SELECT column_name FROM user_tab_columns WHERE table_name = :1", [table])
+            cursor.execute("SELECT column_name FROM user_tab_columns WHERE table_name = :1 ORDER BY column_name ASC", [table])
             columns = [row[0] for row in cursor.fetchall()]
             metadata[table] = columns
     except Exception as e:

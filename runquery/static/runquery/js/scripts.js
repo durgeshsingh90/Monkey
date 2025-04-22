@@ -74,20 +74,18 @@ function execute() {
   fetch("/runquery/execute_oracle_queries/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      script_name: dbAlias,
-      query_sets: [[queryText]]
-    })
+    body: JSON.stringify({ script_name: dbAlias, query_sets: [[queryText]] })
   })
   .then(res => res.json())
   .then(data => {
-    const result = data.results || data;
-    document.getElementById("result").textContent = JSON.stringify(result, null, 2);
+    const results = data.results || data;
+    document.getElementById("result").textContent = JSON.stringify(results, null, 2);
+
     const columnContainer = document.getElementById("columnResult");
     columnContainer.innerHTML = "";
 
-    if (Array.isArray(result)) {
-      result.forEach((entry, idx) => {
+    if (Array.isArray(results)) {
+      results.forEach((entry, idx) => {
         const query = entry.query || "";
         const error = entry.error || "";
         const dbKey = entry.db_key || "Unknown DB";
@@ -143,6 +141,8 @@ function execute() {
   });
 }
 
+let tableData = {};
+
 function fetchTableStructure(dbKey, refresh = false) {
   const url = `/runquery/get_table_structure/?db=${dbKey}${refresh ? '&refresh=1' : ''}`;
   const sidebar = document.getElementById("tableStructure");
@@ -154,7 +154,11 @@ function fetchTableStructure(dbKey, refresh = false) {
   fetch(url)
     .then(res => res.json())
     .then(data => {
+      tableData = data.tables;
       sidebar.innerHTML = '';
+
+      const tableCountEl = document.querySelector('#sidebar h3');
+      tableCountEl.textContent = `📘 Tables (${data.count})`;
 
       if (data.error) {
         sidebar.innerHTML = `<div style="color:red">${data.error}</div>`;
@@ -162,23 +166,157 @@ function fetchTableStructure(dbKey, refresh = false) {
       }
 
       Object.entries(data.tables).forEach(([table, columns]) => {
-        const box = document.createElement("details");
-        box.className = "table-box";
-        box.innerHTML = `<summary>📂 ${table}</summary>`;
-        const ul = document.createElement("ul");
-        columns.forEach(col => {
-          const li = document.createElement("li");
-          li.textContent = col;
-          ul.appendChild(li);
-        });
-        box.appendChild(ul);
-        sidebar.appendChild(box);
+        renderTable(sidebar, table);
       });
     });
 }
 
+function renderTable(sidebar, table) {
+  const box = document.createElement("details");
+  box.className = "table-box";
+  box.open = false;
+
+  const summary = document.createElement("summary");
+  summary.innerHTML = `📂 ${table} <span class="suggestion-count">(${tableData[table].length} columns)</span>`;
+  const pinIcon = document.createElement("span");
+  pinIcon.className = `pin-icon`;
+  pinIcon.textContent = '📌';
+  pinIcon.addEventListener("click", (e) => togglePin(table, e));
+
+  summary.appendChild(pinIcon);
+  box.appendChild(summary);
+
+  const ul = document.createElement("ul");
+  tableData[table].forEach(col => {
+    const li = document.createElement("li");
+    li.textContent = col;
+    ul.appendChild(li);
+  });
+  box.appendChild(ul);
+  sidebar.appendChild(box);
+}
+
+function togglePin(table, event) {
+  event.stopPropagation(); // Prevent the details element from toggling
+  const pinIcon = event.target;
+  const isPinned = pinIcon.classList.contains("pinned");
+  pinIcon.classList.toggle("pinned");
+
+  const requestOptions = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ table })
+  };
+
+  fetch(`/runquery/${isPinned ? 'unpin' : 'pin'}_table/`, requestOptions)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status !== "success") {
+        // If the pin/unpin operation fails, revert the icon state
+        pinIcon.classList.toggle("pinned");
+        alert("Failed to update pin state");
+      } else {
+        // Refresh the table structure to reflect the pin/unpin changes
+        fetchTableStructure(document.getElementById("dropdown1").value);
+      }
+    });
+}
 
 function refreshMetadata() {
   const dbKey = document.getElementById("dropdown1").value;
   fetchTableStructure(dbKey, true);
+}
+
+function filterTables() {
+  const filter = document.getElementById("tableSearch").value.toLowerCase();
+  const tables = document.querySelectorAll(".table-box");
+
+  tables.forEach(tableDiv => {
+    const tableName = tableDiv.querySelector("summary").textContent.toLowerCase();
+    const columns = tableDiv.querySelectorAll("li");
+    let tableMatch = tableName.includes(filter);
+    let columnMatch = false;
+
+    columns.forEach(column => {
+      const columnName = column.textContent.toLowerCase();
+      if (columnName.includes(filter)) {
+        columnMatch = true;
+      }
+    });
+
+    if (tableMatch || columnMatch) {
+      tableDiv.style.display = "";
+    } else {
+      tableDiv.style.display = "none";
+    }
+  });
+}
+
+function showSuggestions() {
+  const filter = document.getElementById("tableSearch").value.toLowerCase();
+  const suggestionsDiv = document.getElementById("suggestions");
+  suggestionsDiv.innerHTML = "";
+
+  if (filter === "") {
+    suggestionsDiv.style.display = "none";
+    return;
+  }
+
+  let suggestions = [];
+
+  for (let table in tableData) {
+    if (table.toLowerCase().includes(filter)) {
+      suggestions.push({ type: 'table', name: table });
+    }
+
+    tableData[table].forEach(column => {
+      if (column.toLowerCase().includes(filter)) {
+        suggestions.push({ type: 'column', name: `${column} (in ${table})` });
+      }
+    });
+  }
+
+  if (suggestions.length === 0) {
+    suggestionsDiv.style.display = "none";
+    return;
+  }
+
+  suggestions.forEach(suggestion => {
+    const item = document.createElement("div");
+    item.textContent = suggestion.name;
+    item.classList.add("suggestion-item");
+
+    if (suggestion.type === 'table') {
+      const span = document.createElement("span");
+      span.classList.add("suggestion-count");
+      item.appendChild(span);
+
+      item.addEventListener("click", () => {
+        selectSuggestion(suggestion);
+        fetchTableStructureForSuggestion(suggestion.name);
+      });
+    } else {
+      item.addEventListener("click", () => selectSuggestion(suggestion));
+    }
+
+    suggestionsDiv.appendChild(item);
+  });
+
+  suggestionsDiv.style.display = "block";
+}
+
+function selectSuggestion(suggestion) {
+  const searchInput = document.getElementById("tableSearch");
+  const name = suggestion.type === 'column' ? suggestion.name.split(' ')[0] : suggestion.name;
+  searchInput.value = name; // Only use table or column name
+  document.getElementById("suggestions").style.display = "none";
+  filterTables(); // Call the filter function after selection
+}
+
+function fetchTableStructureForSuggestion(tableName) {
+  const dbKey = document.getElementById("dropdown1").value;
+  const detailElement = document.querySelector(`details[summary*="${tableName}"]`);
+  if (detailElement && !detailElement.open) {
+    detailElement.open = true;
+  }
 }
