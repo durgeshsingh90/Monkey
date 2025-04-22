@@ -81,9 +81,10 @@ def execute_oracle_queries(request):
 
     return JsonResponse({"message": "Only POST allowed"}, status=405)
 from .db_connection import get_or_load_table_metadata
+from django.http import JsonResponse
 
 def get_table_structure(request):
     db_key = request.GET.get("db", "uat_ist")
     refresh = request.GET.get("refresh") == "1"
-    metadata = get_or_load_table_metadata(db_key, refresh=refresh)
-    return JsonResponse(metadata)
+    data = get_or_load_table_metadata(db_key, refresh=refresh)
+    return JsonResponse(data)
