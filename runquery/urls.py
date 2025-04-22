@@ -9,6 +9,8 @@ urlpatterns = [
 path('get_table_structure/', views.get_table_structure, name='get_table_structure'),
 path('pin_table/', views.pin_table, name='pin_table'),
 path('unpin_table/', views.unpin_table, name='unpin_table'),
+path("save_history/", views.save_history, name="save_history"),
+path("view_history/", views.view_history, name="view_history"),
 
 
 ]
