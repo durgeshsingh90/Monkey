@@ -314,7 +314,8 @@
             card.style.borderRadius = "8px";
             card.style.background = "#fff";
 
-            card.innerHTML = `<strong>Query ${idx + 1}:</strong><br><code>${query}</code><br><br>`;
+            const dbKey = entry.db_key || "Unknown DB";
+            card.innerHTML = `<strong>Query ${idx + 1}</strong> <span style="color: #666;">[${dbKey}]</span><br><code>${query}</code><br><br>`;
 
             if (error) {
               card.innerHTML += `<div style="color:red">❌ ${error}</div>`;

@@ -5,7 +5,7 @@ from django.conf import settings
 import json
 
 # Import your Oracle query executor
-from .scripts.db_connection import execute_multiple_query_sets
+from .db_connection import execute_multiple_query_sets
 
 
 # View to render the HTML page (index.html)
@@ -26,7 +26,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.text import slugify
-from .scripts.db_connection import execute_multiple_query_sets
+from .db_connection import execute_multiple_query_sets
 import json
 
 
@@ -41,7 +41,13 @@ def execute_oracle_queries(request):
             if not query_sets:
                 return JsonResponse({"error": "No queries provided"}, status=400)
 
-            results = execute_multiple_query_sets(query_sets, script_name)
+            # Build the expected format: {"db_key": [queries]}
+            query_sets_dict = {script_name: query_sets[0]}  # assuming only one db per request
+            # Convert list of queries to dict format expected by execute_multiple_query_sets
+            query_sets_dict = {script_name: query_sets[0]}  # assuming only 1 DB alias selected
+            results = execute_multiple_query_sets(query_sets_dict, script_name)
+            
+
 
             for result in results:
                 query = result.get("query", "").lower()
