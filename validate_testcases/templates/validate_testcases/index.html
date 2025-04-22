@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>Validate Test Case</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-yellow-50 text-gray-800 m-0 p-0">
+    <div class="ribbon-header w-full flex justify-between items-center px-4 py-2 shadow-md bg-[#fef8e6]">
+        <h1 class="text-3xl font-bold" style="font-family: 'Chewy', cursive;">Validate Test Case</h1>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="grid grid-cols-2">
+        <div id="excelDropZone" class="p-4 bg-blue-100 border border-r-gray-300 cursor-pointer">
+            <label for="excelFile" class="font-semibold">Excel File Upload</label>
+            <input type="file" id="excelFile" accept=".xlsx,.xls" class="hidden">
+        </div>
+        <div id="logDropZone" class="p-4 bg-green-100 border border-l-gray-300 cursor-pointer">
+            <label for="logFile" class="font-semibold">Log File Upload</label>
+            <input type="file" id="logFile" accept=".log,.txt" class="hidden">
+        </div>
+    </div>
+
+    <!-- Status -->
+    <div id="status" class="p-4 text-sm text-gray-600 text-center">No files uploaded yet.</div>
+    <div id="spinner" class="hidden text-center mt-2">
+        <div class="spinner w-6 h-6 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+    </div>
+
+    <!-- Output Display -->
+    <div class="p-4">
+        <h2 class="font-bold mb-2">📊 Excel DataFrame Preview:</h2>
+        <pre id="excelOutput" class="bg-gray-100 p-4 rounded text-sm max-h-[300px] overflow-auto"></pre>
+
+        <h2 class="font-bold mt-4 mb-2">🧾 Comparison Result:</h2>
+        <pre id="comparisonOutput" class="bg-gray-100 p-4 rounded text-sm max-h-[300px] overflow-auto"></pre>
+
+        <div id="downloadLinks" class="mt-4 hidden">
+            <a id="logDownload" href="#" class="text-blue-600 underline">⬇ Download Comparison Log</a>
+        </div>
+    </div>
+
+    <script>
+        const excelInput = document.getElementById('excelFile');
+        const logInput = document.getElementById('logFile');
+        const excelDropZone = document.getElementById('excelDropZone');
+        const logDropZone = document.getElementById('logDropZone');
+        const spinner = document.getElementById('spinner');
+        const status = document.getElementById('status');
+
+        excelDropZone.addEventListener('click', () => excelInput.click());
+        logDropZone.addEventListener('click', () => logInput.click());
+
+        let excelFile = null;
+        let logFile = null;
+
+        async function uploadBoth() {
+            if (!excelFile || !logFile) return;
+
+            status.innerText = 'Uploading and processing...';
+            spinner.classList.remove('hidden');
+
+            const formData = new FormData();
+            formData.append('excel', excelFile);
+            formData.append('log', logFile);
+
+            const response = await fetch('/validate_testcases/upload_and_compare/', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            spinner.classList.add('hidden');
+
+            if (data.status === 'success') {
+                document.getElementById('excelOutput').textContent = data.excel_preview;
+                document.getElementById('comparisonOutput').textContent = data.comparison_preview;
+                document.getElementById('logDownload').href = data.download_log;
+                document.getElementById('downloadLinks').classList.remove('hidden');
+                status.innerText = '✅ Comparison complete!';
+            } else {
+                status.innerText = `❌ ${data.message}`;
+            }
+        }
+
+        excelInput.addEventListener('change', () => {
+            excelFile = excelInput.files[0];
+            status.innerText = '✅ Excel file selected.';
+            uploadBoth();
+        });
+
+        logInput.addEventListener('change', () => {
+            logFile = logInput.files[0];
+            status.innerText = '✅ Log file selected.';
+            uploadBoth();
+        });
+    </script>
+</body>
+</html>

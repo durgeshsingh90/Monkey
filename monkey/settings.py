@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'astrex_html_logs',
     'emvco_logs',
     'oracle_query_executor',
-    # 'validate_testcase',
+    'validate_testcases',
     'splunkrrn',
     'runquery',
 ]
@@ -220,6 +220,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "astrex_html_logs/static",
     BASE_DIR / "oracle_query_executor/static",
     BASE_DIR / "runquery/static",
+    BASE_DIR / "validate_testcases/static",
+
     
 ]
 # Default primary key field type
