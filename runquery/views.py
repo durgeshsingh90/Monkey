@@ -137,3 +137,33 @@ def unpin_table(request):
             pinned_tables.remove(table)
             write_pinned_tables(pinned_tables)
         return JsonResponse({"status": "success"})
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.conf import settings
+import json
+from pathlib import Path
+from datetime import datetime
+
+@csrf_exempt
+def save_history(request):
+    try:
+        data = json.loads(request.body)
+        history_file = Path(settings.MEDIA_ROOT) / "runquery" / "history.json"
+        history_file.parent.mkdir(parents=True, exist_ok=True)
+
+        history = []
+        if history_file.exists():
+            with open(history_file, "r") as f:
+                history = json.load(f)
+
+        history.append(data)
+        with open(history_file, "w") as f:
+            json.dump(history, f, indent=2)
+
+        return JsonResponse({"status": "saved"})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+def view_history(request):
+    return render(request, "runquery/history.html")

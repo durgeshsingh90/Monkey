@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Query History</title>
+  <link rel="stylesheet" href="{% static 'runquery/css/styles.css' %}">
+</head>
+<body style="padding: 20px;">
+  <h2>Query History</h2>
+  <div id="tabs"></div>
+  <div id="historyContent"></div>
+
+  <script>
+    fetch('/media/runquery/history.json')
+      .then(res => res.json())
+      .then(data => {
+        const grouped = {};
+
+        data.forEach(entry => {
+          if (!grouped[entry.database]) grouped[entry.database] = [];
+          grouped[entry.database].push(entry);
+        });
+
+        const tabsDiv = document.getElementById("tabs");
+        tabsDiv.innerHTML = '<button onclick="renderTab(\'All\')">All</button>' +
+          Object.keys(grouped).map(db =>
+            `<button onclick="renderTab('${db}')">${db}</button>`
+          ).join("");
+
+        window.historyData = data;
+        window.grouped = grouped;
+        renderTab("All");
+      });
+
+    function renderTab(db) {
+      const historyContent = document.getElementById("historyContent");
+      const entries = db === "All" ? window.historyData : window.grouped[db] || [];
+      historyContent.innerHTML = entries.map(e => `
+        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+          <strong>${e.timestamp}</strong> - DB: <code>${e.database}</code><br>
+          <pre>${e.query}</pre>
+          ${e.error && e.error[0] ? `<span style="color:red;">❌ ${e.error[0]}</span>` : '<span style="color:green;">✔ Success</span>'}
+        </div>
+      `).join("");
+    }
+  </script>
+</body>
+</html>

@@ -298,3 +298,11 @@ textarea {
 .pin-icon.pinned {
   color: gold;
 }
+.label-inside {
+  position: absolute;
+  top: 50%;
+  left: 52px;
+  transform: translateY(-50%);
+  font-size: 12px;
+  white-space: nowrap;
+}

@@ -13,14 +13,18 @@
         <button class="tab-button" data-index="0">Tab 1</button>
         <button class="tab-button" data-index="1">Tab 2</button>
         <button class="tab-button" data-index="2">Tab 3</button>
+        <button id="historyBtn" onclick="location.href='/runquery/view_history/'">History</button>
+
       </div>
       <div class="top-controls">
         <select id="dropdown1"></select>
         <label class="toggle-switch">
           <input type="checkbox" id="toggleSwitch" onchange="toggleViewMode(this)">
-          <span class="slider"></span>
+          <span class="slider">
+            <span id="toggleLabel" class="label-inside">🧱 Columns</span>
+          </span>
         </label>
-        <button id="historyBtn" onclick="viewHistory()">History</button>
+   
       </div>
     </div>
 
@@ -48,12 +52,7 @@
     </div>
     <div id="tableStructure"></div>
   </div>
-  <!-- 1) do some kind of color coding between pinned and non pinned tables, 
-  2) the Pin icon should change to pin for pinned tables
-  3) The count button should execute the query from the text box with select count(*) from (<text box query>)
-  4) On toggle i want to name column and json, this should be inside of toggle itself
-  5) I want a history button as well which saves all old command, show history in a new HTML page with timestamp and runtime and which database it was run and other meta data if possible Save this history in json in media folder as well on history page, have separate tabs for each database along with All
-  6) On search tab 1st show the tables enclosed with only columns search is matching -->
+  
   <script src="{% static 'runquery/js/scripts.js' %}"></script>
 </body>
 </html>

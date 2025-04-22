@@ -139,6 +139,27 @@ function execute() {
       });
     }
   });
+  if (Array.isArray(results)) {
+    const timestamp = new Date().toISOString();
+    const db = document.getElementById("dropdown1").value;
+    const tab = document.querySelector(".tab-button.active").getAttribute("data-index");
+    const originalQuery = document.getElementById("text-" + tab).value.trim();
+  
+    const historyEntry = {
+      timestamp,
+      database: db,
+      query: originalQuery,
+      result: results.map(r => r.result),
+      error: results.map(r => r.error),
+    };
+  
+    fetch("/runquery/save_history/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(historyEntry)
+    });
+  }
+  
 }
 
 let tableData = {};
@@ -180,7 +201,11 @@ function renderTable(sidebar, table) {
   summary.innerHTML = `📂 ${table} <span class="suggestion-count">(${tableData[table].length} columns)</span>`;
   const pinIcon = document.createElement("span");
   pinIcon.className = `pin-icon`;
-  pinIcon.textContent = '📌';
+  const pinnedTables = JSON.parse(localStorage.getItem("pinnedTables") || "[]");
+const isPinned = pinnedTables.includes(table);
+pinIcon.className = "pin-icon" + (isPinned ? " pinned" : "");
+pinIcon.textContent = isPinned ? "📍" : "📌";
+
   pinIcon.addEventListener("click", (e) => togglePin(table, e));
 
   summary.appendChild(pinIcon);
@@ -197,30 +222,19 @@ function renderTable(sidebar, table) {
 }
 
 function togglePin(table, event) {
-  event.stopPropagation(); // Prevent the details element from toggling
+  event.stopPropagation();
   const pinIcon = event.target;
-  const isPinned = pinIcon.classList.contains("pinned");
-  pinIcon.classList.toggle("pinned");
+  const pinnedTables = JSON.parse(localStorage.getItem("pinnedTables") || "[]");
 
-  const requestOptions = {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ table })
-  };
+  const isPinned = pinnedTables.includes(table);
+  const updatedPins = isPinned
+    ? pinnedTables.filter(t => t !== table)
+    : [...pinnedTables, table];
 
-  fetch(`/runquery/${isPinned ? 'unpin' : 'pin'}_table/`, requestOptions)
-    .then(res => res.json())
-    .then(data => {
-      if (data.status !== "success") {
-        // If the pin/unpin operation fails, revert the icon state
-        pinIcon.classList.toggle("pinned");
-        alert("Failed to update pin state");
-      } else {
-        // Refresh the table structure to reflect the pin/unpin changes
-        fetchTableStructure(document.getElementById("dropdown1").value);
-      }
-    });
+  localStorage.setItem("pinnedTables", JSON.stringify(updatedPins));
+  fetchTableStructure(document.getElementById("dropdown1").value);
 }
+
 
 function refreshMetadata() {
   const dbKey = document.getElementById("dropdown1").value;
@@ -320,3 +334,31 @@ function fetchTableStructureForSuggestion(tableName) {
     detailElement.open = true;
   }
 }
+function toggleViewMode(toggle) {
+  const label = document.getElementById("toggleLabel");
+  const isColumn = toggle.checked;
+  document.getElementById("columnResult").style.display = isColumn ? "block" : "none";
+  document.getElementById("jsonResult").style.display = isColumn ? "none" : "block";
+  label.textContent = isColumn ? "🧱 Columns" : "🧾 JSON";
+}
+
+function countQuery() {
+  const tab = document.querySelector(".tab-button.active").getAttribute("data-index");
+  const sql = document.getElementById("text-" + tab).value.trim();
+  if (!sql) return alert("Enter a SQL query to count.");
+
+  const countQuery = `SELECT COUNT(*) FROM (${sql})`;
+  const db = document.getElementById("dropdown1").value;
+
+  fetch("/runquery/execute_oracle_queries/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ script_name: db, query_sets: [[countQuery]] })
+  })
+    .then(res => res.json())
+    .then(data => {
+      const res = data.results[0].result?.[0];
+      alert(`Count result: ${JSON.stringify(res)}`);
+    });
+}
+
