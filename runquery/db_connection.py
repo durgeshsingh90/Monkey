@@ -13,12 +13,20 @@ from pathlib import Path
 # Logging setup
 logging.basicConfig(level=logging.INFO)
 
+import oracledb  # make sure this is already imported
+
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        elif isinstance(obj, bytes):
-            return base64.b64encode(obj).decode('utf-8')
+        try:
+            import oracledb
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            elif isinstance(obj, bytes):
+                return base64.b64encode(obj).decode("utf-8")
+            elif isinstance(obj, oracledb.LOB):
+                return obj.read() if obj.type == oracledb.DB_TYPE_CLOB else base64.b64encode(obj.read()).decode("utf-8")
+        except Exception as e:
+            return f"[Unserializable object: {type(obj).__name__}]"
         return super().default(obj)
 
 def get_db_config(db_key):
@@ -56,11 +64,20 @@ def execute_query(query, db_key="uat_ist"):
     try:
         cursor = connection.cursor()
         try:
-            cursor.execute(query.rstrip(';'))
-            rows = cursor.fetchall()
-            columns = [col[0] for col in cursor.description]
-            result = [dict(zip(columns, row)) for row in rows]
-            query_result["result"] = result
+            cursor.execute(query)
+            if query.strip().lower().startswith("select"):
+                rows = cursor.fetchall()
+                columns = [col[0] for col in cursor.description]
+                result = [dict(zip(columns, row)) for row in rows]
+                query_result["result"] = result
+            else:
+                connection.commit()
+                query_result["result"] = {
+                    "message": f"✅ {cursor.rowcount} row(s) affected.",
+                    "status": "success"
+                }
+
+
         finally:
             cursor.close()
             connection.close()

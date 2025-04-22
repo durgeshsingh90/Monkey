@@ -1,58 +1,87 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Oracle Query UI</title>
   <link rel="stylesheet" href="{% static 'runquery/css/styles.css' %}">
+  <style>
+    #main-content {
+      display: flex;
+      flex-direction: column;
+      margin-top: 60px;
+      margin-right: 300px;
+      padding: 16px;
+      height: calc(100vh - 60px);
+      overflow: auto;
+    }
+    .scroll-wrapper {
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    .result-section {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid var(--gray);
+    }
+  </style>
 </head>
 <body>
-  <div id="main-content">
-    <div class="header">
-      <div class="tabs">
-        <button class="tab-button" data-index="0">Tab 1</button>
-        <button class="tab-button" data-index="1">Tab 2</button>
-        <button class="tab-button" data-index="2">Tab 3</button>
-        <button id="historyBtn" onclick="location.href='/runquery/view_history/'">History</button>
-
+  <div class="layout-container">
+    <div id="main-content">
+      <div class="header">
+        <div class="tabs">
+          <button class="tab-button" data-index="0">Tab 1</button>
+          <button class="tab-button" data-index="1">Tab 2</button>
+          <button class="tab-button" data-index="2">Tab 3</button>
+          <button onclick="location.href='/runquery/view_history/'">History</button>
+        </div>
+        <div class="top-controls">
+          <select id="dropdown1"></select>
+          <label class="toggle-switch" title="Vertical layout">
+            <input type="checkbox" id="toggleVertical">
+            <span class="slider"><span class="label-inside">↕</span></span>
+          </label>
+          <label class="toggle-switch" title="Toggle view mode">
+            <input type="checkbox" id="toggleSwitch" onchange="toggleViewMode(this)">
+            <span class="slider">
+              <img id="toggleIcon" class="label-inside" src="tablet.png" alt="icon">
+            </span>
+          </label>
+        </div>
       </div>
-      <div class="top-controls">
-        <select id="dropdown1"></select>
-        <label class="toggle-switch">
-          <input type="checkbox" id="toggleSwitch" onchange="toggleViewMode(this)">
-          <span class="slider">
-            <span id="toggleLabel" class="label-inside">🧱 Columns</span>
-          </span>
-        </label>
-   
+
+      <div id="tab-0" class="tab-content"><textarea id="text-0" placeholder="Enter SQL for Tab 1"></textarea></div>
+      <div id="tab-1" class="tab-content"><textarea id="text-1" placeholder="Enter SQL for Tab 2"></textarea></div>
+      <div id="tab-2" class="tab-content"><textarea id="text-2" placeholder="Enter SQL for Tab 3"></textarea></div>
+
+      <div class="controls">
+        <button onclick="execute()">Execute</button>
+        <button onclick="countQuery()">Count</button>
+        <div id="queryTimer"></div>
       </div>
+
+      <div class="result-wrapper">
+        <div id="result" class="result-section"></div>
+        <div id="columnResult" class="result-section"></div>
+        <div id="jsonResult" class="result-section" style="display: none;"></div>
+      </div>
+      
+    <div id="sidebar">
+      <div>
+        <h3>📘 Tables</h3>
+        <button onclick="refreshMetadata()">🔄 Refresh</button>
+      </div>
+      <div class="search-container">
+        <input type="text" id="tableSearch" placeholder="Search..." onkeyup="showSuggestions()">
+        <div id="suggestions"></div>
+      </div>
+      <div id="tableStructure"></div>
     </div>
-
-    <div id="tab-0" class="tab-content"><textarea id="text-0" placeholder="Enter SQL for Tab 1"></textarea></div>
-    <div id="tab-1" class="tab-content"><textarea id="text-1" placeholder="Enter SQL for Tab 2"></textarea></div>
-    <div id="tab-2" class="tab-content"><textarea id="text-2" placeholder="Enter SQL for Tab 3"></textarea></div>
-
-    <div class="controls">
-      <button onclick="execute()">Execute</button>
-      <button onclick="countChars()">Count</button>
-    </div>
-
-    <div id="columnResult"></div>
-    <div id="jsonResult"></div>
   </div>
 
-  <div id="sidebar">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h3>📘 Tables</h3>
-      <button onclick="refreshMetadata()" class="refresh-btn">🔄 Refresh</button>
-    </div>
-    <div class="search-container">
-      <input type="text" id="tableSearch" placeholder="Search tables and columns..." onkeyup="showSuggestions()">
-      <div id="suggestions"></div>
-    </div>
-    <div id="tableStructure"></div>
-  </div>
-  
   <script src="{% static 'runquery/js/scripts.js' %}"></script>
 </body>
 </html>
