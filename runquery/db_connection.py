@@ -9,13 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 import time
 
-# Oracle DB credentials (consider using Django settings or env vars for production)
-username = 'oasis77'
-password = 'ist0py'
-dsn_alias = 'ISTU2_EQU'
-
-# Oracle client path
-oracle_client_path = r"C:\Oracle\Ora12c_64\BIN"
+from django.conf import settings
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)
@@ -28,20 +22,34 @@ class CustomJSONEncoder(json.JSONEncoder):
             return base64.b64encode(obj).decode('utf-8')
         return super().default(obj)
 
-def initialize_connection():
+def get_db_config(db_key):
     try:
-        oracledb.init_oracle_client(lib_dir=oracle_client_path)
-        logging.info(f"Oracle client initialized from {oracle_client_path}")
-        connection = oracledb.connect(user=username, password=password, dsn=dsn_alias)
-        logging.info("Successfully connected to the database")
+        config = settings.DATABASES[db_key]
+        return {
+            "user": config["USER"],
+            "password": config["PASSWORD"],
+            "dsn": config["NAME"],
+            "client_path": config.get("client_path")
+        }
+    except KeyError:
+        raise ValueError(f"Invalid database key: {db_key}")
+
+def initialize_connection(db_key):
+    try:
+        config = get_db_config(db_key)
+        if config["client_path"]:
+            oracledb.init_oracle_client(lib_dir=config["client_path"])
+            logging.info(f"Oracle client initialized from {config['client_path']}")
+        connection = oracledb.connect(user=config["user"], password=config["password"], dsn=config["dsn"])
+        logging.info(f"Successfully connected to database [{db_key}]")
         return connection
     except oracledb.DatabaseError as e:
         logging.error(f"Database connection error: {e}")
         return None
 
-def execute_query(query):
-    query_result = {"query": query, "result": None, "error": None}
-    connection = initialize_connection()
+def execute_query(query, db_key="uat_ist"):
+    query_result = {"query": query, "db_key": db_key, "result": None, "error": None}
+    connection = initialize_connection(db_key)
     if connection is None:
         query_result["error"] = "Unable to establish database connection"
         return query_result
@@ -75,10 +83,12 @@ def save_query_result_to_file(result, query, script_name="manual_script"):
     with open(output_filename, 'w') as f:
         json.dump(result, f, cls=CustomJSONEncoder, indent=4)
 
-def execute_queries_with_new_connection(queries, script_name="manual_script"):
+def execute_queries_with_new_connection(queries, db_key="uat_ist", script_name="manual_script"):
     results = []
     with ThreadPoolExecutor(max_workers=10) as executor:
-        future_to_query = {executor.submit(execute_query, q): q for q in queries}
+        future_to_query = {
+            executor.submit(execute_query, q, db_key): q for q in queries
+        }
         for future in as_completed(future_to_query):
             query = future_to_query[future]
             try:
@@ -90,18 +100,20 @@ def execute_queries_with_new_connection(queries, script_name="manual_script"):
                 results.append({"query": query, "result": None, "error": str(e)})
     return results
 
-def execute_multiple_query_sets(query_sets, script_name="manual_script"):
+def execute_multiple_query_sets(query_sets_dict, script_name="manual_script"):
+    # query_sets_dict format: {"uat_ist": [query1, query2], "prod_ist": [query3]}
     all_results = []
-    with ThreadPoolExecutor(max_workers=len(query_sets)) as executor:
-        future_to_set = {
-            executor.submit(execute_queries_with_new_connection, qset, script_name): qset
-            for qset in query_sets
+    with ThreadPoolExecutor(max_workers=len(query_sets_dict)) as executor:
+        future_to_dbkey = {
+            executor.submit(execute_queries_with_new_connection, qset, db_key, script_name): db_key
+            for db_key, qset in query_sets_dict.items()
         }
-        for future in as_completed(future_to_set):
+        for future in as_completed(future_to_dbkey):
+            db_key = future_to_dbkey[future]
             try:
                 result = future.result()
                 all_results.extend(result)
             except Exception as e:
-                logging.error(f"Query set failed: {e}")
-                all_results.append({"error": str(e)})
+                logging.error(f"[{db_key}] Query set failed: {e}")
+                all_results.append({"db_key": db_key, "error": str(e)})
     return all_results
