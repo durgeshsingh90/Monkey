@@ -145,6 +145,10 @@ function execute() {
 
 function fetchTableStructure(dbKey, refresh = false) {
   const url = `/runquery/get_table_structure/?db=${dbKey}${refresh ? '&refresh=1' : ''}`;
+  const sidebar = document.getElementById("tableStructure");
+  // Show loading message
+  sidebar.innerHTML = `<div style="color: gray;">⏳ Loading tables...</div>`;
+
   fetch(url)
     .then(res => res.json())
     .then(data => {

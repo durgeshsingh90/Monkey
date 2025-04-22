@@ -77,7 +77,7 @@ def execute_query(query, db_key="uat_ist"):
 
 def save_query_result_to_file(result, query, script_name="manual_script"):
     table_name = query.split()[3].split('.')[-1]
-    output_dir = os.path.join('Monkey', 'media', 'oracledb', script_name)
+    output_dir = Path(settings.MEDIA_ROOT) / "runquery" / script_name
     os.makedirs(output_dir, exist_ok=True)
     output_filename = os.path.join(output_dir, f"{table_name}_output.json")
     with open(output_filename, 'w') as f:
@@ -122,7 +122,7 @@ import os
 from pathlib import Path
 
 def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
-    metadata_dir = Path(settings.MEDIA_ROOT) / "runquery_metadata"
+    metadata_dir = Path(settings.MEDIA_ROOT) / "runquery" / "metadata"
     metadata_file = metadata_dir / f"{db_key}.json"
 
     if not refresh and metadata_file.exists():
@@ -158,4 +158,3 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
         json.dump({"tables": metadata}, f, indent=2)
 
     return {"tables": metadata}
-    
