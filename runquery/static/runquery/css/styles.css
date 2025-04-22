@@ -247,3 +247,54 @@ textarea {
   margin-bottom: 4px;
   color: #444;
 }
+.search-container {
+  position: relative;
+  width: 100%;
+}
+
+#suggestions {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  max-height: 300px;
+  overflow-y: auto;
+  width: 100%;
+  z-index: 1000;
+}
+
+.suggestion-item {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.suggestion-item:hover {
+  background-color: #f0f0f0;
+}
+
+#tableStructure ul {
+  list-style-type: none;
+  padding-left: 20px;
+}
+
+#tableStructure details summary {
+  cursor: pointer;
+  font-weight: bold;
+  margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.suggestion-count {
+  color: #767676;
+  font-size: 14px;
+}
+
+.pin-icon {
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.pin-icon.pinned {
+  color: gold;
+}

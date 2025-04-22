@@ -147,7 +147,30 @@ def process_excel_and_log(excel_path, json_log_path, log_output_path):
             if header_row_index is None:
                 continue
 
-            df = pd.read_excel(excel_path, sheet_name=sheet_name, header=header_row_index)
+            # Step 2.1: Load header row as a preview (to get real column names)
+
+            preview_df = pd.read_excel(excel_path, sheet_name=sheet_name, header=header_row_index, nrows=1)
+            
+            columns = preview_df.columns
+            
+            # Step 2.2: Build dtype map to force BM 37 as string
+            
+            dtype_map = {}
+            
+            for col in columns:
+            
+                if str(col).strip().upper() in ["BM 37", "BM37", "DE037"]:
+                
+                    dtype_map[col] = str  # force this column to be string
+            
+            # Step 2.3: Read full sheet with forced dtype
+            
+            df = pd.read_excel(excel_path, sheet_name=sheet_name, header=header_row_index, dtype=dtype_map) 
+
+            # Clean up numeric-only columns from any '.0' suffix
+            for col in df.columns:
+                if dtype_map.get(col) == str:
+                    df[col] = df[col].apply(lambda x: str(x).replace('.0', '') if isinstance(x, float) else str(x))
 
             for idx, row in df.iterrows():
                 if "BM 37" not in df.columns:
@@ -215,9 +238,9 @@ def compare_and_style(df, logs_json, result_log, sheet_name):
                 row_result.append({'match': True, 'value': val})
                 continue
 
-            if val_str.lower() == "client defined":
+            if val_str.lower() in ["client defined", "valid value"]:
                 row_result.append({'match': True, 'value': val})
-                result_log.append(f"✅ {de_key}: Skipped (Client Defined)")
+                result_log.append(f"✅ {de_key}: Skipped ({val_str})")
                 continue
 
             log_val = matched_log.get(de_key, "")
