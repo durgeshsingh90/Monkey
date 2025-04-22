@@ -1,109 +1,70 @@
-const excelInput = document.getElementById('excelFile');
-const logInput = document.getElementById('logFile');
-const excelDropZone = document.getElementById('excelDropZone');
-const logDropZone = document.getElementById('logDropZone');
-const status = document.getElementById('status');
-const result = document.getElementById('result');
-const resultContent = document.getElementById('resultContent');
-const excelCheck = document.getElementById('excelCheck');
-const logCheck = document.getElementById('logCheck');
-const spinner = document.getElementById('spinner');
+let excelFile = null, logFile = null;
 
-function disableDropZones() {
-    excelDropZone.classList.add('opacity-50', 'pointer-events-none');
-    logDropZone.classList.add('opacity-50', 'pointer-events-none');
-}
-
-function scrollToResult() {
-    result.scrollIntoView({ behavior: 'smooth' });
-}
-
-async function processFiles(excelFile, logFile) {
-    if (!excelFile || !logFile) {
-        status.innerHTML = '<p class="text-red-600">Please upload both Excel and Log files.</p>';
-        return;
-    }
-
-    status.innerHTML = '<p class="text-blue-600">Uploading and processing...</p>';
-    spinner.classList.remove('hidden');
-
-    const formData = new FormData();
-    formData.append('excel', excelFile);
-    formData.append('log', logFile);
-
-    try {
-        const response = await fetch('/api/process-files', {
-            method: 'POST',
-            body: formData
-        });
-
-        const data = await response.json();
-        status.innerHTML = '<p class="text-green-600">Processing complete!</p>';
-        result.classList.remove('hidden');
-        resultContent.textContent = JSON.stringify(data, null, 2);
-        disableDropZones();
-        scrollToResult();
-    } catch (error) {
-        status.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
-        result.classList.add('hidden');
-    } finally {
-        spinner.classList.add('hidden');
-    }
-}
-
-excelDropZone.addEventListener('click', () => excelInput.click());
-logDropZone.addEventListener('click', () => logInput.click());
-
-excelInput.addEventListener('change', () => {
-    const file = excelInput.files[0];
-    if (file) {
-        status.innerHTML = '<p class="text-gray-600">Excel file selected.</p>';
-        excelCheck.classList.remove('hidden');
-        processFiles(file, logInput.files[0]);
-    }
+document.getElementById('excelFile').addEventListener('change', (e) => {
+  excelFile = e.target.files[0];
+  tryUpload();
+});
+document.getElementById('logFile').addEventListener('change', (e) => {
+  logFile = e.target.files[0];
+  tryUpload();
 });
 
-logInput.addEventListener('change', () => {
-    const file = logInput.files[0];
-    if (file) {
-        status.innerHTML = '<p class="text-gray-600">Log file selected.</p>';
-        logCheck.classList.remove('hidden');
-        processFiles(excelInput.files[0], file);
+function tryUpload() {
+  const status = document.getElementById('status');
+  const spinner = document.getElementById('spinner');
+
+  if (!excelFile || !logFile) return;
+
+  status.innerText = '⏳ Uploading and processing...';
+  spinner.classList.remove('hidden');
+
+  const formData = new FormData();
+  formData.append('excel', excelFile);
+  formData.append('log', logFile);
+
+  fetch('/validate_testcases/upload_and_compare/', {
+    method: 'POST',
+    body: formData
+  }).then(res => res.json()).then(data => {
+    spinner.classList.add('hidden');
+    if (data.status === 'success') {
+      renderTabs(data.excel_preview);
+      document.getElementById('comparisonContainer').classList.remove('hidden');
+      document.getElementById('comparisonPreview').innerText = data.comparison_preview;
+      document.getElementById('logDownload').href = data.download_log;
+      status.innerText = '✅ Comparison complete. See result below.';
+    } else {
+      status.innerText = '❌ ' + data.message;
     }
-});
-
-function setupDrop(dropZone, input, checkIcon, validExt) {
-    dropZone.addEventListener('dragover', e => {
-        e.preventDefault();
-        dropZone.classList.add('bg-opacity-80');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('bg-opacity-80');
-    });
-
-    dropZone.addEventListener('drop', e => {
-        e.preventDefault();
-        dropZone.classList.remove('bg-opacity-80');
-        const file = e.dataTransfer.files[0];
-        if (file && validExt.some(ext => file.name.endsWith(ext))) {
-            input.files = e.dataTransfer.files;
-            checkIcon.classList.remove('hidden');
-            processFiles(
-                input.id === 'excelFile' ? file : excelInput.files[0],
-                input.id === 'logFile' ? file : logInput.files[0]
-            );
-        } else {
-            status.innerHTML = `<p class="text-red-600">Invalid file type.</p>`;
-        }
-    });
+  }).catch(() => {
+    spinner.classList.add('hidden');
+    status.innerText = '❌ Upload failed.';
+  });
 }
 
-setupDrop(excelDropZone, excelInput, excelCheck, ['.xlsx', '.xls']);
-setupDrop(logDropZone, logInput, logCheck, ['.log', '.txt']);
+function renderTabs(previews) {
+  const tabs = document.getElementById('tabs');
+  const preview = document.getElementById('preview');
+  tabs.innerHTML = '';
+  preview.innerHTML = '';
 
-// Dark mode toggle
-const darkToggle = document.getElementById('darkToggle');
-darkToggle.addEventListener('change', () => {
-    document.documentElement.classList.toggle('dark', darkToggle.checked);
+  Object.entries(previews).forEach(([sheet, html], i) => {
+    const btn = document.createElement('button');
+    btn.textContent = sheet;
+    btn.className = 'px-3 py-1 border rounded bg-gray-100';
+    btn.onclick = () => {
+      preview.innerHTML = html;
+    };
+    tabs.appendChild(btn);
+    if (i === 0) preview.innerHTML = html;
+  });
+}
+
+// Go to Top
+const goTopBtn = document.getElementById('goTopBtn');
+window.addEventListener('scroll', () => {
+  goTopBtn.classList.toggle('hidden', window.scrollY < window.innerHeight * 2);
+});
+goTopBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 });

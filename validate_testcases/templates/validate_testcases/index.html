@@ -1,100 +1,267 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Validate Test Case</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>Validate Test Case</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Poppins', sans-serif; background-color: #fef8e6; }
+
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; }
+    th { background-color: #fef3c7; font-weight: 600; }
+    tr:nth-child(even) { background-color: #f9fafb; }
+
+    .tab-button {
+      background: #e5e7eb;
+      padding: 6px 14px;
+      border-radius: 6px 6px 0 0;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .tab-button.active {
+      background: white;
+      border-bottom: 2px solid transparent;
+    }
+
+    .dark body { background-color: #1f2937; color: white; }
+    .dark table { color: white; }
+    .dark th { background-color: #374151; }
+    .dark td { background-color: #1f2937; }
+    .dark .bg-white { background-color: #1f2937 !important; }
+    :root {
+  --light-bg: #fef8e6;
+  --light-header: #8c1b13;
+  --dark-bg: #1f2937;
+  --dark-header: #ffb347;
+}
+
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  background-color: var(--light-bg);
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.dark body {
+  background-color: var(--dark-bg);
+  color: #eee;
+}
+
+.dark .bg-white {
+  background-color: #2d3748 !important;
+  color: white;
+}
+
+.dark table {
+  border-color: #4b5563;
+}
+
+.dark th {
+  background-color: #374151;
+  color: #fef08a;
+}
+
+.dark td {
+  background-color: #1f2937;
+  border-color: #4b5563;
+}
+
+a, button {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+h1, h2 {
+  transition: color 0.3s ease;
+}
+
+.dark h1 {
+  color: var(--dark-header);
+}
+
+.toggle-switch {
+    width: 48px;
+    height: 24px;
+    background-color: #ccc;
+    border-radius: 9999px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .toggle-switch::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+  }
+
+  .toggle-switch.active {
+    background-color: #4ade80;
+  }
+
+  .toggle-switch.active::before {
+    transform: translateX(24px);
+  }
+  </style>
 </head>
-<body class="bg-yellow-50 text-gray-800 m-0 p-0">
-    <div class="ribbon-header w-full flex justify-between items-center px-4 py-2 shadow-md bg-[#fef8e6]">
-        <h1 class="text-3xl font-bold" style="font-family: 'Chewy', cursive;">Validate Test Case</h1>
+<body class="m-0 p-0">
+  <div class="w-full flex justify-between items-center px-6 py-3 shadow-md" style="background-color: #fef8e6;">
+    <a href="/" class="text-3xl font-bold" style="font-family: 'Chewy', cursive; color: #8c1b13;">
+      Validate Test Case
+    </a>
+    
+
+  </div>
+
+  <!-- File Uploads -->
+  <div class="grid grid-cols-2">
+    <div class="p-6 bg-blue-100 border-r border-gray-300">
+      <label for="excelFile" class="font-semibold block mb-2">📘 Excel File</label>
+      <input type="file" id="excelFile" accept=".xlsx,.xls" class="block w-full">
     </div>
-
-    <!-- Upload Section -->
-    <div class="grid grid-cols-2">
-        <div id="excelDropZone" class="p-4 bg-blue-100 border border-r-gray-300 cursor-pointer">
-            <label for="excelFile" class="font-semibold">Excel File Upload</label>
-            <input type="file" id="excelFile" accept=".xlsx,.xls" class="hidden">
-        </div>
-        <div id="logDropZone" class="p-4 bg-green-100 border border-l-gray-300 cursor-pointer">
-            <label for="logFile" class="font-semibold">Log File Upload</label>
-            <input type="file" id="logFile" accept=".log,.txt" class="hidden">
-        </div>
+    <div class="p-6 bg-green-100 border-l border-gray-300">
+      <label for="logFile" class="font-semibold block mb-2">📄 Log File</label>
+      <input type="file" id="logFile" accept=".log,.txt" class="block w-full">
     </div>
+  </div>
 
-    <!-- Status -->
-    <div id="status" class="p-4 text-sm text-gray-600 text-center">No files uploaded yet.</div>
-    <div id="spinner" class="hidden text-center mt-2">
-        <div class="spinner w-6 h-6 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
-    </div>
+  <!-- Status -->
+  <div id="status" class="p-4 text-center text-gray-700 text-sm">Please upload both files to start comparison.</div>
+  <div id="spinner" class="hidden text-center mt-2">
+    <div class="w-6 h-6 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+  </div>
 
-    <!-- Output Display -->
-    <div class="p-4">
-        <h2 class="font-bold mb-2">📊 Excel DataFrame Preview:</h2>
-        <pre id="excelOutput" class="bg-gray-100 p-4 rounded text-sm max-h-[300px] overflow-auto"></pre>
+  <!-- Excel Sheet Tabs -->
+  <div id="tabs" class="px-4 mt-6 flex flex-wrap gap-2 border-b border-gray-300"></div>
 
-        <h2 class="font-bold mt-4 mb-2">🧾 Comparison Result:</h2>
-        <pre id="comparisonOutput" class="bg-gray-100 p-4 rounded text-sm max-h-[300px] overflow-auto"></pre>
+  <!-- Excel Table Preview -->
+  <div id="preview" class="bg-white text-sm max-h-[600px] overflow-auto m-4 p-4 border border-gray-300 shadow rounded"></div>
 
-        <div id="downloadLinks" class="mt-4 hidden">
-            <a id="logDownload" href="#" class="text-blue-600 underline">⬇ Download Comparison Log</a>
-        </div>
-    </div>
+  <!-- Comparison Result -->
+  <div id="comparisonContainer" class="m-4 p-4 border border-gray-200 rounded bg-white shadow hidden">
+    <h2 class="font-bold text-lg mb-2">🧾 Comparison Summary</h2>
+    <p id="comparisonPreview" class="text-sm text-gray-700">Processed! View highlights in table above.</p>
+    <a id="logDownload" href="#" class="text-blue-600 underline mt-2 block">⬇ Download Log JSON</a>
+  </div>
+  <button id="goTopBtn"
+  class="hidden fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-700 transition">
+↑ Top
+</button>
+  <!-- JavaScript -->
+  <script>
+    const excelInput = document.getElementById('excelFile');
+    const logInput = document.getElementById('logFile');
+    const status = document.getElementById('status');
+    const spinner = document.getElementById('spinner');
+    const tabs = document.getElementById('tabs');
+    const preview = document.getElementById('preview');
+    const comparisonContainer = document.getElementById('comparisonContainer');
+    const comparisonPreview = document.getElementById('comparisonPreview');
+    const logDownload = document.getElementById('logDownload');
 
-    <script>
-        const excelInput = document.getElementById('excelFile');
-        const logInput = document.getElementById('logFile');
-        const excelDropZone = document.getElementById('excelDropZone');
-        const logDropZone = document.getElementById('logDropZone');
-        const spinner = document.getElementById('spinner');
-        const status = document.getElementById('status');
+    let excelFile = null, logFile = null;
 
-        excelDropZone.addEventListener('click', () => excelInput.click());
-        logDropZone.addEventListener('click', () => logInput.click());
+    excelInput.addEventListener('change', (e) => {
+      excelFile = e.target.files[0];
+      tryUpload();
+    });
 
-        let excelFile = null;
-        let logFile = null;
+    logInput.addEventListener('change', (e) => {
+      logFile = e.target.files[0];
+      tryUpload();
+    });
 
-        async function uploadBoth() {
-            if (!excelFile || !logFile) return;
+    function tryUpload() {
+      if (!excelFile || !logFile) return;
 
-            status.innerText = 'Uploading and processing...';
-            spinner.classList.remove('hidden');
+      status.innerText = '⏳ Uploading and processing...';
+      spinner.classList.remove('hidden');
 
-            const formData = new FormData();
-            formData.append('excel', excelFile);
-            formData.append('log', logFile);
+      const formData = new FormData();
+      formData.append('excel', excelFile);
+      formData.append('log', logFile);
 
-            const response = await fetch('/validate_testcases/upload_and_compare/', {
-                method: 'POST',
-                body: formData
-            });
+      fetch('/validate_testcases/upload_and_compare/', {
+        method: 'POST',
+        body: formData
+      }).then(res => res.json()).then(data => {
+        spinner.classList.add('hidden');
 
-            const data = await response.json();
-            spinner.classList.add('hidden');
-
-            if (data.status === 'success') {
-                document.getElementById('excelOutput').textContent = data.excel_preview;
-                document.getElementById('comparisonOutput').textContent = data.comparison_preview;
-                document.getElementById('logDownload').href = data.download_log;
-                document.getElementById('downloadLinks').classList.remove('hidden');
-                status.innerText = '✅ Comparison complete!';
-            } else {
-                status.innerText = `❌ ${data.message}`;
-            }
+        if (data.status === 'success') {
+          loadTabs(data.excel_preview);
+          comparisonContainer.classList.remove('hidden');
+          comparisonPreview.innerText = data.comparison_preview;
+          logDownload.href = data.download_log;
+          status.innerText = '✅ Comparison complete. See colored table above.';
+        } else {
+          status.innerText = '❌ ' + data.message;
         }
+      }).catch(() => {
+        spinner.classList.add('hidden');
+        status.innerText = '❌ Upload failed.';
+      });
+    }
 
-        excelInput.addEventListener('change', () => {
-            excelFile = excelInput.files[0];
-            status.innerText = '✅ Excel file selected.';
-            uploadBoth();
-        });
+    function loadTabs(sheets) {
+      tabs.innerHTML = '';
+      preview.innerHTML = '';
+      Object.entries(sheets).forEach(([sheet, html], index) => {
+        const btn = document.createElement('button');
+        btn.textContent = sheet;
+        btn.className = 'tab-button';
+        btn.onclick = () => {
+          document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          preview.innerHTML = html;
+        };
+        tabs.appendChild(btn);
+        if (index === 0) {
+          btn.classList.add('active');
+          preview.innerHTML = html;
+        }
+      });
+    }
 
-        logInput.addEventListener('change', () => {
-            logFile = logInput.files[0];
-            status.innerText = '✅ Log file selected.';
-            uploadBoth();
-        });
-    </script>
+    // Dark mode toggle
+    const darkToggle = document.getElementById('darkToggle');
+darkToggle.addEventListener('change', () => {
+  document.documentElement.classList.toggle('dark', darkToggle.checked);
+  localStorage.setItem('dark-mode', darkToggle.checked);
+});
+
+const isDark = localStorage.getItem('dark-mode') === 'true';
+darkToggle.checked = isDark;
+document.documentElement.classList.toggle('dark', isDark);
+
+    // Load dark preference
+    const savedDark = localStorage.getItem('dark-mode') === 'true';
+    darkToggle.checked = savedDark;
+    document.documentElement.classList.toggle('dark', savedDark);
+    const goTopBtn = document.getElementById('goTopBtn');
+
+window.addEventListener('scroll', () => {
+  if (window.scrollY > window.innerHeight * 2) {
+    goTopBtn.classList.remove('hidden');
+  } else {
+    goTopBtn.classList.add('hidden');
+  }
+});
+
+goTopBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+  </script>
 </body>
 </html>

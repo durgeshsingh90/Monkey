@@ -17,16 +17,12 @@ def find_custom_header_row(df):
     return None
 
 def normalize_column_name(name):
-    # Match DE or BM patterns
     match = re.search(r'(?:DE|BM)[\s\-]?(\d{1,3})(?:\.(\d{1,3}))?', str(name), re.IGNORECASE)
     if match:
-        main_part = match.group(1).zfill(3)  # Pad with leading zeros, e.g., 3 → 003
-        subfield = match.group(2)
-        if subfield:
-            return f"DE{main_part}.{subfield}"
-        return f"DE{main_part}"
+        main = match.group(1).zfill(3)
+        sub = match.group(2)
+        return f"DE{main}.{sub}" if sub else f"DE{main}"
     return None
-
 
 def matches_pattern(expected, actual):
     if expected in ["Client Defined", "valid value"]:
@@ -187,9 +183,68 @@ def process_excel_and_log(excel_path, json_log_path, log_output_path):
 #     log_output_file = r"D:\Projects\VSCode\MangoData\comparison_result.log"
 
 #     process_excel_and_log(excel_file, log_json_file, log_output_file)
-def run_comparison_from_web(excel_path, log_json_path, output_log_path):
-    try:
-        process_excel_and_log(excel_path, log_json_path, output_log_path)
-        return output_log_path
-    except Exception as e:
-        return f"❌ Error: {str(e)}"
+def compare_and_style(df, logs_json, result_log, sheet_name):
+    result_log.append(f"\n📄 Sheet: {sheet_name}")
+    styled_rows = []
+
+    for idx, row in df.iterrows():
+        rrn = str(row.get("BM 37", "")).strip()
+        log_key = f"RRN_{rrn}"
+        matched_log = None
+        row_result = []
+
+        if log_key not in logs_json:
+            result_log.append(f"\n❌ Row {idx}: RRN {rrn} not found in logs.")
+            # don't apply color coding
+            row_result = [{'match': None, 'value': row[col]} for col in df.columns]
+            styled_rows.append(row_result)
+            continue
+            
+
+        log_blocks = logs_json[log_key]
+        fromiso = [b for b in log_blocks if b.get("route", "").lower().startswith("fromiso")]
+        matched_log = fromiso[0].get("result", {}).get("data_elements", {}) if fromiso else {}
+        result_log.append(f"\n✅ Row {idx}: RRN {rrn} matched. Comparing DEs:")
+
+        for col in df.columns:
+            val = row[col]
+            val_str = str(val).strip()
+            de_key = normalize_column_name(col)
+
+            if not de_key or pd.isna(val) or val_str == "":
+                row_result.append({'match': True, 'value': val})
+                continue
+
+            if val_str.lower() == "client defined":
+                row_result.append({'match': True, 'value': val})
+                result_log.append(f"✅ {de_key}: Skipped (Client Defined)")
+                continue
+
+            log_val = matched_log.get(de_key, "")
+            match = str(log_val).strip() == val_str
+            emoji = "✅" if match else "❌"
+            result_log.append(f"{emoji} {de_key}: expected '{val_str}' | found '{log_val}'")
+            row_result.append({'match': match, 'value': val})
+
+        styled_rows.append(row_result)
+
+    return pd.DataFrame(styled_rows, columns=df.columns)
+
+def run_comparison_from_web(excel_path, json_log_path, output_log_path):
+    with open(json_log_path, 'r', encoding='utf-8') as f:
+        logs_json = json.load(f)
+
+    all_results = {}
+    comparison_logs = []
+    xls = pd.read_excel(excel_path, sheet_name=None, header=None)
+
+    for sheet, raw_df in xls.items():
+        header_row = next((i for i, r in raw_df.iterrows() if any("DE" in str(c) or "BM" in str(c) for c in r)), 0)
+        df = pd.read_excel(excel_path, sheet_name=sheet, header=header_row).fillna('')
+        styled_df = compare_and_style(df, logs_json, comparison_logs, sheet)
+        all_results[sheet] = styled_df
+
+    with open(output_log_path, 'w', encoding='utf-8') as f:
+        f.write("\n".join(comparison_logs))
+
+    return all_results, "\n".join(comparison_logs)
