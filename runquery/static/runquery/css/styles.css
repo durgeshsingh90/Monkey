@@ -2,9 +2,47 @@
   --bg: #f9f9fb;
   --accent: #4f46e5;
   --text: #333;
-  --light: #fff;
   --gray: #e5e7eb;
 }
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--bg);
+  margin: 0;
+}
+
+.layout-container {
+  display: flex;
+  height: 100vh;
+}
+
+#main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  margin-top: 60px;
+}
+
+#sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: white;
+  border-left: 1px solid var(--gray);
+  padding: 12px;
+  height: calc(100vh - 60px);
+  position: sticky;
+  top: 60px;
+  overflow-y: auto;
+}
+
+.result-section {
+  background: white;
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+}
+
 
 * {
   margin: 0;
@@ -127,7 +165,7 @@ input:checked + .slider:before {
 
 #main-content {
   margin-top: 60px; /* height of header */
-  margin-right: 300px; /* width of sidebar */
+  margin-right: 0; /* width of sidebar */
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -185,7 +223,7 @@ textarea {
   background-color: #3730a3;
 }
 
-#result, #columnResult {
+#columnResult, #jsonResult {
   margin-top: 24px;
   background-color: #fff;
   padding: 16px;
@@ -193,9 +231,39 @@ textarea {
   border: 1px solid var(--gray);
   font-family: monospace;
   white-space: pre-wrap;
-  max-height: 400px;
-  overflow-y: auto;
 }
+.result-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--gray);
+  background: #fff;
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+#main-content {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 60px;  /* same as header height */
+  padding: 20px;
+}
+
+.layout-container {
+  display: flex;
+  height: 100vh;
+}
+.table-box table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.table-box th,
+.table-box td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
 
 /* ----------------------- */
 /* Sidebar (Table Panel)   */
@@ -228,25 +296,45 @@ textarea {
 .refresh-btn:hover {
   background-color: #f0f0f0;
 }
-
+.scroll-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  white-space: nowrap;
+}
 .table-box {
-  margin-bottom: 12px;
+  display: inline-block;
+  vertical-align: top;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-right: 20px;
+  padding: 10px;
+  min-width: 300px;
+  max-width: 100%;
+}
+#main-content {
+  overflow: auto;
 }
 
-.table-box summary {
+#scrollRightBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 14px;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: bold;
+  font-size: 18px;
+  z-index: 999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: none; /* hidden by default */
 }
 
-.table-box ul {
-  list-style: none;
-  padding-left: 20px;
-}
-
-.table-box li {
-  margin-bottom: 4px;
-  color: #444;
-}
 .search-container {
   position: relative;
   width: 100%;
@@ -303,6 +391,7 @@ textarea {
   top: 50%;
   left: 52px;
   transform: translateY(-50%);
-  font-size: 12px;
-  white-space: nowrap;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }

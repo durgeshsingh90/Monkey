@@ -129,6 +129,13 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
+    'local_oracle': {
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME': '127.0.0.1:1521/freepdb1',  # lowercase to match service name
+        'USER': 'oasis77',
+        'PASSWORD': 'your_password',
+        'client_path': None  # or set your Oracle Client path if using thick mode
+    },
     'dr_ist': {
         'ENGINE': 'django.db.backends.oracle',
         'NAME': 'A4PCDO8001.ESH.PAR_IST',
