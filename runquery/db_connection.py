@@ -152,7 +152,6 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
         cursor.close()
         connection.close()
 
-    # Save to media/runquery_metadata/<db_key>.json
     metadata_dir.mkdir(parents=True, exist_ok=True)
     with open(metadata_file, 'w') as f:
         json.dump({"tables": metadata}, f, indent=2)

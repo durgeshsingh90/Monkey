@@ -146,13 +146,14 @@ function execute() {
 function fetchTableStructure(dbKey, refresh = false) {
   const url = `/runquery/get_table_structure/?db=${dbKey}${refresh ? '&refresh=1' : ''}`;
   const sidebar = document.getElementById("tableStructure");
-  // Show loading message
-  sidebar.innerHTML = `<div style="color: gray;">⏳ Loading tables...</div>`;
+
+  if (refresh) {
+    sidebar.innerHTML = `<div style="color: gray;">⏳ Fetching from DB...</div>`;
+  }
 
   fetch(url)
     .then(res => res.json())
     .then(data => {
-      const sidebar = document.getElementById("tableStructure");
       sidebar.innerHTML = '';
 
       if (data.error) {
@@ -175,6 +176,7 @@ function fetchTableStructure(dbKey, refresh = false) {
       });
     });
 }
+
 
 function refreshMetadata() {
   const dbKey = document.getElementById("dropdown1").value;
