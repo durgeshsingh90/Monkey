@@ -117,3 +117,45 @@ def execute_multiple_query_sets(query_sets_dict, script_name="manual_script"):
                 logging.error(f"[{db_key}] Query set failed: {e}")
                 all_results.append({"db_key": db_key, "error": str(e)})
     return all_results
+
+import os
+from pathlib import Path
+
+def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
+    metadata_dir = Path(settings.MEDIA_ROOT) / "runquery_metadata"
+    metadata_file = metadata_dir / f"{db_key}.json"
+
+    if not refresh and metadata_file.exists():
+        try:
+            with open(metadata_file, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            return {"error": f"Failed to read cached metadata: {str(e)}"}
+
+    connection = initialize_connection(db_key)
+    if not connection:
+        return {"error": f"Unable to connect to DB '{db_key}'"}
+
+    metadata = {}
+    try:
+        cursor = connection.cursor()
+        cursor.execute("SELECT table_name FROM user_tables")
+        tables = [row[0] for row in cursor.fetchall()]
+
+        for table in tables:
+            cursor.execute("SELECT column_name FROM user_tab_columns WHERE table_name = :1", [table])
+            columns = [row[0] for row in cursor.fetchall()]
+            metadata[table] = columns
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        cursor.close()
+        connection.close()
+
+    # Save to media/runquery_metadata/<db_key>.json
+    metadata_dir.mkdir(parents=True, exist_ok=True)
+    with open(metadata_file, 'w') as f:
+        json.dump({"tables": metadata}, f, indent=2)
+
+    return {"tables": metadata}
+    

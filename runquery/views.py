@@ -80,3 +80,10 @@ def execute_oracle_queries(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"message": "Only POST allowed"}, status=405)
+from .db_connection import get_or_load_table_metadata
+
+def get_table_structure(request):
+    db_key = request.GET.get("db", "uat_ist")
+    refresh = request.GET.get("refresh") == "1"
+    metadata = get_or_load_table_metadata(db_key, refresh=refresh)
+    return JsonResponse(metadata)
