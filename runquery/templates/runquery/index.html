@@ -27,6 +27,9 @@
       border: 1px solid var(--gray);
     }
   </style>
+  <!-- Add in your <head> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+
 </head>
 <body>
   <div class="layout-container">
@@ -37,6 +40,7 @@
           <button class="tab-button" data-index="1">Tab 2</button>
           <button class="tab-button" data-index="2">Tab 3</button>
           <button onclick="location.href='/runquery/view_history/'">History</button>
+
         </div>
         <div class="top-controls">
           <select id="dropdown1"></select>
@@ -60,6 +64,10 @@
       <div class="controls">
         <button onclick="execute()">Execute</button>
         <button onclick="countQuery()">Count</button>
+        <button onclick="showSaveModal()">💾 Save As</button>
+        <select id="savedScriptsDropdown" onchange="loadSavedScript(this)">
+          <option value="">📂 Load Saved Script</option>
+        </select>
         <div id="queryTimer"></div>
       </div>
 
@@ -70,10 +78,13 @@
       </div>
       
     <div id="sidebar">
-      <div>
-        <h3>📘 Tables</h3>
-        <button onclick="refreshMetadata()">🔄 Refresh</button>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">📘 Tables</h3>
+        <button onclick="refreshMetadata()" class="refresh-icon-btn" title="Refresh Tables">
+          <img src="{% static 'runquery/images/tablerefresh.png' %}" alt="Refresh">
+        </button>
       </div>
+      
       <div class="search-container">
         <input type="text" id="tableSearch" placeholder="Search..." onkeyup="showSuggestions()">
         <div id="suggestions"></div>
@@ -83,5 +94,6 @@
   </div>
 
   <script src="{% static 'runquery/js/scripts.js' %}"></script>
+  
 </body>
 </html>

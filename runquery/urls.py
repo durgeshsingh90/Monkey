@@ -11,6 +11,8 @@ path('pin_table/', views.pin_table, name='pin_table'),
 path('unpin_table/', views.unpin_table, name='unpin_table'),
 path("save_history/", views.save_history, name="save_history"),
 path("view_history/", views.view_history, name="view_history"),
-
+  path("save_script/", views.save_script),
+    path("load_script/", views.load_script),
+path("list_scripts/", views.list_scripts, name="list_scripts"),
 
 ]

@@ -167,3 +167,60 @@ def save_history(request):
 
 def view_history(request):
     return render(request, "runquery/history.html")
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.conf import settings
+from pathlib import Path
+import json
+
+SCRIPTS_DIR = Path(settings.MEDIA_ROOT) / "runquery" / "scripts"
+SCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
+
+@csrf_exempt
+def save_script(request):
+    try:
+        data = json.loads(request.body)
+        name = data["name"]
+        db = data["db"]
+        query = data["query"]
+        scripts_dir = Path(settings.MEDIA_ROOT) / "runquery" / "scripts"
+        scripts_dir.mkdir(parents=True, exist_ok=True)
+        script_file = scripts_dir / f"{db}.json"
+
+        scripts = []
+        if script_file.exists():
+            scripts = json.loads(script_file.read_text())
+
+        # Replace if already exists
+        scripts = [s for s in scripts if s["name"] != name]
+        scripts.append({"name": name, "query": query})
+
+        script_file.write_text(json.dumps(scripts, indent=2))
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+def list_scripts(request):
+    db = request.GET.get("db", "local_oracle")  # default fallback
+    scripts_file = Path(settings.MEDIA_ROOT) / "runquery" / "scripts" / f"{db}.json"
+
+    if scripts_file.exists():
+        try:
+            with open(scripts_file, "r") as f:
+                scripts = json.load(f)
+            return JsonResponse({"scripts": scripts})
+        except Exception as e:
+            return JsonResponse({"scripts": [], "error": str(e)})
+    return JsonResponse({"scripts": []})
+
+def load_script(request):
+    db = request.GET.get("db")
+    name = request.GET.get("name")
+    script_file = Path(settings.MEDIA_ROOT) / "runquery" / "scripts" / f"{db}.json"
+    if script_file.exists():
+        scripts = json.loads(script_file.read_text())
+        for s in scripts:
+            if s["name"] == name:
+                return JsonResponse({"query": s["query"]})
+    return JsonResponse({"error": "Script not found"})

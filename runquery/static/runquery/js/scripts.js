@@ -157,9 +157,20 @@ function fetchTableStructure(dbKey, refresh = false) {
         return;
       }
 
-      Object.entries(data.tables).forEach(([table, columns]) => {
-        renderTable(sidebar, table);
-      });
+      const pinnedTables = JSON.parse(localStorage.getItem("pinnedTables") || "[]");
+
+const sortedTables = Object.keys(data.tables).sort((a, b) => {
+  const aPinned = pinnedTables.includes(a);
+  const bPinned = pinnedTables.includes(b);
+  if (aPinned && !bPinned) return -1;
+  if (!aPinned && bPinned) return 1;
+  return a.localeCompare(b); // fallback to alphabetical
+});
+
+sortedTables.forEach(table => {
+  renderTable(sidebar, table);
+});
+
     });
 }
 
@@ -169,17 +180,25 @@ function renderTable(sidebar, table) {
   box.open = false;
 
   const summary = document.createElement("summary");
-  summary.innerHTML = `📂 ${table} <span class="suggestion-count">(${tableData[table].length})</span>`;
+  summary.innerHTML = `<span class="arrow-icon">▶</span> ${table} <span class="suggestion-count">(${tableData[table].length})</span>`;
+  box.addEventListener("toggle", () => {
+    const arrow = box.querySelector(".arrow-icon");
+    if (box.open) {
+      arrow.textContent = "▼";
+    } else {
+      arrow.textContent = "▶";
+    }
+  });
+  
   const pinIcon = document.createElement("span");
-  pinIcon.className = `pin-icon`;
   const pinnedTables = JSON.parse(localStorage.getItem("pinnedTables") || "[]");
-const isPinned = pinnedTables.includes(table);
-pinIcon.className = "pin-icon" + (isPinned ? " pinned" : "");
-pinIcon.textContent = isPinned ? "📍" : "📌";
+  const isPinned = pinnedTables.includes(table);
+  pinIcon.className = "pin-icon" + (isPinned ? " pinned" : "");
+  pinIcon.textContent = isPinned ? "📍" : "📌";
 
   pinIcon.addEventListener("click", (e) => togglePin(table, e));
-
   summary.appendChild(pinIcon);
+
   box.appendChild(summary);
 
   const ul = document.createElement("ul");
@@ -189,8 +208,10 @@ pinIcon.textContent = isPinned ? "📍" : "📌";
     ul.appendChild(li);
   });
   box.appendChild(ul);
+
   sidebar.appendChild(box);
 }
+
 
 function togglePin(table, event) {
   event.stopPropagation();
@@ -489,3 +510,83 @@ document.getElementById("toggleVertical").addEventListener("change", () => {
     renderResults(lastExecutedResults);
   }
 });
+function showSaveModal() {
+  document.getElementById("saveModal").style.display = "block";
+  document.getElementById("scriptNameInput").focus();
+}
+
+function saveScript() {
+  const name = document.getElementById("scriptNameInput").value.trim();
+  const db = document.getElementById("dropdown1").value;
+  const currentTab = document.querySelector(".tab-button.active").getAttribute("data-index");
+  const query = document.getElementById("text-" + currentTab).value;
+
+  fetch("/runquery/save_script/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, db, query })
+  })
+  .then(res => res.json())
+  .then(data => {
+    const status = document.getElementById("saveStatus");
+    if (data.success) {
+      status.textContent = "✔ Saved!";
+      status.style.color = "green";
+      loadScriptsForDb(db, name);  // Auto-refresh
+      localStorage.setItem("lastLoadedScript", name);
+      localStorage.setItem("lastLoadedDb", db);
+      document.getElementById("saveModal").style.display = "none";
+
+    } else {
+      status.textContent = "❌ Failed!";
+      status.style.color = "red";
+    }
+
+    setTimeout(() => {
+      status.textContent = "";
+    }, 1500);
+  });
+  
+}
+
+
+function loadScript(name) {
+  const db = document.getElementById("dropdown1").value;
+  fetch(`/runquery/load_script/?db=${db}`)
+    .then(res => res.json())
+    .then(data => {
+      const script = data.find(s => s.name === name);
+      if (script) {
+        const currentTab = document.querySelector(".tab-button.active").getAttribute("data-index");
+        document.getElementById("text-" + currentTab).value = script.query;
+        localStorage.setItem("lastLoadedScript", name);
+        localStorage.setItem("lastLoadedDb", db);
+      }
+    });
+}
+window.addEventListener("DOMContentLoaded", () => {
+  const lastDb = localStorage.getItem("lastLoadedDb");
+  const lastScript = localStorage.getItem("lastLoadedScript");
+
+  if (lastDb && lastScript) {
+    document.getElementById("dropdown1").value = lastDb;
+    loadScriptsForDb(lastDb, lastScript);  // load and preselect
+  }
+});
+function loadScriptsForDb(db, preselectName = "") {
+  fetch(`/runquery/load_script/?db=${db}`)
+    .then(res => res.json())
+    .then(data => {
+      const dropdown = document.getElementById("savedScriptsDropdown");
+      dropdown.innerHTML = '<option disabled selected>📂 Load Saved Script</option>';
+      data.forEach(script => {
+        const opt = document.createElement("option");
+        opt.value = script.name;
+        opt.textContent = script.name;
+        if (script.name === preselectName) opt.selected = true;
+        dropdown.appendChild(opt);
+      });
+    });
+}
+
+
