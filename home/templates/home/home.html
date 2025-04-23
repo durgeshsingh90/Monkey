@@ -6,8 +6,7 @@
     <title>Monkey</title>
     <link href="https://fonts.googleapis.com/css2?family=Chewy&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'home/styles.css' %}">
-    <link id="favicon" rel="icon" href="{% static 'home/images/frame1.png' %}">
-    <link rel="icon" type="image/png" href="{% static 'favicon.png' %}">
+    <link rel="icon" href="{% static 'home/images/monkey.png' %}" type="image/png">
     
 </head>
 <body>
@@ -65,7 +64,7 @@
     <div class="app-card">
         <h3>JSON to YAML Converter</h3>
         <p>Convert JSON to YAML.</p>
-        <a href="/json2yaml/" class="btn">Launch</a>
+        <a href="/yaml2json/" class="btn">Launch</a>
     </div>
 
     <div class="app-card">
@@ -88,7 +87,7 @@
 
 <footer>
     <!-- &copy; 2025 Fiserv. All rights reserved. -->
-     Beta version 1.5
+     Beta version 2.0
 </footer>
 
 <script>
@@ -111,23 +110,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
-    // Favicon animation
-    const frames = [
-        "{% static 'home/images/frame1.png' %}",
-        // "{% static 'home/images/frame2.png' %}",
-        // "{% static 'home/images/frame3.png' %}",
-        // add more frames as necessary
-    ];
-    let currentFrame = 0;
-    
-    function animateFavicon() {
-        const favicon = document.getElementById('favicon');
-        favicon.href = frames[currentFrame];
-        currentFrame = (currentFrame + 1) % frames.length;
-    }
-
-    setInterval(animateFavicon, 500); // Change frame every 500 milliseconds
 
 });
 </script>
