@@ -28,8 +28,8 @@ urlpatterns = [
 
     # Static Template Pages (no backend logic)
     # path('SplunkRRN/', TemplateView.as_view(template_name='SplunkRRN.html'), name='SplunkRRN'),
-    path('json2yaml/', TemplateView.as_view(template_name='json2yaml.html'), name='json2yaml'),
-    path('compare/', TemplateView.as_view(template_name='compare.html'), name='compare'),
+    # path('json2yaml/', TemplateView.as_view(template_name='json2yaml.html'), name='json2yaml'),
+    # path('compare/', TemplateView.as_view(template_name='compare.html'), name='compare'),
     path('reader/', TemplateView.as_view(template_name='reader.html'), name='reader'),
 
     # Django Apps with dynamic URLs
@@ -44,6 +44,9 @@ urlpatterns = [
     path('validate_testcases/', include('validate_testcases.urls')),
     path('splunkrrn/', include('splunkrrn.urls')),
     path('runquery/', include('runquery.urls')),
+    path('compare/', include('compare.urls')),
+    path('yaml2json/', include('yaml2json.urls')),
+
 
 ]
 

@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'validate_testcases',
     'splunkrrn',
     'runquery',
+    'compare',
+    'yaml2json'
 ]
 
 LOG_DIR = BASE_DIR / 'logs'
@@ -228,6 +230,11 @@ STATICFILES_DIRS = [
     BASE_DIR / "oracle_query_executor/static",
     BASE_DIR / "runquery/static",
     BASE_DIR / "validate_testcases/static",
+    BASE_DIR / "splunkrrn/static",
+    BASE_DIR / "pdf_merger/static",
+    BASE_DIR / "compare/static",
+    BASE_DIR / "yaml2json/static",
+
 
     
 ]
