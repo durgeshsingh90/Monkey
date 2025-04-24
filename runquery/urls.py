@@ -14,5 +14,7 @@ path("view_history/", views.view_history, name="view_history"),
   path("save_script/", views.save_script),
     path("load_script/", views.load_script),
 path("list_scripts/", views.list_scripts, name="list_scripts"),
-
+path("delete_script/", views.delete_script),
+path("save_tab_content/", views.save_tab_content),
+path("load_tab_content/", views.load_tab_content),
 ]

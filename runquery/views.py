@@ -224,3 +224,58 @@ def load_script(request):
             if s["name"] == name:
                 return JsonResponse({"query": s["query"]})
     return JsonResponse({"error": "Script not found"})
+
+@csrf_exempt
+def delete_script(request):
+    try:
+        data = json.loads(request.body)
+        db = data["db"]
+        name = data["name"]
+
+        script_file = Path(settings.MEDIA_ROOT) / "runquery" / "scripts" / f"{db}.json"
+        if not script_file.exists():
+            return JsonResponse({"success": False, "error": "Script file not found"})
+
+        scripts = json.loads(script_file.read_text())
+        scripts = [s for s in scripts if s["name"] != name]
+        script_file.write_text(json.dumps(scripts, indent=2))
+
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from pathlib import Path
+from django.conf import settings
+import json
+import os
+
+@csrf_exempt
+def save_tab_content(request):
+    try:
+        data = json.loads(request.body)
+        tab = data["tab"]
+        content = data["content"]
+
+        save_path = Path(settings.MEDIA_ROOT) / "runquery" / "editor"
+        save_path.mkdir(parents=True, exist_ok=True)
+        file = save_path / f"editor-tab-{tab}.sql"
+
+        file.write_text(content)
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+@csrf_exempt
+def load_tab_content(request):
+    try:
+        tab = request.GET.get("tab")
+        file = Path(settings.MEDIA_ROOT) / "runquery" / "editor" / f"editor-tab-{tab}.sql"
+        if file.exists():
+            content = file.read_text()
+            return JsonResponse({"success": True, "content": content})
+        else:
+            return JsonResponse({"success": True, "content": ""})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})

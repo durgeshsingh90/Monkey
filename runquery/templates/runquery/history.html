@@ -1,48 +1,226 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Query History</title>
+  <meta charset="UTF-8">
+  <title>🕘 Query History</title>
   <link rel="stylesheet" href="{% static 'runquery/css/styles.css' %}">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Chewy&family=Poppins:wght@400;600&display=swap');
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #fef8e6;
+      padding: 30px;
+      color: #333;
+    }
+
+    h2 {
+      font-family: 'Chewy', cursive;
+      font-size: 2.2rem;
+      color: #8c1b13;
+      margin-bottom: 1rem;
+    }
+
+    #controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    #tabs button,
+    .filter-btn,
+    .export-btn {
+      background-color: #ffb347;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    #tabs button.active,
+    .filter-btn.active {
+      background-color: #e39e34;
+      color: white;
+    }
+
+    #searchBox {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 14px;
+      flex: 1;
+      max-width: 300px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 15px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .copy-btn {
+      cursor: pointer;
+      color: #888;
+      margin-right: 10px;
+      font-size: 16px;
+    }
+
+    .copy-btn.copied::after {
+      content: "Copied!";
+      color: green;
+      margin-left: 8px;
+      font-size: 13px;
+    }
+
+    pre {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+
+    .success { color: #16a34a; font-weight: bold; }
+    .error { color: #dc2626; font-weight: bold; }
+
+    @media (max-width: 768px) {
+      #controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .card-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
-<body style="padding: 20px;">
-  <h2>Query History</h2>
-  <div id="tabs"></div>
+<body>
+
+  <h2>🕘 Query History</h2>
+
+  <div id="controls">
+    <div id="tabs"></div>
+    <input id="searchBox" type="text" placeholder="🔍 Search query...">
+    <button class="filter-btn" onclick="applyFilter('success')">✔ Success</button>
+    <button class="filter-btn" onclick="applyFilter('error')">❌ Errors</button>
+    <button class="filter-btn" onclick="applyFilter('all')">🔄 Show All</button>
+    <button class="export-btn" onclick="exportToJson()">📤 Export JSON</button>
+  </div>
+
   <div id="historyContent"></div>
 
   <script>
+    let historyData = [];
+    let grouped = {};
+    let activeTab = "All";
+    let activeFilter = "all";
+
     fetch('/media/runquery/history.json')
       .then(res => res.json())
       .then(data => {
-        const grouped = {};
-
+        historyData = data.reverse();
+        grouped = {};
         data.forEach(entry => {
           if (!grouped[entry.database]) grouped[entry.database] = [];
           grouped[entry.database].push(entry);
         });
 
         const tabsDiv = document.getElementById("tabs");
-        tabsDiv.innerHTML = '<button onclick="renderTab(\'All\')">All</button>' +
+        tabsDiv.innerHTML = `<button onclick="renderTab('All')" class="active">All</button>` +
           Object.keys(grouped).map(db =>
             `<button onclick="renderTab('${db}')">${db}</button>`
           ).join("");
 
-        window.historyData = data;
-        window.grouped = grouped;
+        [...tabsDiv.querySelectorAll("button")].forEach(btn =>
+          btn.addEventListener("click", () => {
+            [...tabsDiv.querySelectorAll("button")].forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+          })
+        );
+
         renderTab("All");
       });
 
     function renderTab(db) {
-      const historyContent = document.getElementById("historyContent");
-      const entries = db === "All" ? window.historyData : window.grouped[db] || [];
-      historyContent.innerHTML = entries.map(e => `
-        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-          <strong>${e.timestamp}</strong> - DB: <code>${e.database}</code><br>
-          <pre>${e.query}</pre>
-          ${e.error && e.error[0] ? `<span style="color:red;">❌ ${e.error[0]}</span>` : '<span style="color:green;">✔ Success</span>'}
-        </div>
-      `).join("");
+      activeTab = db;
+      filterAndRender();
+    }
+
+    function applyFilter(type) {
+      activeFilter = type;
+      [...document.querySelectorAll(".filter-btn")].forEach(btn => btn.classList.remove("active"));
+      event.target.classList.add("active");
+      filterAndRender();
+    }
+
+    function filterAndRender() {
+      const content = document.getElementById("historyContent");
+      const search = document.getElementById("searchBox").value.toLowerCase();
+      const entries = (activeTab === "All" ? historyData : grouped[activeTab]) || [];
+
+      const filtered = entries.filter(e => {
+        const matchesSearch = e.query.toLowerCase().includes(search);
+        const isSuccess = !(e.error && e.error[0]);
+        return matchesSearch && (
+          activeFilter === "all" ||
+          (activeFilter === "success" && isSuccess) ||
+          (activeFilter === "error" && !isSuccess)
+        );
+      });
+
+      content.innerHTML = filtered.map(e => {
+        const duration = e.result?.[0]?.duration || "—";
+        const isError = e.error && e.error[0];
+        const id = Math.random().toString(36).substring(2, 8);
+        return `
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <span class="copy-btn" onclick="copyToClipboard(\`${e.query.replace(/`/g, '\\`')}\`, this)">📋</span>
+                🛢️ <code>${e.database}</code> • 🕒 ${new Date(e.timestamp).toLocaleString()} • ⏱ ${duration}
+              </div>
+            </div>
+            <pre>${e.query}</pre>
+            <div class="${isError ? 'error' : 'success'}">
+              ${isError ? `❌ ${e.error[0]}` : '✔ Success'}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function copyToClipboard(text, el) {
+      navigator.clipboard.writeText(text);
+      el.classList.add("copied");
+      setTimeout(() => el.classList.remove("copied"), 1000);
+    }
+
+    document.getElementById("searchBox").addEventListener("input", filterAndRender);
+
+    function exportToJson() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historyData, null, 2));
+      const link = document.createElement('a');
+      link.setAttribute("href", dataStr);
+      link.setAttribute("download", "query_history.json");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     }
   </script>
+
 </body>
 </html>
