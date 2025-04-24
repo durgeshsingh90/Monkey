@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 from django.conf import settings
 from pathlib import Path
+import time
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)
@@ -59,8 +60,10 @@ def execute_query(query, db_key="uat_ist"):
     connection = initialize_connection(db_key)
     if connection is None:
         query_result["error"] = "Unable to establish database connection"
+        log_query_execution(db_key, query, query_result, 0)
         return query_result
-    
+
+    start_time = time.time()
     try:
         cursor = connection.cursor()
         try:
@@ -76,8 +79,6 @@ def execute_query(query, db_key="uat_ist"):
                     "message": f"✅ {cursor.rowcount} row(s) affected.",
                     "status": "success"
                 }
-
-
         finally:
             cursor.close()
             connection.close()
@@ -89,6 +90,8 @@ def execute_query(query, db_key="uat_ist"):
         logging.error(f"Unexpected error: {e}")
         query_result["error"] = str(e)
 
+    duration = time.time() - start_time
+    log_query_execution(db_key, query, query_result, duration)  # ✅ pass duration
     return query_result
 
 def save_query_result_to_file(result, query, script_name="manual_script"):
@@ -155,7 +158,7 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
         # Get config and use schema owner from settings (default to user)
         db_settings = settings.DATABASES.get(db_key, {})
         owner = db_settings.get("owner", db_settings.get("USER")).upper()
-        
+
         # Fetch table names from all_tables based on owner
         cursor.execute("""
             SELECT table_name 
@@ -165,7 +168,7 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
             ORDER BY table_name ASC
         """, [owner])
         tables = [row[0] for row in cursor.fetchall()]
-        
+
         for table in tables:
             cursor.execute("""
                 SELECT column_name 
@@ -175,7 +178,7 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
             """, [table, owner])
             columns = [row[0] for row in cursor.fetchall()]
             metadata[table] = columns
-        
+
     except Exception as e:
         return {"error": str(e)}
     finally:
@@ -187,3 +190,30 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
         json.dump({"tables": metadata}, f, indent=2)
 
     return {"tables": metadata}
+
+def log_query_execution(db_key, query, result, duration):
+    log_dir = Path(settings.MEDIA_ROOT) / "runquery"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "query_logs.json"
+
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "db": db_key,
+        "query": query.strip(),
+        "duration_sec": round(duration, 3),  # 👈 log duration
+        "result": result.get("result") if result.get("error") is None else None,
+        "error": result.get("error"),
+    }
+
+    try:
+        if log_file.exists():
+            with open(log_file, "r+", encoding="utf-8") as f:
+                data = json.load(f)
+                data.append(log_entry)
+                f.seek(0)
+                json.dump(data, f, indent=2, cls=CustomJSONEncoder)
+        else:
+            with open(log_file, "w", encoding="utf-8") as f:
+                json.dump([log_entry], f, indent=2, cls=CustomJSONEncoder)
+    except Exception as e:
+        logging.error(f"Failed to write query log: {e}")

@@ -12,6 +12,14 @@ verticalToggle.addEventListener("change", function () {
   localStorage.setItem("verticalView", this.checked);
 });
 
+function getCurrentEditorContent() {
+  return editor.getValue();
+}
+
+function setEditorContent(text) {
+  editor.setValue(text);
+}
+
 function showTab(index) {
   tabButtons.forEach(btn => btn.classList.remove("active"));
   tabContents.forEach(tab => tab.classList.remove("active"));
@@ -55,6 +63,8 @@ dropdown.value = savedDb || "uat_ist";
 localStorage.setItem("selectedDb", dropdown.value);
 
     fetchTableStructure(dropdown.value);
+    refreshScriptList(dropdown.value);
+
   });
 
   document.getElementById("dropdown1").addEventListener("change", function () {
@@ -79,8 +89,9 @@ function execute() {
   const startTime = new Date();
   document.getElementById("queryTimer").textContent = "";
 
-  const currentTab = document.querySelector(".tab-button.active").getAttribute("data-index");
-  let queryText = document.getElementById("text-" + currentTab).value.trim();
+  const currentTab = getActiveTabIndex(); // 🟢 Get current tab
+  let queryText = getCurrentEditorContent(currentTab).trim(); // ✅ Fetch Monaco editor content
+
   if (queryText.endsWith(";")) queryText = queryText.slice(0, -1);
 
   const dbAlias = document.getElementById("dropdown1").value;
@@ -104,11 +115,10 @@ function execute() {
     .then(res => res.json())
     .then(data => {
       const results = data.results || data;
-      lastExecutedResults = results; // ✅ Save for toggle use
+      lastExecutedResults = results;
       document.getElementById("jsonResult").textContent = JSON.stringify(results, null, 2);
       renderResults(results);
 
-      // Optional: save to history
       const historyEntry = {
         timestamp: new Date().toISOString(),
         database: dbAlias,
@@ -173,6 +183,31 @@ sortedTables.forEach(table => {
 
     });
 }
+function registerSchemaAutocomplete(tableData) {
+  monaco.languages.registerCompletionItemProvider('sql', {
+    provideCompletionItems: () => {
+      const suggestions = [];
+
+      Object.entries(tableData).forEach(([table, columns]) => {
+        suggestions.push({
+          label: table,
+          kind: monaco.languages.CompletionItemKind.Class,
+          insertText: table
+        });
+
+        columns.forEach(col => {
+          suggestions.push({
+            label: `${table}.${col}`,
+            kind: monaco.languages.CompletionItemKind.Field,
+            insertText: `${table}.${col}`
+          });
+        });
+      });
+
+      return { suggestions };
+    }
+  });
+}
 
 function renderTable(sidebar, table) {
   const box = document.createElement("details");
@@ -235,81 +270,39 @@ function refreshMetadata() {
 
 function filterTables() {
   const filter = document.getElementById("tableSearch").value.toLowerCase();
+  const pinnedOnly = document.getElementById("pinnedOnlyToggle").checked;
   const tables = document.querySelectorAll(".table-box");
 
   tables.forEach(tableDiv => {
-    const tableName = tableDiv.querySelector("summary").textContent.toLowerCase();
-    const columns = tableDiv.querySelectorAll("li");
-    let tableMatch = tableName.includes(filter);
-    let columnMatch = false;
+    const summary = tableDiv.querySelector("summary");
+    const tableName = summary.textContent.toLowerCase();
+    const isPinned = tableDiv.querySelector(".pin-icon")?.classList.contains("pinned");
+    const allColumns = tableDiv.querySelectorAll("li");
 
-    columns.forEach(column => {
-      const columnName = column.textContent.toLowerCase();
-      if (columnName.includes(filter)) {
-        columnMatch = true;
+    let tableMatches = tableName.includes(filter);
+    let columnMatchFound = false;
+
+    allColumns.forEach(column => {
+      const colName = column.textContent.toLowerCase();
+
+      if (tableMatches) {
+        column.style.display = ""; // show all if table name matched
+      } else if (colName.includes(filter)) {
+        column.style.display = ""; // show only matched columns
+        columnMatchFound = true;
+      } else {
+        column.style.display = "none"; // hide unmatched columns
       }
     });
 
-    if (tableMatch || columnMatch) {
-      tableDiv.style.display = "";
-    } else {
-      tableDiv.style.display = "none";
-    }
+    const shouldShow = (!pinnedOnly || isPinned) && (tableMatches || columnMatchFound);
+    tableDiv.style.display = shouldShow ? "" : "none";
+
+    // Optional: auto-expand if something matched
+    tableDiv.open = shouldShow;
   });
 }
 
-function showSuggestions() {
-  const filter = document.getElementById("tableSearch").value.toLowerCase();
-  const suggestionsDiv = document.getElementById("suggestions");
-  suggestionsDiv.innerHTML = "";
-
-  if (filter === "") {
-    suggestionsDiv.style.display = "none";
-    return;
-  }
-
-  let suggestions = [];
-
-  for (let table in tableData) {
-    if (table.toLowerCase().includes(filter)) {
-      suggestions.push({ type: 'table', name: table });
-    }
-
-    tableData[table].forEach(column => {
-      if (column.toLowerCase().includes(filter)) {
-        suggestions.push({ type: 'column', name: `${column} (in ${table})` });
-      }
-    });
-  }
-
-  if (suggestions.length === 0) {
-    suggestionsDiv.style.display = "none";
-    return;
-  }
-
-  suggestions.forEach(suggestion => {
-    const item = document.createElement("div");
-    item.textContent = suggestion.name;
-    item.classList.add("suggestion-item");
-
-    if (suggestion.type === 'table') {
-      const span = document.createElement("span");
-      span.classList.add("suggestion-count");
-      item.appendChild(span);
-
-      item.addEventListener("click", () => {
-        selectSuggestion(suggestion);
-        fetchTableStructureForSuggestion(suggestion.name);
-      });
-    } else {
-      item.addEventListener("click", () => selectSuggestion(suggestion));
-    }
-
-    suggestionsDiv.appendChild(item);
-  });
-
-  suggestionsDiv.style.display = "block";
-}
 
 function selectSuggestion(suggestion) {
   const searchInput = document.getElementById("tableSearch");
@@ -349,18 +342,17 @@ toggle.checked = savedView === "column";
 toggleViewMode(toggle);  // will update icon too
 
 function countQuery() {
-  const startTime = new Date(); // ⏱ Start timer
-  document.getElementById("queryTimer").textContent = ""; // Clear previous timer
+  const startTime = new Date();
+  document.getElementById("queryTimer").textContent = "";
 
-  const tab = document.querySelector(".tab-button.active").getAttribute("data-index");
-  const sql = document.getElementById("text-" + tab).value.trim();
+  const tabIndex = getActiveTabIndex(); // ✅ get active Monaco tab index
+  const sql = getCurrentEditorContent(tabIndex).trim(); // ✅ Monaco method
 
   if (!sql) {
     alert("Enter a SQL query to count.");
     return;
   }
 
-  // 👇 Wrap the user's query inside SELECT COUNT(*)
   const countWrappedQuery = `SELECT COUNT(*) AS ROW_COUNT FROM (${sql})`;
 
   const db = document.getElementById("dropdown1").value;
@@ -382,7 +374,6 @@ function countQuery() {
         alert("Count query ran, but no rows returned.");
       }
 
-      // ✅ Show execution time
       displayQueryTime(startTime);
     })
     .catch(err => {
@@ -390,6 +381,7 @@ function countQuery() {
       console.error("Count query error:", err);
     });
 }
+
 
 function displayQueryTime(startTime) {
   const endTime = new Date();
@@ -441,14 +433,19 @@ function renderResults(results) {
     } else if (Array.isArray(queryResult) && queryResult.length > 0) {
       const table = document.createElement("table");
       table.style.borderCollapse = "collapse";
-      table.style.width = "100%";
+      table.style.width = "max-content"; // enable horizontal scroll when needed
+
+      const scrollWrapper = document.createElement("div");
+      scrollWrapper.style.overflowX = "auto";
+      scrollWrapper.style.width = "100%";
+      scrollWrapper.appendChild(table);
 
       const keys = Object.keys(queryResult[0]);
 
       if (isVertical) {
         keys.forEach(key => {
           const tr = document.createElement("tr");
-      
+
           const th = document.createElement("th");
           th.textContent = key;
           th.style.padding = "8px";
@@ -456,19 +453,18 @@ function renderResults(results) {
           th.style.border = "1px solid #ccc";
           th.style.textAlign = "left";
           tr.appendChild(th);
-      
+
           queryResult.forEach(row => {
             const td = document.createElement("td");
             td.textContent = row[key];
             td.style.padding = "8px";
-            td.style.border = "1px solid #ccc";  // ✅ border added
+            td.style.border = "1px solid #ccc";
             tr.appendChild(td);
           });
-      
+
           table.appendChild(tr);
         });
-      
-      
+
       } else {
         const thead = document.createElement("thead");
         const headerRow = document.createElement("tr");
@@ -497,7 +493,7 @@ function renderResults(results) {
         table.appendChild(tbody);
       }
 
-      card.appendChild(table);
+      card.appendChild(scrollWrapper); // ✅ horizontal scroll wrapper
     } else {
       card.innerHTML += `<div style="color:gray">No rows returned</div>`;
     }
@@ -505,88 +501,285 @@ function renderResults(results) {
     columnContainer.appendChild(card);
   });
 }
+
 document.getElementById("toggleVertical").addEventListener("change", () => {
   if (lastExecutedResults && Array.isArray(lastExecutedResults)) {
     renderResults(lastExecutedResults);
   }
 });
-function showSaveModal() {
-  document.getElementById("saveModal").style.display = "block";
-  document.getElementById("scriptNameInput").focus();
-}
 
-function saveScript() {
-  const name = document.getElementById("scriptNameInput").value.trim();
+
+
+function saveCurrentScript() {
   const db = document.getElementById("dropdown1").value;
-  const currentTab = document.querySelector(".tab-button.active").getAttribute("data-index");
-  const query = document.getElementById("text-" + currentTab).value;
+  const name = document.getElementById("scriptName").value.trim();
+  const tabIndex = getActiveTabIndex();
+  let queryText = getCurrentEditorContent(tabIndex).trim();
 
+  if (!db || !name || !queryText) {
+    alert("Missing info to save script!");
+    return;
+  }
+
+  const saveBtn = document.getElementById("saveBtn");
   fetch("/runquery/save_script/", {
     method: "POST",
+    body: JSON.stringify({ db, name, query: queryText }),
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, db, query })
-  })
-  .then(res => res.json())
-  .then(data => {
-    const status = document.getElementById("saveStatus");
-    if (data.success) {
-      status.textContent = "✔ Saved!";
-      status.style.color = "green";
-      loadScriptsForDb(db, name);  // Auto-refresh
-      localStorage.setItem("lastLoadedScript", name);
-      localStorage.setItem("lastLoadedDb", db);
-      document.getElementById("saveModal").style.display = "none";
-
-    } else {
-      status.textContent = "❌ Failed!";
-      status.style.color = "red";
-    }
-
-    setTimeout(() => {
-      status.textContent = "";
-    }, 1500);
-  });
-  
-}
-
-
-function loadScript(name) {
-  const db = document.getElementById("dropdown1").value;
-  fetch(`/runquery/load_script/?db=${db}`)
-    .then(res => res.json())
+  }).then(res => res.json())
     .then(data => {
-      const script = data.find(s => s.name === name);
-      if (script) {
-        const currentTab = document.querySelector(".tab-button.active").getAttribute("data-index");
-        document.getElementById("text-" + currentTab).value = script.query;
-        localStorage.setItem("lastLoadedScript", name);
-        localStorage.setItem("lastLoadedDb", db);
+      if (data.success) {
+        saveBtn.textContent = "✅ Saved";
+        saveBtn.style.backgroundColor = "#22c55e";
+        setTimeout(() => {
+          saveBtn.textContent = "💾 Save";
+          saveBtn.style.backgroundColor = "";
+        }, 1000);
+        refreshScriptList(db);
       }
     });
 }
-window.addEventListener("DOMContentLoaded", () => {
-  const lastDb = localStorage.getItem("lastLoadedDb");
-  const lastScript = localStorage.getItem("lastLoadedScript");
 
-  if (lastDb && lastScript) {
-    document.getElementById("dropdown1").value = lastDb;
-    loadScriptsForDb(lastDb, lastScript);  // load and preselect
-  }
-});
-function loadScriptsForDb(db, preselectName = "") {
-  fetch(`/runquery/load_script/?db=${db}`)
+
+
+function toggleScriptDropdown() {
+  const list = document.getElementById("scriptList");
+  list.style.display = list.style.display === "none" ? "block" : "none";
+}
+
+function refreshScriptList(db) {
+  const container = document.getElementById("scriptList");
+  container.innerHTML = "";
+
+  fetch(`/runquery/list_scripts/?db=${db}`)
     .then(res => res.json())
     .then(data => {
-      const dropdown = document.getElementById("savedScriptsDropdown");
-      dropdown.innerHTML = '<option disabled selected>📂 Load Saved Script</option>';
-      data.forEach(script => {
-        const opt = document.createElement("option");
-        opt.value = script.name;
-        opt.textContent = script.name;
-        if (script.name === preselectName) opt.selected = true;
-        dropdown.appendChild(opt);
+      (data.scripts || []).forEach(script => {
+        const row = document.createElement("div");
+        row.className = "script-item";
+        row.style.display = "flex";
+        row.style.justifyContent = "space-between";
+        row.style.alignItems = "center";
+        row.style.padding = "6px 10px";
+        row.style.cursor = "pointer";
+        row.style.borderBottom = "1px solid #eee";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = script.name;
+        nameSpan.style.flex = "1";
+
+        const deleteSpan = document.createElement("span");
+        deleteSpan.textContent = "✖";
+        deleteSpan.className = "delete-icon";
+        deleteSpan.style.color = "red";
+        deleteSpan.style.marginLeft = "10px";
+
+        // ✅ Prevent deletion click from triggering load
+        deleteSpan.addEventListener("click", (e) => {
+          e.stopPropagation(); // Don't bubble to row
+          deleteScriptByName(db, script.name);
+        });
+
+        // ✅ Load script when row is clicked
+        row.addEventListener("click", () => {
+          loadScriptByName(db, script.name);
+          document.getElementById("scriptName").value = script.name;
+          toggleScriptDropdown(); // close dropdown
+        });
+
+        row.appendChild(nameSpan);
+        row.appendChild(deleteSpan);
+        container.appendChild(row);
       });
+
+      // If no scripts
+      if ((data.scripts || []).length === 0) {
+        const empty = document.createElement("div");
+        empty.textContent = "No saved scripts.";
+        empty.style.padding = "10px";
+        empty.style.color = "gray";
+        container.appendChild(empty);
+      }
+    })
+    .catch(err => {
+      const error = document.createElement("div");
+      error.textContent = `❌ Error loading scripts: ${err.message}`;
+      error.style.color = "red";
+      error.style.padding = "10px";
+      container.appendChild(error);
+    });
+}
+
+function loadScriptByName(db, name) {
+  const tabIndex = getActiveTabIndex();
+  fetch(`/runquery/load_script/?db=${db}&name=${name}`)
+    .then(res => res.json())
+    .then(data => {
+      console.log("📥 Loaded script:", data); // ✅ See if query exists
+
+      if (data.query !== undefined) {
+        setEditorContent(tabIndex, data.query);
+        document.getElementById("scriptName").value = name;
+      } else {
+        alert("⚠️ No content found in saved script.");
+      }
+    })
+    .catch(err => {
+      alert("❌ Failed to load script: " + err.message);
     });
 }
 
 
+function deleteScriptByName(db, name) {
+  fetch("/runquery/delete_script/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ db, name })
+  }).then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        refreshScriptList(db);
+        // alert("Deleted successfully ❌");
+      }
+    });
+}
+
+
+
+
+
+function clearSearch() {
+  const search = document.getElementById("tableSearch");
+  search.value = "";
+  filterTables();
+  document.getElementById("clearBtn").style.display = "none";
+}
+
+// Show/hide ✖ button dynamically
+document.getElementById("tableSearch").addEventListener("input", function () {
+  const clearBtn = document.getElementById("clearBtn");
+  clearBtn.style.display = this.value.length > 0 ? "block" : "none";
+});
+
+// const db = this.value;
+// refreshScriptList(db);
+
+const editors = {};  // to store editor instances
+
+require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+
+require(['vs/editor/editor.main'], function () {
+  for (let i = 0; i < 3; i++) {
+    editors[`editor-${i}`] = monaco.editor.create(document.getElementById(`editor-${i}`), {
+      value: `-- SQL for Tab ${i + 1}`,
+      language: "sql",
+      theme: "vs-dark",
+      automaticLayout: true,
+      minimap: { enabled: false }
+    });
+    setupAutoSave(i);
+    loadTabContent(i);
+  }
+// monaco.editor.defineTheme('fef8e6-theme', {
+//   base: 'vs-dark', // or 'vs' for light base
+//   inherit: true,
+//   rules: [],
+//   colors: {
+//     'editor.background': '#222222',
+//     'editor.foreground': '#000000',
+//     'editorLineNumber.foreground': '#888',
+//     'editorLineNumber.activeForeground': '#222',
+//     'editorCursor.foreground': '#333',
+//     'editorIndentGuide.background': '#e0dccc',
+//     'editorIndentGuide.activeBackground': '#d4cdb9'
+//   }
+// });
+
+// monaco.editor.setTheme('fef8e6-theme');
+
+  // ✅ Now Monaco is guaranteed to be ready
+  if (Object.keys(tableData).length > 0) {
+    registerSchemaAutocomplete(tableData);
+  }
+});
+
+function setupAutoSave(tabIndex) {
+  const editor = editors[`editor-${tabIndex}`];
+  if (!editor) return;
+
+  let timeout;
+  editor.onDidChangeModelContent(() => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      const content = editor.getValue();
+      fetch("/runquery/save_tab_content/", {
+        method: "POST",
+        body: JSON.stringify({ tab: tabIndex, content }),
+        headers: { "Content-Type": "application/json" },
+      });
+    }, 1000); // save 1 second after user stops typing
+  });
+}
+
+function loadTabContent(tabIndex) {
+  fetch(`/runquery/load_tab_content/?tab=${tabIndex}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && data.content !== undefined) {
+        editors[`editor-${tabIndex}`].setValue(data.content);
+      }
+    });
+}
+
+function getCurrentEditorContent(tabIndex) {
+  const editor = editors[`editor-${tabIndex}`];
+  return editor ? editor.getValue() : "";
+}
+
+function setEditorContent(tabIndex, content) {
+  const editor = editors[`editor-${tabIndex}`];
+  if (editor) editor.setValue(content);
+}
+
+function getActiveTabIndex() {
+  for (let i = 0; i < 3; i++) {
+    if (document.getElementById(`tab-${i}`).classList.contains("active")) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+
+document.addEventListener("keydown", function (e) {
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const ctrl = isMac ? e.metaKey : e.ctrlKey;
+
+  // Ctrl+S = Save
+  if (ctrl && e.key.toLowerCase() === 's') {
+    e.preventDefault();
+    saveCurrentScript();
+  }
+
+  // Shift+Enter = Execute
+  if (e.shiftKey && e.key === "Enter") {
+    e.preventDefault();
+    execute();
+  }
+
+  // Alt+1, Alt+2, Alt+3 = Switch Tabs
+  if (e.altKey && ['1', '2', '3'].includes(e.key)) {
+    e.preventDefault();
+    const index = parseInt(e.key) - 1;
+    showTab(index);
+  }
+});
+
+function collapseAllTables() {
+  const detailsList = document.querySelectorAll("#tableStructure details");
+  detailsList.forEach(details => {
+    details.open = false;
+    const arrow = details.querySelector(".arrow-icon");
+    if (arrow) arrow.textContent = "▶";
+  });
+}
