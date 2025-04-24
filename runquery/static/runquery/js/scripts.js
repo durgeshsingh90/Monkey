@@ -1,4 +1,5 @@
 let lastExecutedResults = [];  // Store last result data
+let queryTimerInterval;
 
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabContents = document.querySelectorAll(".tab-content");
@@ -94,25 +95,36 @@ function countChars() {
   alert("Characters: " + current.value.length);
 }
 
-function execute() {
-  const startTime = new Date();
-  document.getElementById("queryTimer").textContent = "";
 
-  const currentTab = getActiveTabIndex(); // 🟢 Get current tab
-  let queryText = getCurrentEditorContent(currentTab).trim(); // ✅ Fetch Monaco editor content
+function execute() {
+  const start = Date.now();
+  const timerDiv = document.getElementById("queryTimer");
+  timerDiv.textContent = "⏱ Running: 0.0s";
+
+  clearInterval(queryTimerInterval);
+  queryTimerInterval = setInterval(() => {
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    timerDiv.textContent = `⏱ Running: ${elapsed}s`;
+  }, 100);
+
+  const currentTab = getActiveTabIndex();
+  let queryText = getCurrentEditorContent(currentTab).trim();
 
   if (queryText.endsWith(";")) queryText = queryText.slice(0, -1);
-
   const dbAlias = document.getElementById("dropdown1").value;
+
   if (!queryText) {
+    clearInterval(queryTimerInterval);
+    timerDiv.textContent = "⚠️ No query provided.";
     alert("Please enter a SQL query.");
     return;
   }
 
   const columnContainer = document.getElementById("columnResult");
   const jsonContainer = document.getElementById("jsonResult");
+
   columnContainer.innerHTML = '<div class="loading">Running query...</div>';
-  jsonContainer.innerHTML = '<div class="loading">Running query...</div>';
+  jsonContainer.innerHTML = '';
   columnContainer.style.display = "block";
   jsonContainer.style.display = "none";
 
@@ -123,9 +135,14 @@ function execute() {
   })
     .then(res => res.json())
     .then(data => {
+      clearInterval(queryTimerInterval);
+      const totalSeconds = ((Date.now() - start) / 1000).toFixed(2);
+      timerDiv.textContent = `✔ Completed in ${totalSeconds}s`;
+
       const results = data.results || data;
       lastExecutedResults = results;
-      document.getElementById("jsonResult").textContent = JSON.stringify(results, null, 2);
+
+      jsonContainer.textContent = JSON.stringify(results, null, 2);
       renderResults(results);
 
       const historyEntry = {
@@ -141,12 +158,13 @@ function execute() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(historyEntry)
       });
-
-      displayQueryTime(startTime);
     })
     .catch(err => {
+      clearInterval(queryTimerInterval);
+      const failedTime = ((Date.now() - start) / 1000).toFixed(2);
+      timerDiv.textContent = `❌ Failed after ${failedTime}s`;
+
       columnContainer.innerHTML = `<div style="color:red">❌ ${err.message}</div>`;
-      document.getElementById("queryTimer").textContent = "❌ Query failed.";
     });
 }
 
