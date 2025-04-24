@@ -156,33 +156,30 @@ def process_excel_and_log(excel_path, json_log_path, log_output_path):
             if header_row_index is None:
                 continue
 
-            # Step 2.1: Load header row as a preview (to get real column names)
-            preview_df = pd.read_excel(excel_path, sheet_name=sheet_name, header=header_row_index, nrows=1)
-            columns = preview_df.columns
+            # Load header
+            df = pd.read_excel(excel_path, sheet_name=sheet_name, header=header_row_index, dtype=str).fillna("")
 
-            # Step 2.2: Build dtype map to force BM 37 as string
-            dtype_map = {}
-            for col in columns:
-                if str(col).strip().upper() in ["BM 37", "BM37", "DE037"]:
-                    dtype_map[col] = str  # force this column to be string
-
-            # Step 2.3: Read full sheet with forced dtype
-            df = pd.read_excel(excel_path, sheet_name=sheet_name, header=header_row_index, dtype=dtype_map)
-
-            # Step 2.4: Clean and validate RRN (BM 37/DE037)
+            # Find the RRN column name (BM 37, DE037, etc.)
+            rrn_col = None
             for col in df.columns:
-                if str(col).strip().upper() in ["BM 37", "BM37", "DE037"]:
-                    df[col] = df[col].apply(clean_rrn)
+                col_upper = str(col).strip().upper()
+                if col_upper in ["BM 37", "BM37", "DE037"]:
+                    rrn_col = col
+                    break
+
+            if not rrn_col:
+                continue  # Skip if no DE037/BM37 found
+
+            # Apply cleaning to RRN column only
+            df[rrn_col] = df[rrn_col].apply(clean_rrn)
 
             for idx, row in df.iterrows():
-                if "BM 37" not in df.columns:
-                    continue
-                rrn = str(row["BM 37"]).strip()
+                rrn = str(row.get(rrn_col, "")).strip()
                 if not re.fullmatch(r"\d{12}", rrn):
                     continue
 
                 row_dict = row.to_dict()
-                row_dict["DE037"] = rrn  # ensure it's part of the mapping
+                row_dict["DE037"] = rrn  # Ensure it's included explicitly
 
                 log_key = f"RRN_{rrn}"
                 if log_key not in logs_json:
@@ -192,7 +189,6 @@ def process_excel_and_log(excel_path, json_log_path, log_output_path):
                 result = compare_excel_to_log(row_dict, logs_json[log_key], idx)
                 all_logs.append(result)
 
-        # Write result log
         with open(log_output_path, 'w', encoding='utf-8') as log_file:
             log_file.write("\n".join(all_logs))
 
