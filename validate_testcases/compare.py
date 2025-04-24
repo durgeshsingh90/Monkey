@@ -142,35 +142,37 @@ def process_excel_and_log(excel_path, json_log_path, log_output_path):
 
         all_logs = []
 
+        def clean_rrn(value):
+            try:
+                val_str = str(value).strip()
+                if '.' in val_str:
+                    val_str = val_str.split('.')[0]
+                return val_str if re.fullmatch(r"\d{12}", val_str) else ""
+            except:
+                return ""
+
         for sheet_name, raw_df in sheets.items():
             header_row_index = find_custom_header_row(raw_df)
             if header_row_index is None:
                 continue
 
             # Step 2.1: Load header row as a preview (to get real column names)
-
             preview_df = pd.read_excel(excel_path, sheet_name=sheet_name, header=header_row_index, nrows=1)
-            
             columns = preview_df.columns
-            
-            # Step 2.2: Build dtype map to force BM 37 as string
-            
-            dtype_map = {}
-            
-            for col in columns:
-            
-                if str(col).strip().upper() in ["BM 37", "BM37", "DE037"]:
-                
-                    dtype_map[col] = str  # force this column to be string
-            
-            # Step 2.3: Read full sheet with forced dtype
-            
-            df = pd.read_excel(excel_path, sheet_name=sheet_name, header=header_row_index, dtype=dtype_map) 
 
-            # Clean up numeric-only columns from any '.0' suffix
+            # Step 2.2: Build dtype map to force BM 37 as string
+            dtype_map = {}
+            for col in columns:
+                if str(col).strip().upper() in ["BM 37", "BM37", "DE037"]:
+                    dtype_map[col] = str  # force this column to be string
+
+            # Step 2.3: Read full sheet with forced dtype
+            df = pd.read_excel(excel_path, sheet_name=sheet_name, header=header_row_index, dtype=dtype_map)
+
+            # Step 2.4: Clean and validate RRN (BM 37/DE037)
             for col in df.columns:
-                if dtype_map.get(col) == str:
-                    df[col] = df[col].apply(lambda x: str(x).replace('.0', '') if isinstance(x, float) else str(x))
+                if str(col).strip().upper() in ["BM 37", "BM37", "DE037"]:
+                    df[col] = df[col].apply(clean_rrn)
 
             for idx, row in df.iterrows():
                 if "BM 37" not in df.columns:
