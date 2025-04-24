@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Oracle Query UI</title>
+  <title>Query runner</title>
   <link rel="stylesheet" href="{% static 'runquery/css/styles.css' %}">
   <link rel="icon" href="{% static 'runquery/images/database.png' %}" type="image/png">
 
@@ -15,10 +15,20 @@
   <div class="layout-container">
     <div id="main-content">
       <div class="header">
-        <div class="tabs">
+          <div class="tabs" style="display: flex; align-items: center; gap: 12px;">
+            <a href="{% url 'homepage' %}" class="query-tab-button-title">Run Query</a>
+          
           <button class="tab-button" data-index="0">Tab 1</button>
           <button class="tab-button" data-index="1">Tab 2</button>
           <button class="tab-button" data-index="2">Tab 3</button>
+          <!-- Add these inside .tabs -->
+<button class="tab-button" data-index="3">Tab 4</button>
+<button class="tab-button" data-index="4">Tab 5</button>
+<button class="tab-button" data-index="5">Tab 6</button>
+<button class="tab-button" data-index="6">Tab 7</button>
+<button class="tab-button" data-index="7">Tab 8</button>
+<button class="tab-button" data-index="8">Tab 9</button>
+
           <button onclick="location.href='/runquery/view_history/'">History</button>
 
         </div>
@@ -40,7 +50,14 @@
       <div id="tab-0" class="tab-content"><div id="editor-0" class="monaco-editor-container"></div></div>
       <div id="tab-1" class="tab-content"><div id="editor-1" class="monaco-editor-container"></div></div>
       <div id="tab-2" class="tab-content"><div id="editor-2" class="monaco-editor-container"></div></div>
-      
+      <!-- Add these after the current 3 tab-content divs -->
+<div id="tab-3" class="tab-content"><div id="editor-3" class="monaco-editor-container"></div></div>
+<div id="tab-4" class="tab-content"><div id="editor-4" class="monaco-editor-container"></div></div>
+<div id="tab-5" class="tab-content"><div id="editor-5" class="monaco-editor-container"></div></div>
+<div id="tab-6" class="tab-content"><div id="editor-6" class="monaco-editor-container"></div></div>
+<div id="tab-7" class="tab-content"><div id="editor-7" class="monaco-editor-container"></div></div>
+<div id="tab-8" class="tab-content"><div id="editor-8" class="monaco-editor-container"></div></div>
+
       <div class="controls">
         <button onclick="execute()" title="Run query (Shift + Enter)">Execute</button>
         <button onclick="countQuery()">Count</button>

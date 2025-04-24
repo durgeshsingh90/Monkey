@@ -3,6 +3,14 @@ let lastExecutedResults = [];  // Store last result data
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabContents = document.querySelectorAll(".tab-content");
 
+// 🟢 Restore custom tab names (from loaded scripts)
+tabButtons.forEach((btn, i) => {
+  const savedName = localStorage.getItem(`tabName-${i}`);
+  if (savedName) {
+    btn.textContent = savedName;
+  }
+});
+
 // Restore vertical view preference on load
 const verticalToggle = document.getElementById("toggleVertical");
 const savedVertical = localStorage.getItem("verticalView") === "true";
@@ -11,6 +19,7 @@ verticalToggle.checked = savedVertical;
 verticalToggle.addEventListener("change", function () {
   localStorage.setItem("verticalView", this.checked);
 });
+
 
 function getCurrentEditorContent() {
   return editor.getValue();
@@ -615,11 +624,17 @@ function loadScriptByName(db, name) {
   fetch(`/runquery/load_script/?db=${db}&name=${name}`)
     .then(res => res.json())
     .then(data => {
-      console.log("📥 Loaded script:", data); // ✅ See if query exists
-
       if (data.query !== undefined) {
         setEditorContent(tabIndex, data.query);
         document.getElementById("scriptName").value = name;
+
+        const tabButton = document.querySelector(`.tab-button[data-index="${tabIndex}"]`);
+        if (tabButton) {
+          tabButton.textContent = name;
+          localStorage.setItem(`tabName-${tabIndex}`, name);  // 🧠 Persist tab label
+        }
+
+        toggleScriptDropdown();
       } else {
         alert("⚠️ No content found in saved script.");
       }
@@ -628,6 +643,7 @@ function loadScriptByName(db, name) {
       alert("❌ Failed to load script: " + err.message);
     });
 }
+
 
 
 function deleteScriptByName(db, name) {
@@ -669,7 +685,7 @@ const editors = {};  // to store editor instances
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
 
 require(['vs/editor/editor.main'], function () {
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 9; i++) {
     editors[`editor-${i}`] = monaco.editor.create(document.getElementById(`editor-${i}`), {
       value: `-- SQL for Tab ${i + 1}`,
       language: "sql",
@@ -742,7 +758,7 @@ function setEditorContent(tabIndex, content) {
 }
 
 function getActiveTabIndex() {
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 9; i++) {
     if (document.getElementById(`tab-${i}`).classList.contains("active")) {
       return i;
     }
@@ -767,13 +783,14 @@ document.addEventListener("keydown", function (e) {
     execute();
   }
 
-  // Alt+1, Alt+2, Alt+3 = Switch Tabs
-  if (e.altKey && ['1', '2', '3'].includes(e.key)) {
+  // Alt+1 to Alt+9 = Switch Tabs
+  if (e.altKey && /^[1-9]$/.test(e.key)) {
     e.preventDefault();
-    const index = parseInt(e.key) - 1;
+    const index = parseInt(e.key, 10) - 1;
     showTab(index);
   }
 });
+
 
 function collapseAllTables() {
   const detailsList = document.querySelectorAll("#tableStructure details");
