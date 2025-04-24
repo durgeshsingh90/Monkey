@@ -1,35 +1,13 @@
-SQL*Plus: Release 19.0.0.0.0 - Production on Wed Apr 23 18:25:00 2025
-Version 19.3.0.0.0
-Copyright (c) 1982, 2019, Oracle.  All rights reserved.
-Last Successful login time: Wed Apr 23 2025 17:21:26 +01:00
-Connected to:
-Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
-Version 19.23.0.0.0
-SQL> 
-DESCRIPTION
---------------------------------------------------
-AMEX
-BCMC
-CUP
-DAML
-Diners
-Discover
-EasyCash
-Europay
-JCB
-Maestro
-RUSSIAN-
-DESCRIPTION
---------------------------------------------------
-RUSSIANE
-RUSSIANV
-SYRIAMC
-SYRIAV
-VAML
-VISA
-VISASMS
-VPAY
-19 rows selected.
-SQL> 
-SQL> Disconnected from Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
-Version 19.23.0.0.0
+SQL*Plus: Release 23.0.0.0.0 - Production on Thu Apr 24 01:32:15 2025
+Version 23.7.0.25.01
+Copyright (c) 1982, 2025, Oracle.  All rights reserved.
+ERROR:
+ORA-12154: Cannot connect to database. Cannot find alias istu2 in
+C:\app\singh\product\23ai\dbhomeFree\network\admin\tnsnames.ora.
+Help: https://docs.oracle.com/error-help/db/ora-12154/
+Enter user-name: SP2-0306: Invalid option.
+Help: https://docs.oracle.com/error-help/db/sp2-0306/
+Usage: CONN[ECT] [{logon|/|proxy} [AS {SYSDBA|SYSOPER|SYSASM|SYSBACKUP|SYSDG|SYSKM|SYSRAC}] [edition=value]]
+where <logon> ::= <username>[/<password>][@<connect_identifier>]
+      <proxy> ::= <proxyuser>[<username>][/<password>][@<connect_identifier>]
+Enter user-name: 

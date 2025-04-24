@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'gen_reversals',
     'astrex_html_logs',
     'emvco_logs',
-    'oracle_query_executor',
     'validate_testcases',
     'splunkrrn',
     'runquery',
@@ -146,6 +145,18 @@ DATABASES = {
         'HOST': '',
         'PORT': '',
         'client_path': ORACLE_CLIENT_PATH,
+        'owner': 'OASIS77', 
+
+    },
+    'dr_novate': {
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME': 'A4PCDO8001.ESH.PAR_IST',
+        'USER': 'F94GDOS',
+        'PASSWORD': 'Ireland2025!',
+        'HOST': '',
+        'PORT': '',
+        'client_path': ORACLE_CLIENT_PATH,
+        'owner': 'NOVATE',  
     },
     'prod_ist': {
         'ENGINE': 'django.db.backends.oracle',
@@ -155,6 +166,18 @@ DATABASES = {
         'HOST': '',
         'PORT': '',
         'client_path': ORACLE_CLIENT_PATH,
+        'owner': 'OASIS77', 
+    },
+    'prod_novate': {
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME': 'A5PCDO8001.EQU.IST',
+        'USER': 'F94GDOS',
+        'PASSWORD': 'Ireland2025!',
+        'HOST': '',
+        'PORT': '',
+        'client_path': ORACLE_CLIENT_PATH,
+        'owner': 'NOVATE',  
+
     },
     'uat_ist': {
         'ENGINE': 'django.db.backends.oracle',
@@ -167,7 +190,7 @@ DATABASES = {
     },
     'uat_novate': {
         'ENGINE': 'django.db.backends.oracle',
-        'NAME': 'ISTU2',
+        'NAME': 'ISTU2_EQU',
         'USER': 'novate',
         'PASSWORD': 'nov1234',
         'HOST': '',
@@ -176,7 +199,7 @@ DATABASES = {
     },
     'uat_novate_conf': {
         'ENGINE': 'django.db.backends.oracle',
-        'NAME': 'ISTU2',
+        'NAME': 'ISTU2_EQU',
         'USER': 'novate_conf',
         'PASSWORD': 'nov1234',
         'HOST': '',
@@ -227,7 +250,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "slot_booking/static",
     BASE_DIR / "gen_reversals/static",
     BASE_DIR / "astrex_html_logs/static",
-    BASE_DIR / "oracle_query_executor/static",
     BASE_DIR / "runquery/static",
     BASE_DIR / "validate_testcases/static",
     BASE_DIR / "splunkrrn/static",

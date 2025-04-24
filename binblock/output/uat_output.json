@@ -1,54 +1,12 @@
-[
-    {
-        "LOWBIN": "222100000000000",
-        "HIGHBIN": "222776999999999",
-        "O_LEVEL": "0",
-        "STATUS": "A",
-        "DESCRIPTION": "Europay                                           ",
-        "DESTINATION": "500",
-        "ENTITY_ID": "*",
-        "CARDPRODUCT": "Europay             ",
-        "FILE_NAME": "EUFILE    ",
-        "FILE_VERSION": "1.1  ",
-        "FILE_DATE": "1900-01-01T00:00:00"
-    },
-    {
-        "LOWBIN": "222777000000000",
-        "HIGHBIN": "222777999999999",
-        "O_LEVEL": "0",
-        "STATUS": "A",
-        "DESCRIPTION": "RUSSIAN-                                          ",
-        "DESTINATION": "500",
-        "ENTITY_ID": "*",
-        "CARDPRODUCT": "RUSSIAN-            ",
-        "FILE_NAME": "EUFILE    ",
-        "FILE_VERSION": "1.1  ",
-        "FILE_DATE": "1900-01-01T00:00:00"
-    },
-    {
-        "LOWBIN": "222778000000000",
-        "HIGHBIN": "222968999999999",
-        "O_LEVEL": "0",
-        "STATUS": "A",
-        "DESCRIPTION": "Europay                                           ",
-        "DESTINATION": "500",
-        "ENTITY_ID": "*",
-        "CARDPRODUCT": "Europay             ",
-        "FILE_NAME": "EUFILE    ",
-        "FILE_VERSION": "1.1  ",
-        "FILE_DATE": "1900-01-01T00:00:00"
-    },
-    {
-        "LOWBIN": "222969000000000",
-        "HIGHBIN": "222969999999999",
-        "O_LEVEL": "0",
-        "STATUS": "A",
-        "DESCRIPTION": "RUSSIANE                                          ",
-        "DESTINATION": "500",
-        "ENTITY_ID": "*",
-        "CARDPRODUCT": "RUSSIANE            ",
-        "FILE_NAME": "EUFILE    ",
-        "FILE_VERSION": "1.1  ",
-        "FILE_DATE": "1900-01-01T00:00:00"
-    }
-]
+Version 23.7.0.25.01
+Copyright (c) 1982, 2025, Oracle.  All rights reserved.
+ERROR:
+ORA-12154: Cannot connect to database. Cannot find alias istu2 in
+C:\app\singh\product\23ai\dbhomeFree\network\admin\tnsnames.ora.
+Help: https://docs.oracle.com/error-help/db/ora-12154/
+Enter user-name: SP2-0306: Invalid option.
+Help: https://docs.oracle.com/error-help/db/sp2-0306/
+Usage: CONN[ECT] [{logon|/|proxy} [AS {SYSDBA|SYSOPER|SYSASM|SYSBACKUP|SYSDG|SYSKM|SYSRAC}] [edition=value]]
+where <logon> ::= <username>[/<password>][@<connect_identifier>]
+<proxy> ::= <proxyuser>[<username>][/<password>][@<connect_identifier>]
+Enter user-name:

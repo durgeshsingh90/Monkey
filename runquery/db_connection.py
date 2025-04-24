@@ -152,13 +152,30 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
     metadata = {}
     try:
         cursor = connection.cursor()
-        cursor.execute("SELECT table_name FROM user_tables ORDER BY table_name ASC")
+        # Get config and use schema owner from settings (default to user)
+        db_settings = settings.DATABASES.get(db_key, {})
+        owner = db_settings.get("owner", db_settings.get("USER")).upper()
+        
+        # Fetch table names from all_tables based on owner
+        cursor.execute("""
+            SELECT table_name 
+            FROM all_tables 
+            WHERE owner = :1 
+            AND table_name NOT LIKE 'BIN$%' 
+            ORDER BY table_name ASC
+        """, [owner])
         tables = [row[0] for row in cursor.fetchall()]
-
+        
         for table in tables:
-            cursor.execute("SELECT column_name FROM user_tab_columns WHERE table_name = :1 ORDER BY column_name ASC", [table])
+            cursor.execute("""
+                SELECT column_name 
+                FROM all_tab_columns 
+                WHERE table_name = :1 AND owner = :2 
+                ORDER BY column_name ASC
+            """, [table, owner])
             columns = [row[0] for row in cursor.fetchall()]
             metadata[table] = columns
+        
     except Exception as e:
         return {"error": str(e)}
     finally:
