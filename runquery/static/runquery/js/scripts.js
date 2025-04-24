@@ -369,19 +369,27 @@ toggle.checked = savedView === "column";
 toggleViewMode(toggle);  // will update icon too
 
 function countQuery() {
-  const startTime = new Date();
-  document.getElementById("queryTimer").textContent = "";
+  const start = Date.now();
+  const timerDiv = document.getElementById("queryTimer");
+  timerDiv.textContent = "⏱ Counting: 0.0s";
 
-  const tabIndex = getActiveTabIndex(); // ✅ get active Monaco tab index
-  const sql = getCurrentEditorContent(tabIndex).trim(); // ✅ Monaco method
+  clearInterval(queryTimerInterval); // clear any previous timer
+  queryTimerInterval = setInterval(() => {
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    timerDiv.textContent = `⏱ Counting: ${elapsed}s`;
+  }, 100);
+
+  const tabIndex = getActiveTabIndex();
+  const sql = getCurrentEditorContent(tabIndex).trim();
 
   if (!sql) {
+    clearInterval(queryTimerInterval);
+    timerDiv.textContent = "⚠️ No SQL provided.";
     alert("Enter a SQL query to count.");
     return;
   }
 
   const countWrappedQuery = `SELECT COUNT(*) AS ROW_COUNT FROM (${sql})`;
-
   const db = document.getElementById("dropdown1").value;
 
   fetch("/runquery/execute_oracle_queries/", {
@@ -394,17 +402,21 @@ function countQuery() {
   })
     .then(res => res.json())
     .then(data => {
+      clearInterval(queryTimerInterval);
+      const totalSeconds = ((Date.now() - start) / 1000).toFixed(2);
+      timerDiv.textContent = `✔ Count completed in ${totalSeconds}s`;
+
       const result = data.results?.[0]?.result?.[0];
       if (result && result.ROW_COUNT !== undefined) {
         alert(`🧮 Count result: ${result.ROW_COUNT}`);
       } else {
         alert("Count query ran, but no rows returned.");
       }
-
-      displayQueryTime(startTime);
     })
     .catch(err => {
-      document.getElementById("queryTimer").textContent = "❌ Count query failed.";
+      clearInterval(queryTimerInterval);
+      const failedTime = ((Date.now() - start) / 1000).toFixed(2);
+      timerDiv.textContent = `❌ Count failed after ${failedTime}s`;
       console.error("Count query error:", err);
     });
 }
