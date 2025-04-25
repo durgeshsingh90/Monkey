@@ -3,9 +3,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Query runner</title>
-  <link rel="stylesheet" href="{% static 'runquery/css/styles.css' %}">
+  <title id="pageTitle">Query Runner</title>
+  <meta id="themeColorMeta" name="theme-color" content="#ffb347">
+    <link rel="stylesheet" href="{% static 'runquery/css/styles.css' %}">
   <link rel="icon" href="{% static 'runquery/images/database.png' %}" type="image/png">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <!-- Add in your <head> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
@@ -32,12 +34,17 @@
           <button onclick="location.href='/runquery/view_history/'">History</button>
 
         </div>
+  
         <div class="top-controls">
           <select id="dropdown1"></select>
           <label class="toggle-switch" title="Vertical layout">
             <input type="checkbox" id="toggleVertical">
             <span class="slider"><span class="label-inside">↕</span></span>
           </label>
+          <label class="toggle-switch" title="Toggle empty columns">
+            <input type="checkbox" id="toggleEmptyCols">
+            <span class="slider"><span class="label-inside">Ø</span></span>
+            </label>
           <label class="toggle-switch" title="Toggle view mode">
             <input type="checkbox" id="toggleSwitch" onchange="toggleViewMode(this)">
             <span class="slider">
@@ -66,17 +73,29 @@
           <div id="scriptList" class="script-list" style="display: none;"></div>
           <input type="text" id="scriptName" placeholder="Script name..." style="width: 200px;">
           <button id="saveBtn" onclick="saveCurrentScript()">💾 Save</button>
+          <div id="exportDropdownContainer" style="display:none;">
+            <div class="export-dropdown">
+            <button onclick="toggleExportDropdown()">⬇️ Export ⌄</button>
+            <div id="exportOptions" class="export-options" style="display: none;">
+            <button onclick="exportResult('json')">Export as JSON</button>
+            <button onclick="exportResult('sql')">Export as SQL Insert</button>
+            <button onclick="exportResult('excel')">Export as Excel</button>
+            </div>
+            </div>
+            </div>
         </div>
         
         <div id="queryTimer" style="font-weight: bold; margin-top: 10px; font-size: 14px; color: #8c1b13;"></div>
       </div>
 
       <div class="result-wrapper">
-        <div id="result" class="result-section"></div>
+        <!-- <div id="result" class="result-section"></div> -->
         <div id="columnResult" class="result-section"></div>
         <div id="jsonResult" class="result-section" style="display: none;"></div>
       </div>
-      
+      <div id="stickyScrollBar" class="sticky-scroll-bar">
+        <div id="stickyScrollInner"></div>
+        </div>
     <div id="sidebar">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h3 style="margin: 0;">📘 Tables</h3>
