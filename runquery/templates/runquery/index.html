@@ -73,6 +73,21 @@
           <div id="scriptList" class="script-list" style="display: none;"></div>
           <input type="text" id="scriptName" placeholder="Script name..." style="width: 200px;">
           <button id="saveBtn" onclick="saveCurrentScript()">💾 Save</button>
+          <!-- <button id="cleanBtn" title="Remove empty lines" onclick="cleanEditorLines()">🧹</button> -->
+          <img 
+          id="cleanIcon" 
+          src="{% static 'runquery/images/clean.png' %}" 
+          data-png="{% static 'runquery/images/clean.png' %}" 
+          data-gif="{% static 'runquery/images/clean.gif' %}" 
+          alt="Clean" 
+          title="Remove empty/blank lines" 
+          style="height: 32px; width: 32px; cursor: pointer; margin-left: 10px; padding: 4px; background: #ffe07a; border-radius: 10px; box-shadow: 1px 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s ease; vertical-align: middle;"
+          onclick="playCleanAnimation()"
+        />
+        
+        
+        
+        
           <div id="exportDropdownContainer" style="display:none;">
             <div class="export-dropdown">
             <button onclick="toggleExportDropdown()">⬇️ Export ⌄</button>
