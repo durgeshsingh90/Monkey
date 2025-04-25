@@ -645,3 +645,56 @@ button {
 .scroll-x table {
   width: max-content;
 }
+.export-dropdown {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+ }
+ .export-options {
+  position: absolute;
+  background-color: #fff9e6;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 6px 0;
+  border-radius: 8px;
+  top: 100%;
+  left: 0;
+  z-index: 999;
+  width: 180px;
+ }
+ .export-options button {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+ }
+ .export-options button:hover {
+  background: #ffe7a0;
+ }
+ 
+ .sticky-scroll-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #fef8e6;
+  border-top: 1px solid #ddd;
+  display: none;
+  z-index: 999;
+ }
+ .sticky-scroll-bar::-webkit-scrollbar {
+  height: 10px;
+ }
+ .sticky-scroll-bar::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 5px;
+ }
+ .sticky-scroll-bar::-webkit-scrollbar-track {
+  background: transparent;
+ }
+ 

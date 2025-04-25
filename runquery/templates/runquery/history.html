@@ -183,7 +183,7 @@
       });
 
       content.innerHTML = filtered.map(e => {
-        const duration = e.result?.[0]?.duration || "—";
+        const duration = e.duration ? `${e.duration}s` : "—";
         const isError = e.error && e.error[0];
         const id = Math.random().toString(36).substring(2, 8);
         return `

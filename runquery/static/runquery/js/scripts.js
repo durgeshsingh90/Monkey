@@ -74,6 +74,8 @@ localStorage.setItem("selectedDb", dropdown.value);
 
     fetchTableStructure(dropdown.value);
     refreshScriptList(dropdown.value);
+     // ✅ ADD THIS:
+   updatePageTitle(dropdown.value);
 
   });
 
@@ -81,6 +83,9 @@ localStorage.setItem("selectedDb", dropdown.value);
     const selectedDb = this.value;
     localStorage.setItem("selectedDb", selectedDb);
     fetchTableStructure(selectedDb);
+    refreshScriptList(selectedDb);
+    updatePageTitle(selectedDb);
+
   });
   
 
@@ -89,7 +94,12 @@ document.getElementById("toggleSwitch").addEventListener("change", function () {
   document.getElementById("columnResult").style.display = isColumnView ? "block" : "none";
   document.getElementById("result").style.display = isColumnView ? "none" : "block";
 });
-
+const toggleEmptyCols = document.getElementById("toggleEmptyCols");
+toggleEmptyCols.checked = localStorage.getItem("hideEmptyCols") === "true";
+toggleEmptyCols.addEventListener("change", () => {
+ localStorage.setItem("hideEmptyCols", toggleEmptyCols.checked);
+ renderResults(lastExecutedResults);
+});
 function countChars() {
   const current = document.querySelector(".tab-content.active textarea");
   alert("Characters: " + current.value.length);
@@ -151,6 +161,8 @@ function execute() {
         query: queryText,
         result: results.map(r => r.result),
         error: results.map(r => r.error),
+        duration: totalSeconds  // ✅ Save duration
+
       };
 
       fetch("/runquery/save_history/", {
@@ -450,41 +462,50 @@ function updateScrollButtonVisibility() {
     btn.style.display = "none";
   }
 }
-
 function renderResults(results) {
   const columnContainer = document.getElementById("columnResult");
+  const jsonContainer = document.getElementById("jsonResult");
+  const exportContainer = document.getElementById("exportDropdownContainer");
   columnContainer.innerHTML = "";
-
+  jsonContainer.innerHTML = "";
   const isVertical = document.getElementById("toggleVertical").checked;
-
+  const hideEmptyCols = document.getElementById("toggleEmptyCols")?.checked;
+  if (!results || results.length === 0) {
+    exportContainer.style.display = "none";
+    return;
+  } else {
+    exportContainer.style.display = "inline-block";
+  }
   results.forEach((entry, idx) => {
     const query = entry.query || "";
     const error = entry.error || "";
     const dbKey = entry.db_key || "Unknown DB";
     const queryResult = entry.result;
-
     const card = document.createElement("div");
     card.className = "table-box";
     card.innerHTML = `<strong>Query ${idx + 1} [${dbKey}]:</strong><br><code>${query}</code><br><br>`;
-
     if (error) {
       card.innerHTML += `<div style="color:red">❌ ${error}</div>`;
     } else if (Array.isArray(queryResult) && queryResult.length > 0) {
+      let keys = Object.keys(queryResult[0]);
+      if (hideEmptyCols) {
+        keys = keys.filter(key =>
+          queryResult.some(row => {
+            const val = row[key];
+            return val !== null && val !== undefined && val !== '';
+          })
+        );
+      }
       const table = document.createElement("table");
       table.style.borderCollapse = "collapse";
-      table.style.width = "max-content"; // enable horizontal scroll when needed
-
+      table.style.width = "max-content";
       const scrollWrapper = document.createElement("div");
       scrollWrapper.style.overflowX = "auto";
       scrollWrapper.style.width = "100%";
       scrollWrapper.appendChild(table);
-
-      const keys = Object.keys(queryResult[0]);
-
       if (isVertical) {
         keys.forEach(key => {
           const tr = document.createElement("tr");
-
           const th = document.createElement("th");
           th.textContent = key;
           th.style.padding = "8px";
@@ -492,7 +513,6 @@ function renderResults(results) {
           th.style.border = "1px solid #ccc";
           th.style.textAlign = "left";
           tr.appendChild(th);
-
           queryResult.forEach(row => {
             const td = document.createElement("td");
             td.textContent = row[key];
@@ -500,10 +520,8 @@ function renderResults(results) {
             td.style.border = "1px solid #ccc";
             tr.appendChild(td);
           });
-
           table.appendChild(tr);
         });
-
       } else {
         const thead = document.createElement("thead");
         const headerRow = document.createElement("tr");
@@ -516,7 +534,6 @@ function renderResults(results) {
         });
         thead.appendChild(headerRow);
         table.appendChild(thead);
-
         const tbody = document.createElement("tbody");
         queryResult.forEach(row => {
           const tr = document.createElement("tr");
@@ -528,19 +545,34 @@ function renderResults(results) {
           });
           tbody.appendChild(tr);
         });
-
         table.appendChild(tbody);
       }
-
-      card.appendChild(scrollWrapper); // ✅ horizontal scroll wrapper
+      card.appendChild(scrollWrapper);
+      // JSON View
+      const filteredJson = queryResult.map(row => {
+        const filteredRow = {};
+        keys.forEach(k => filteredRow[k] = row[k]);
+        return filteredRow;
+      });
+      const jsonCard = document.createElement("pre");
+      jsonCard.style.padding = "1rem";
+      jsonCard.style.borderRadius = "8px";
+      jsonCard.style.background = "#fafafa";
+      jsonCard.style.border = "1px solid #eee";
+      jsonCard.style.marginBottom = "1.5rem";
+      jsonCard.textContent = JSON.stringify(filteredJson, null, 2);
+      jsonContainer.appendChild(jsonCard);
     } else {
       card.innerHTML += `<div style="color:gray">No rows returned</div>`;
     }
-
     columnContainer.appendChild(card);
   });
-}
-
+  // Switch between Column view or JSON view
+  const isColumnView = document.getElementById("toggleSwitch").checked;
+  columnContainer.style.display = isColumnView ? "block" : "none";
+  jsonContainer.style.display = isColumnView ? "none" : "block";
+  syncStickyScrollBar();  // if you have the sticky scroll feature
+ }
 document.getElementById("toggleVertical").addEventListener("change", () => {
   if (lastExecutedResults && Array.isArray(lastExecutedResults)) {
     renderResults(lastExecutedResults);
@@ -550,20 +582,18 @@ document.getElementById("toggleVertical").addEventListener("change", () => {
 
 
 function saveCurrentScript() {
-  const db = document.getElementById("dropdown1").value;
   const name = document.getElementById("scriptName").value.trim();
   const tabIndex = getActiveTabIndex();
   let queryText = getCurrentEditorContent(tabIndex).trim();
-
-  if (!db || !name || !queryText) {
+  const db = document.getElementById("dropdown1").value;  // get selected DB
+  if (!name || !queryText) {
     alert("Missing info to save script!");
     return;
   }
-
   const saveBtn = document.getElementById("saveBtn");
   fetch("/runquery/save_script/", {
     method: "POST",
-    body: JSON.stringify({ db, name, query: queryText }),
+    body: JSON.stringify({ name, query: queryText, created_from: db }),
     headers: { "Content-Type": "application/json" },
   }).then(res => res.json())
     .then(data => {
@@ -574,10 +604,11 @@ function saveCurrentScript() {
           saveBtn.textContent = "💾 Save";
           saveBtn.style.backgroundColor = "";
         }, 1000);
-        refreshScriptList(db);
+        refreshScriptList();
       }
     });
-}
+ }
+ 
 
 
 
@@ -586,11 +617,10 @@ function toggleScriptDropdown() {
   list.style.display = list.style.display === "none" ? "block" : "none";
 }
 
-function refreshScriptList(db) {
+function refreshScriptList() {
   const container = document.getElementById("scriptList");
   container.innerHTML = "";
-
-  fetch(`/runquery/list_scripts/?db=${db}`)
+  fetch(`/runquery/list_scripts/`)
     .then(res => res.json())
     .then(data => {
       (data.scripts || []).forEach(script => {
@@ -602,36 +632,27 @@ function refreshScriptList(db) {
         row.style.padding = "6px 10px";
         row.style.cursor = "pointer";
         row.style.borderBottom = "1px solid #eee";
-
         const nameSpan = document.createElement("span");
-        nameSpan.textContent = script.name;
+        nameSpan.innerHTML = `${script.name} <small style="color: gray;">(${script.created_from || 'unknown'})</small>`;
         nameSpan.style.flex = "1";
-
         const deleteSpan = document.createElement("span");
         deleteSpan.textContent = "✖";
         deleteSpan.className = "delete-icon";
         deleteSpan.style.color = "red";
         deleteSpan.style.marginLeft = "10px";
-
-        // ✅ Prevent deletion click from triggering load
         deleteSpan.addEventListener("click", (e) => {
-          e.stopPropagation(); // Don't bubble to row
-          deleteScriptByName(db, script.name);
+          e.stopPropagation();
+          deleteScriptByName(script.name);
         });
-
-        // ✅ Load script when row is clicked
         row.addEventListener("click", () => {
-          loadScriptByName(db, script.name);
+          loadScriptByName(script.name);
           document.getElementById("scriptName").value = script.name;
-          toggleScriptDropdown(); // close dropdown
+          toggleScriptDropdown();
         });
-
         row.appendChild(nameSpan);
         row.appendChild(deleteSpan);
         container.appendChild(row);
       });
-
-      // If no scripts
       if ((data.scripts || []).length === 0) {
         const empty = document.createElement("div");
         empty.textContent = "No saved scripts.";
@@ -647,24 +668,15 @@ function refreshScriptList(db) {
       error.style.padding = "10px";
       container.appendChild(error);
     });
-}
-
-function loadScriptByName(db, name) {
+ }
+ function loadScriptByName(name) {
   const tabIndex = getActiveTabIndex();
-  fetch(`/runquery/load_script/?db=${db}&name=${name}`)
+  fetch(`/runquery/load_script/?name=${name}`)
     .then(res => res.json())
     .then(data => {
       if (data.query !== undefined) {
         setEditorContent(tabIndex, data.query);
         document.getElementById("scriptName").value = name;
-
-        const tabButton = document.querySelector(`.tab-button[data-index="${tabIndex}"]`);
-        if (tabButton) {
-          tabButton.textContent = name;
-          localStorage.setItem(`tabName-${tabIndex}`, name);  // 🧠 Persist tab label
-        }
-
-        toggleScriptDropdown();
       } else {
         alert("⚠️ No content found in saved script.");
       }
@@ -672,24 +684,22 @@ function loadScriptByName(db, name) {
     .catch(err => {
       alert("❌ Failed to load script: " + err.message);
     });
-}
+ }
 
 
 
-function deleteScriptByName(db, name) {
+ function deleteScriptByName(name) {
   fetch("/runquery/delete_script/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ db, name })
+    body: JSON.stringify({ name })
   }).then(res => res.json())
     .then(data => {
       if (data.success) {
-        refreshScriptList(db);
-        // alert("Deleted successfully ❌");
+        refreshScriptList();
       }
     });
-}
-
+ }
 
 
 
@@ -830,3 +840,103 @@ function collapseAllTables() {
     if (arrow) arrow.textContent = "▶";
   });
 }
+function toggleExportDropdown() {
+  const exportDiv = document.getElementById("exportOptions");
+  exportDiv.style.display = exportDiv.style.display === "none" ? "block" : "none";
+ }
+ function exportResult(type) {
+  if (!lastExecutedResults || lastExecutedResults.length === 0) {
+    alert("No result to export.");
+    return;
+  }
+  const hideEmptyCols = document.getElementById("toggleEmptyCols")?.checked;
+  const resultData = lastExecutedResults[0]?.result || [];
+  let keys = Object.keys(resultData[0] || {});
+  if (hideEmptyCols) {
+    keys = keys.filter(key =>
+      resultData.some(row => row[key] !== null && row[key] !== undefined && row[key] !== "")
+    );
+  }
+  const filteredData = resultData.map(row => {
+    const filteredRow = {};
+    keys.forEach(k => filteredRow[k] = row[k]);
+    return filteredRow;
+  });
+  if (type === 'json') {
+    const blob = new Blob([JSON.stringify(filteredData, null, 2)], { type: "application/json" });
+    downloadBlob(blob, "export.json");
+  }
+  else if (type === 'sql') {
+    let sqlInserts = "";
+    if (filteredData.length > 0) {
+      const tableName = "export_table";
+      const columns = keys;
+      filteredData.forEach(row => {
+        const values = columns.map(col => row[col] !== null ? `'${row[col]}'` : 'NULL').join(", ");
+        sqlInserts += `INSERT INTO ${tableName} (${columns.join(", ")}) VALUES (${values});\n`;
+      });
+    }
+    const blob = new Blob([sqlInserts], { type: "text/sql" });
+    downloadBlob(blob, "export.sql");
+  }
+  else if (type === 'excel') {
+    exportToExcel(filteredData);
+  }
+ }
+ function downloadBlob(blob, filename) {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.style.display = "none";
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+ }
+ function exportToExcel(data) {
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+  XLSX.writeFile(workbook, "export.xlsx");
+ }
+ function syncStickyScrollBar() {
+  const tableWrapper = document.querySelector("#columnResult .table-box div"); // the scrollable <div> inside .table-box
+  const stickyScrollBar = document.getElementById("stickyScrollBar");
+  const stickyScrollInner = document.getElementById("stickyScrollInner");
+  if (!tableWrapper || tableWrapper.scrollWidth <= tableWrapper.clientWidth) {
+    stickyScrollBar.style.display = "none";
+    return;
+  }
+  stickyScrollBar.style.display = "block";
+  stickyScrollBar.style.width = tableWrapper.clientWidth + "px";
+  stickyScrollBar.style.left = tableWrapper.getBoundingClientRect().left + "px";
+  stickyScrollInner.style.width = tableWrapper.scrollWidth + "px";
+  // Sync both scrolls
+  stickyScrollBar.onscroll = () => {
+    tableWrapper.scrollLeft = stickyScrollBar.scrollLeft;
+  };
+  tableWrapper.onscroll = () => {
+    stickyScrollBar.scrollLeft = tableWrapper.scrollLeft;
+  };
+ }
+
+ const dbColors = {
+  "prod_main": "#dc2626",  
+  "uat_ist": "#facc15",    
+  "sit_env": "#60a5fa",    
+  "dev_db": "#4ade80",      
+  "default": "#ffb347"      
+ };
+ function updatePageTitle(dbName) {
+  const titleEl = document.getElementById("pageTitle");
+  const themeColorEl = document.getElementById("themeColorMeta");
+  if (titleEl) {
+    titleEl.textContent = `🛢️ ${dbName} | Query Runner`;
+  }
+  if (themeColorEl) {
+    const dbKey = dbName.toLowerCase();
+    const color = dbColors[dbKey] || dbColors["default"];
+    themeColorEl.setAttribute("content", color);
+  }
+ }
+ 
