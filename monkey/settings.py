@@ -250,6 +250,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "slot_booking/static",
     BASE_DIR / "gen_reversals/static",
     BASE_DIR / "astrex_html_logs/static",
+    BASE_DIR / "emvco_logs/static",
     BASE_DIR / "runquery/static",
     BASE_DIR / "validate_testcases/static",
     BASE_DIR / "splunkrrn/static",

@@ -12,7 +12,7 @@ fetch('/astrex_html_logs/load_config/')
 document.getElementById('htmlLogFile').addEventListener('change', function(e) {
   file = e.target.files[0];
   document.getElementById('uploadedFileName').textContent = file ? file.name : '';
-document.getElementById('copyFileNameBtn').style.display = file ? 'inline-block' : 'none';
+  document.getElementById('copyFileNameBtn').style.display = file ? 'inline-block' : 'none';
   if (file) {
     uploadFile();
   }
@@ -26,8 +26,6 @@ function uploadFile() {
 
   startTime = new Date();
   startLoadingTimer();
-
-  // Set a timeout to show the loading screen if the process takes more than 2 seconds
   loadingTimeout = setTimeout(showLoadingScreen, 2000);
 
   const formData = new FormData();
@@ -38,9 +36,10 @@ function uploadFile() {
     body: formData
   }).then(res => res.json())
   .then(data => {
-    clearTimeout(loadingTimeout); // Clear the loading timeout if the process completes in time
+    clearTimeout(loadingTimeout);
     hideLoadingScreen();
     clearInterval(loadingTimerInterval);
+
     if (data.status === 'success') {
       const container = document.getElementById('de032Container');
       container.innerHTML = '';
@@ -49,7 +48,6 @@ function uploadFile() {
       rightItems.style.display = 'flex';
       de032_counts = data.de032_counts;
 
-      // Update summary information
       summaryDetails.innerHTML = `
         <p>Total DE032 Count: ${data.total_DE032_count}</p>
         <p>Total Transactions: ${data.total_txn}</p>
@@ -67,89 +65,54 @@ function uploadFile() {
 
         box.className = 'de032-box';
         box.innerHTML = `
-  <div class="de032-header">DE032: ${key}${displayName}</div>
+          <div class="de032-header">DE032: ${key}${displayName}</div>
           <div class="count">Count: ${count}</div>
           <button class="download-btn">Download</button>
-          <button class="convert-btn">Convert to EMVCo</button>
         `;
-        const btn = box.querySelector('.download-btn');
-        const convertBtn = box.querySelector('.convert-btn');
         
+        const btn = box.querySelector('.download-btn');
         btn.addEventListener('click', () => {
-  const dlForm = new FormData();
-  dlForm.append('de032', key);
-  dlForm.append('filename', file.name);
+          const dlForm = new FormData();
+          dlForm.append('de032', key);
+          dlForm.append('filename', file.name);
 
-  showLoadingScreen();
+          showLoadingScreen();
 
-  fetch('/astrex_html_logs/download_filtered/', {
-    method: 'POST',
-    body: dlForm
-  }).then(res => res.json())
-  .then(result => {
-    if (result.status === 'success') {
-      const link = document.createElement('a');
-      link.href = `/media/${result.filtered_file}`;
-      link.download = result.filtered_file.split('/').pop();
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      alert(result.message);
-    }
-    hideLoadingScreen();
-  }).catch(err => {
-    hideLoadingScreen();
-    console.error(err);
-    alert('Download failed.');
-  });
-});
-  
-convertBtn.addEventListener('click', () => {
-  const convertForm = new FormData();
-  convertForm.append('de032', key);
-  convertForm.append('filename', file.name);
-
-  showLoadingScreen(); // 🧩 FIX HERE
-
-  fetch('/astrex_html_logs/convert_emvco/', {
-    method: 'POST',
-    body: convertForm
-  }).then(res => res.json())
-  .then(result => {
-    hideLoadingScreen(); // 🧩 FIX HERE
-    if (result.status === 'success') {
-      const link = document.createElement('a');
-      link.href = `/media/${result.emvco_file}`;
-      link.download = result.emvco_file.split('/').pop();
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      alert(result.message);
-    }
-  }).catch(err => {
-    hideLoadingScreen(); // always hide on error
-    console.error(err);
-    alert('Conversion failed.');
-  });
-});
+          fetch('/astrex_html_logs/download_filtered/', {
+            method: 'POST',
+            body: dlForm
+          }).then(res => res.json())
+          .then(result => {
+            if (result.status === 'success') {
+              const link = document.createElement('a');
+              link.href = `/media/${result.filtered_file}`;
+              link.download = result.filtered_file.split('/').pop();
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            } else {
+              alert(result.message);
+            }
+            hideLoadingScreen();
+          }).catch(err => {
+            hideLoadingScreen();
+            console.error(err);
+            alert('Download failed.');
+          });
+        });
 
         container.appendChild(box);
       });
 
       const downloadAllBtn = document.getElementById('downloadAllBtn');
-if (Object.keys(de032_counts).length > 0) {
-  downloadAllBtn.style.display = 'inline-block';  // or 'flex' if you prefer
-} else {
-  downloadAllBtn.style.display = 'none';
-}
+      downloadAllBtn.style.display = Object.keys(de032_counts).length > 0 ? 'inline-block' : 'none';
+
     } else {
       alert(data.message);
     }
   })
   .catch(err => {
-    clearTimeout(loadingTimeout); // Clear the loading timeout if there's an error
+    clearTimeout(loadingTimeout);
     hideLoadingScreen();
     clearInterval(loadingTimerInterval);
     console.error(err);
@@ -177,11 +140,10 @@ function hideLoadingScreen() {
 
 function cycleMedia() {
   const media = Array.from(document.querySelectorAll('.loading-media')).filter(el => {
-    // Only keep elements that are actually visible and loaded
     if (el.tagName === 'VIDEO') {
-      return el.readyState > 0;  // has enough data to play
+      return el.readyState > 0;
     }
-    return true; // assume GIFs are always good
+    return true;
   });
 
   if (media.length === 0) return;
@@ -190,7 +152,6 @@ function cycleMedia() {
 
   function playNext() {
     media[currentIndex].style.opacity = 0;
-
     setTimeout(() => {
       media[currentIndex].style.display = 'none';
       currentIndex = (currentIndex + 1) % media.length;
@@ -203,21 +164,19 @@ function cycleMedia() {
           nextMedia.play().then(() => {
             nextMedia.onended = playNext;
           }).catch(() => {
-            // Skip broken video
             playNext();
           });
         } catch {
-          playNext(); // fallback if video fails
+          playNext();
         }
       } else {
         nextMedia.style.display = 'block';
         nextMedia.style.opacity = 1;
-        setTimeout(playNext, 2000); // for GIFs
+        setTimeout(playNext, 2000);
       }
-    }, 1000); // transition time
+    }, 1000);
   }
 
-  // Initial
   if (media[currentIndex].tagName === 'VIDEO') {
     try {
       media[currentIndex].style.display = 'block';
@@ -237,10 +196,8 @@ function cycleMedia() {
   }
 }
 
-
 function startLoadingTimer() {
   const timerElement = document.getElementById('loadingTimer');
-
   loadingTimerInterval = setInterval(() => {
     const elapsedSeconds = Math.floor((new Date() - startTime) / 1000);
     timerElement.textContent = calculateExecutionDuration(elapsedSeconds);
@@ -295,6 +252,7 @@ document.getElementById('downloadAllBtn').addEventListener('click', function(eve
     alert('Download failed.');
   });
 });
+
 document.getElementById('copyFileNameBtn').addEventListener('click', function () {
   const text = document.getElementById('uploadedFileName').textContent;
   navigator.clipboard.writeText(text)

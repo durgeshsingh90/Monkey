@@ -39,7 +39,7 @@ urlpatterns = [
     path('slot_booking/', include('slot_booking.urls')),
     path('gen_reversals/', include('gen_reversals.urls')),
     path('astrex_html_logs/', include('astrex_html_logs.urls')),
-    # path('emvco_logs/', include('emvco_logs.urls')),
+    path('emvco_logs/', include('emvco_logs.urls')),
     # path('xml_logs/', include('xml_logs.urls')),
     path('validate_testcases/', include('validate_testcases.urls')),
     path('splunkrrn/', include('splunkrrn.urls')),

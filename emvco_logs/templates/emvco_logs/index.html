@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Mastercard EMVCo Logs</title>
+  <link rel="stylesheet" href="{% static 'emvco_logs/css/styles.css' %}">
+  <link rel="icon" href="{% static 'emvco_logs/images/data-filtering.png' %}" type="image/png">
+</head>
+<body>
+
+<div class="left-container">
+  <h3>Mastercard EMVCo Logs Uploader</h3>
+  
+  <input type="file" id="xmlLogFile" accept=".xml">
+  
+  <div id="logInfo" class="file-name" style="display: flex; justify-content: space-between; align-items: center;">
+    <span id="uploadedFileName" style="flex: 1;"></span>
+    <button id="copyFileNameBtn" title="Copy filename" style="background: none; border: none; cursor: pointer; font-size: 14px; display:none;">📋</button>
+  </div>
+</div>
+
+<div class="main-container">
+  <div class="summary-container" id="summaryContainer">
+    <div class="summary-header">
+      <span class="summary-title">Summary</span>
+      <div class="right-items">
+        <button class="download-btn" id="downloadAllBtn" style="display: none;">Download All</button>
+      </div>
+    </div>
+    <div id="summaryDetails" class="summary-details"></div>
+  </div>
+
+  <div class="right-container" id="de032Container">
+    <!-- DE032 cards will be created dynamically -->
+  </div>
+</div>
+
+<div class="loading-screen" id="loadingScreen" style="display:none;">
+  <p id="loadingTimer">Loading...</p>
+</div>
+
+<script src="{% static 'emvco_logs/js/scripts.js' %}"></script>
+
+</body>
+</html>

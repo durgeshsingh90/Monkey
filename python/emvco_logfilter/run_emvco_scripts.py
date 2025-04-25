@@ -18,7 +18,8 @@ scripts = [
     "2_adjustemvco.py",
     "3_adjustelements.py",
     "4_unique_de32_emvco.py",
-    "5_emvco_filter.py"
+    "5_emvco_filter.py",
+    "6_format_emv_filter.py"
 ]
 
 def run_script(script_name):
