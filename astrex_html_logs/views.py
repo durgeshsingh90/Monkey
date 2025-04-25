@@ -69,11 +69,7 @@ def upload_log(request):
                     'end_log_time': end_log_time,
                     'execution_time': execution_time,
                 })
-#   "consolidated_de032_value_counts": {...},
-#   "execution_time": ...,
-#   "start_log_time": ...,
-#   "end_log_time": ...,
-#   "total_transactions": ...
+
             return JsonResponse({'status': 'error', 'message': 'Only .html files are supported.'})
 
         except Exception as e:
@@ -123,55 +119,6 @@ template_path = os.path.join(
     'astrex_html_logfilter',
     'emvco_template.xml'
 )
-
-@csrf_exempt
-def convert_emvco(request):
-    if request.method == 'POST':
-        try:
-            de032_value = request.POST.get('de032')
-            filename = request.POST.get('filename')
-
-            if not de032_value or not filename:
-                return JsonResponse({'status': 'error', 'message': 'Missing DE032 or filename'})
-
-            # Step 1: Run astrex_html_filter_4.py
-            json_path = os.path.join(settings.MEDIA_ROOT, 'astrex_html_logs', 'unique_bm32.json')
-            zip_path = run_astrex_html_filter(json_path, [de032_value])  # returns the zip path
-
-            if not zip_path or not os.path.exists(zip_path):
-                return JsonResponse({'status': 'error', 'message': 'Filtered ZIP not created'})
-
-            # Step 2: Extract filtered HTML from the zip
-            import zipfile
-            extracted_html = None
-            with zipfile.ZipFile(zip_path, 'r') as zipf:
-                for file_name in zipf.namelist():
-                    if f"_filtered_{de032_value}.html" in file_name:
-                        extracted_html = os.path.join(settings.MEDIA_ROOT, 'astrex_html_logs', file_name)
-                        zipf.extract(file_name, os.path.join(settings.MEDIA_ROOT, 'astrex_html_logs'))
-                        break
-
-            if not extracted_html or not os.path.exists(extracted_html):
-                return JsonResponse({'status': 'error', 'message': 'Filtered HTML not found inside zip'})
-
-            # Step 3: Run html2emvco_5.py
-            converted_file_path = run_html2emvco(extracted_html)
-
-            if os.path.exists(converted_file_path):
-                return JsonResponse({
-                    'status': 'success',
-                    'emvco_file': f"astrex_html_logs/{os.path.basename(converted_file_path)}"
-                })
-            else:
-                return JsonResponse({'status': 'error', 'message': 'EMVCo file not created'})
-
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            return JsonResponse({'status': 'error', 'message': f'Error: {str(e)}'})
-
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
-
 @csrf_exempt
 def zip_filtered_files(request):
     if request.method == 'POST':
