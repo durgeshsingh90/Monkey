@@ -582,20 +582,18 @@ document.getElementById("toggleVertical").addEventListener("change", () => {
 
 
 function saveCurrentScript() {
-  const db = document.getElementById("dropdown1").value;
   const name = document.getElementById("scriptName").value.trim();
   const tabIndex = getActiveTabIndex();
   let queryText = getCurrentEditorContent(tabIndex).trim();
-
-  if (!db || !name || !queryText) {
+  const db = document.getElementById("dropdown1").value;  // get selected DB
+  if (!name || !queryText) {
     alert("Missing info to save script!");
     return;
   }
-
   const saveBtn = document.getElementById("saveBtn");
   fetch("/runquery/save_script/", {
     method: "POST",
-    body: JSON.stringify({ db, name, query: queryText }),
+    body: JSON.stringify({ name, query: queryText, created_from: db }),
     headers: { "Content-Type": "application/json" },
   }).then(res => res.json())
     .then(data => {
@@ -606,10 +604,11 @@ function saveCurrentScript() {
           saveBtn.textContent = "💾 Save";
           saveBtn.style.backgroundColor = "";
         }, 1000);
-        refreshScriptList(db);
+        refreshScriptList();
       }
     });
-}
+ }
+ 
 
 
 
@@ -618,11 +617,10 @@ function toggleScriptDropdown() {
   list.style.display = list.style.display === "none" ? "block" : "none";
 }
 
-function refreshScriptList(db) {
+function refreshScriptList() {
   const container = document.getElementById("scriptList");
   container.innerHTML = "";
-
-  fetch(`/runquery/list_scripts/?db=${db}`)
+  fetch(`/runquery/list_scripts/`)
     .then(res => res.json())
     .then(data => {
       (data.scripts || []).forEach(script => {
@@ -634,36 +632,27 @@ function refreshScriptList(db) {
         row.style.padding = "6px 10px";
         row.style.cursor = "pointer";
         row.style.borderBottom = "1px solid #eee";
-
         const nameSpan = document.createElement("span");
-        nameSpan.textContent = script.name;
+        nameSpan.innerHTML = `${script.name} <small style="color: gray;">(${script.created_from || 'unknown'})</small>`;
         nameSpan.style.flex = "1";
-
         const deleteSpan = document.createElement("span");
         deleteSpan.textContent = "✖";
         deleteSpan.className = "delete-icon";
         deleteSpan.style.color = "red";
         deleteSpan.style.marginLeft = "10px";
-
-        // ✅ Prevent deletion click from triggering load
         deleteSpan.addEventListener("click", (e) => {
-          e.stopPropagation(); // Don't bubble to row
-          deleteScriptByName(db, script.name);
+          e.stopPropagation();
+          deleteScriptByName(script.name);
         });
-
-        // ✅ Load script when row is clicked
         row.addEventListener("click", () => {
-          loadScriptByName(db, script.name);
+          loadScriptByName(script.name);
           document.getElementById("scriptName").value = script.name;
-          toggleScriptDropdown(); // close dropdown
+          toggleScriptDropdown();
         });
-
         row.appendChild(nameSpan);
         row.appendChild(deleteSpan);
         container.appendChild(row);
       });
-
-      // If no scripts
       if ((data.scripts || []).length === 0) {
         const empty = document.createElement("div");
         empty.textContent = "No saved scripts.";
@@ -679,24 +668,15 @@ function refreshScriptList(db) {
       error.style.padding = "10px";
       container.appendChild(error);
     });
-}
-
-function loadScriptByName(db, name) {
+ }
+ function loadScriptByName(name) {
   const tabIndex = getActiveTabIndex();
-  fetch(`/runquery/load_script/?db=${db}&name=${name}`)
+  fetch(`/runquery/load_script/?name=${name}`)
     .then(res => res.json())
     .then(data => {
       if (data.query !== undefined) {
         setEditorContent(tabIndex, data.query);
         document.getElementById("scriptName").value = name;
-
-        const tabButton = document.querySelector(`.tab-button[data-index="${tabIndex}"]`);
-        if (tabButton) {
-          tabButton.textContent = name;
-          localStorage.setItem(`tabName-${tabIndex}`, name);  // 🧠 Persist tab label
-        }
-
-        toggleScriptDropdown();
       } else {
         alert("⚠️ No content found in saved script.");
       }
@@ -704,24 +684,22 @@ function loadScriptByName(db, name) {
     .catch(err => {
       alert("❌ Failed to load script: " + err.message);
     });
-}
+ }
 
 
 
-function deleteScriptByName(db, name) {
+ function deleteScriptByName(name) {
   fetch("/runquery/delete_script/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ db, name })
+    body: JSON.stringify({ name })
   }).then(res => res.json())
     .then(data => {
       if (data.success) {
-        refreshScriptList(db);
-        // alert("Deleted successfully ❌");
+        refreshScriptList();
       }
     });
-}
-
+ }
 
 
 
