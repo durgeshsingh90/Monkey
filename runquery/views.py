@@ -179,70 +179,60 @@ SCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
 
 @csrf_exempt
 def save_script(request):
-    try:
-        data = json.loads(request.body)
-        name = data["name"]
-        db = data["db"]
-        query = data["query"]
-        scripts_dir = Path(settings.MEDIA_ROOT) / "runquery" / "scripts"
-        scripts_dir.mkdir(parents=True, exist_ok=True)
-        script_file = scripts_dir / f"{db}.json"
-
-        scripts = []
-        if script_file.exists():
-            scripts = json.loads(script_file.read_text())
-
-        # Replace if already exists
-        scripts = [s for s in scripts if s["name"] != name]
-        scripts.append({"name": name, "query": query})
-
-        script_file.write_text(json.dumps(scripts, indent=2))
-        return JsonResponse({"success": True})
-    except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)})
+   try:
+       data = json.loads(request.body)
+       name = data["name"]
+       query = data["query"]
+       created_from = data.get("created_from", "unknown")  # safe fallback
+       scripts_dir = Path(settings.MEDIA_ROOT) / "runquery" / "scripts"
+       scripts_dir.mkdir(parents=True, exist_ok=True)
+       script_file = scripts_dir / "scripts.json"
+       scripts = []
+       if script_file.exists():
+           scripts = json.loads(script_file.read_text())
+       # Replace if already exists
+       scripts = [s for s in scripts if s["name"] != name]
+       scripts.append({"name": name, "query": query, "created_from": created_from})
+       script_file.write_text(json.dumps(scripts, indent=2))
+       return JsonResponse({"success": True})
+   except Exception as e:
+       return JsonResponse({"success": False, "error": str(e)})
 
 def list_scripts(request):
-    db = request.GET.get("db", "local_oracle")  # default fallback
-    scripts_file = Path(settings.MEDIA_ROOT) / "runquery" / "scripts" / f"{db}.json"
-
-    if scripts_file.exists():
-        try:
-            with open(scripts_file, "r") as f:
-                scripts = json.load(f)
-            return JsonResponse({"scripts": scripts})
-        except Exception as e:
-            return JsonResponse({"scripts": [], "error": str(e)})
-    return JsonResponse({"scripts": []})
+   scripts_file = Path(settings.MEDIA_ROOT) / "runquery" / "scripts" / "scripts.json"
+   if scripts_file.exists():
+       try:
+           with open(scripts_file, "r") as f:
+               scripts = json.load(f)
+           return JsonResponse({"scripts": scripts})
+       except Exception as e:
+           return JsonResponse({"scripts": [], "error": str(e)})
+   return JsonResponse({"scripts": []})
 
 def load_script(request):
-    db = request.GET.get("db")
-    name = request.GET.get("name")
-    script_file = Path(settings.MEDIA_ROOT) / "runquery" / "scripts" / f"{db}.json"
-    if script_file.exists():
-        scripts = json.loads(script_file.read_text())
-        for s in scripts:
-            if s["name"] == name:
-                return JsonResponse({"query": s["query"]})
-    return JsonResponse({"error": "Script not found"})
+   name = request.GET.get("name")
+   scripts_file = Path(settings.MEDIA_ROOT) / "runquery" / "scripts" / "scripts.json"
+   if scripts_file.exists():
+       scripts = json.loads(scripts_file.read_text())
+       for s in scripts:
+           if s["name"] == name:
+               return JsonResponse({"query": s["query"]})
+   return JsonResponse({"error": "Script not found"})
 
 @csrf_exempt
 def delete_script(request):
-    try:
-        data = json.loads(request.body)
-        db = data["db"]
-        name = data["name"]
-
-        script_file = Path(settings.MEDIA_ROOT) / "runquery" / "scripts" / f"{db}.json"
-        if not script_file.exists():
-            return JsonResponse({"success": False, "error": "Script file not found"})
-
-        scripts = json.loads(script_file.read_text())
-        scripts = [s for s in scripts if s["name"] != name]
-        script_file.write_text(json.dumps(scripts, indent=2))
-
-        return JsonResponse({"success": True})
-    except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)})
+   try:
+       data = json.loads(request.body)
+       name = data["name"]
+       scripts_file = Path(settings.MEDIA_ROOT) / "runquery" / "scripts" / "scripts.json"
+       if not scripts_file.exists():
+           return JsonResponse({"success": False, "error": "Script file not found"})
+       scripts = json.loads(scripts_file.read_text())
+       scripts = [s for s in scripts if s["name"] != name]
+       scripts_file.write_text(json.dumps(scripts, indent=2))
+       return JsonResponse({"success": True})
+   except Exception as e:
+       return JsonResponse({"success": False, "error": str(e)})
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse

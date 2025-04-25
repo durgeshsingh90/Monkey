@@ -208,19 +208,29 @@ def compare_and_style(df, logs_json, result_log, sheet_name):
     result_log.append(f"\n📄 Sheet: {sheet_name}")
     styled_rows = []
 
+    # Helper to clean .0 and ensure 12-digit RRN
+    def clean_rrn(val):
+        val_str = str(val).strip()
+        if '.' in val_str:
+            val_str = val_str.split('.')[0]
+        return val_str if re.fullmatch(r"\d{12}", val_str) else val_str
+
+    # Clean DE037/BM 37 values in the DataFrame itself
+    for col in df.columns:
+        if str(col).strip().upper() in ["BM 37", "BM37", "DE037"]:
+            df[col] = df[col].apply(clean_rrn)
+
     for idx, row in df.iterrows():
-        rrn = str(row.get("BM 37", "")).strip()
+        rrn = clean_rrn(row.get("BM 37", ""))
         log_key = f"RRN_{rrn}"
         matched_log = None
         row_result = []
 
         if log_key not in logs_json:
             result_log.append(f"\n❌ Row {idx}: RRN {rrn} not found in logs.")
-            # don't apply color coding
             row_result = [{'match': None, 'value': row[col]} for col in df.columns]
             styled_rows.append(row_result)
             continue
-            
 
         log_blocks = logs_json[log_key]
         fromiso = [b for b in log_blocks if b.get("route", "").lower().startswith("fromiso")]

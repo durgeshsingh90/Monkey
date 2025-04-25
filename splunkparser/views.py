@@ -19,52 +19,25 @@ logger.addHandler(console_handler)
 # File paths
 settings_file_path = os.path.join(settings.MEDIA_ROOT, 'splunkparser', 'settings.json')
 output_file_path = os.path.join(settings.MEDIA_ROOT, 'splunkparser', 'output.json')
-field_definitions_path = os.path.join(settings.MEDIA_ROOT, 'global', 'omnipay_fields_definitions.json')
+field_definitions_path = os.path.join(settings.MEDIA_ROOT, 'schemas', 'omnipay.json')
 
-# Lazy global field definitions
-FIELD_DEFINITIONS = None
+# Load field definitions once
+try:
+   with open(field_definitions_path, 'r') as f:
+       raw_definitions = json.load(f)
+   # Extract 'fields' if present
+   FIELD_DEFINITIONS = raw_definitions.get("fields", raw_definitions)
+   # If DE055 is nested as 'DE055', move its subfields under '055'
+   if "DE055" in FIELD_DEFINITIONS and "055" not in FIELD_DEFINITIONS:
+       FIELD_DEFINITIONS["055"] = FIELD_DEFINITIONS["DE055"]
+   logger.info(f"Loaded and normalized field definitions from: {field_definitions_path}")
+except Exception as e:
+   FIELD_DEFINITIONS = {}
+   logger.error(f"Failed to load field definitions: {e}")
 
-def get_field_definitions():
-    global FIELD_DEFINITIONS
-    if FIELD_DEFINITIONS is None:
-        FIELD_DEFINITIONS = load_field_definitions()
-    return FIELD_DEFINITIONS
-
-def load_field_definitions():
-    try:
-        logger.info(f"Looking for field definitions at: {field_definitions_path}")
-        with open(field_definitions_path, 'r') as f:
-            return json.load(f)
-    except Exception as e:
-        logger.error(f"Failed to load field definitions: {e}")
-        return {}
-
-def ensure_field_definitions_file():
-    if not os.path.exists(field_definitions_path):
-        logger.warning(f"{field_definitions_path} not found. Creating default stub.")
-        default_stub = {
-            "003": {"length": 6},
-            "004": {"length": 12},
-            "055": {
-                "subfields": {
-                    "9F1A": {},
-                    "5F2A": {},
-                    "9C": {},
-                    "9F1E": {},
-                    "9F13": {}
-                }
-            }
-        }
-        os.makedirs(os.path.dirname(field_definitions_path), exist_ok=True)
-        with open(field_definitions_path, 'w') as f:
-            json.dump(default_stub, f, indent=4)
-        logger.info("Default field definitions stub created.")
-
+   
 def editor_page(request):
     logger.info("Rendering the main editor page.")
-
-    # Ensure field definitions file exists
-    ensure_field_definitions_file()
 
     # Check and create default settings.json if not present
     if not os.path.exists(settings_file_path):
@@ -195,10 +168,6 @@ def parse_logs(request):
 
             logger.info("Received request for log parsing.")
             logger.debug(f"Raw log data received: {log_data}")
-
-            # 👇 Use lazy-loaded FIELD_DEFINITIONS now
-            global FIELD_DEFINITIONS
-            FIELD_DEFINITIONS = get_field_definitions()
 
             parsed_output = parse_iso8583(log_data)
 
@@ -457,7 +426,7 @@ def parse_iso8583(log_data):
                     logger.debug(f"Set field {field_number} to {value}")
 
             # Special handling for DE060, 061, and 062
-            if field_number in ['060', '061', '062', '066']:
+            if field_number in ['060', '061', '062','065', '066']:
                 value = parse_bm6x(value)
                 logger.info(f"Parsed DE {field_number}: {value}")
 
