@@ -314,6 +314,20 @@ textarea {
   color: #555;
 }
 
+#cleanBtn {
+  font-size: 16px;
+  margin-left: 6px;
+  padding: 4px 8px;
+  border: none;
+  background-color: #ffe07a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#cleanBtn:hover {
+  background-color: #ffb347;
+}
 
 /* ----------------------- */
 /* Sidebar (Table Panel)   */
@@ -419,13 +433,13 @@ textarea {
 }
 .query-tab-button-title {
   font-family: 'Chewy', cursive;
-  font-size: 2.4rem;
+  font-size: 150%;
   color: #8c1b13;
   font-weight: bold; /* explicitly bold */
 
   text-decoration: none;
-  padding: 6px 18px;
-  border-radius: 16px;
+  /* padding: 6px 10px; */
+  /* border-radius: 16px; */
   /* background-color: #ffe07a; */
   /* box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1); */
   transition: transform 0.2s ease, box-shadow 0.2s ease;

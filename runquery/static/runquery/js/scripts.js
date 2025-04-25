@@ -172,12 +172,30 @@ function execute() {
       });
     })
     .catch(err => {
-      clearInterval(queryTimerInterval);
-      const failedTime = ((Date.now() - start) / 1000).toFixed(2);
-      timerDiv.textContent = `❌ Failed after ${failedTime}s`;
-
-      columnContainer.innerHTML = `<div style="color:red">❌ ${err.message}</div>`;
+      const columnContainer = document.getElementById("columnResult");
+    
+      const rawMsg = err.message || "Query execution failed";
+      const match = rawMsg.match(/ORA-\d{5}:.*$/);
+      const cleanError = match ? match[0] : rawMsg;
+    
+      columnContainer.innerHTML = `
+        <div style="
+          color: #b91c1c;
+          background: #fee2e2;
+          padding: 14px 18px;
+          border-radius: 12px;
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          margin: 12px 0;
+          font-size: 15px;
+        ">
+          ❌ ${cleanError}
+        </div>
+      `;
+    
+      document.getElementById("queryTimer").textContent = "❌ Query failed.";
     });
+    
 }
 
 
@@ -426,11 +444,30 @@ function countQuery() {
       }
     })
     .catch(err => {
-      clearInterval(queryTimerInterval);
-      const failedTime = ((Date.now() - start) / 1000).toFixed(2);
-      timerDiv.textContent = `❌ Count failed after ${failedTime}s`;
-      console.error("Count query error:", err);
+      const columnContainer = document.getElementById("columnResult");
+    
+      const rawMsg = err.message || "Count query failed";
+      const match = rawMsg.match(/ORA-\d{5}:.*$/);
+      const cleanError = match ? match[0] : rawMsg;
+    
+      columnContainer.innerHTML = `
+        <div style="
+          color: #b91c1c;
+          background: #fee2e2;
+          padding: 14px 18px;
+          border-radius: 12px;
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          margin: 12px 0;
+          font-size: 15px;
+        ">
+          ❌ ${cleanError}
+        </div>
+      `;
+    
+      document.getElementById("queryTimer").textContent = "❌ Count query failed.";
     });
+    
 }
 
 
@@ -940,3 +977,35 @@ function toggleExportDropdown() {
   }
  }
  
+ function cleanEditorLines() {
+  const index = getActiveTabIndex();
+  const editor = editors[`editor-${index}`];
+  if (!editor) return;
+
+  const content = editor.getValue();
+  const cleaned = content
+    .split("\n")
+    .filter(line => line.trim() !== "")
+    .join("\n");
+
+  editor.setValue(cleaned);
+}
+
+
+function playCleanAnimation() {
+  const icon = document.getElementById("cleanIcon");
+
+  const pngSrc = icon.getAttribute("data-png");
+  const gifSrc = icon.getAttribute("data-gif");
+
+  // Switch to GIF
+  icon.src = gifSrc + "?t=" + new Date().getTime(); // prevent caching
+
+  // Run cleaning logic
+  cleanEditorLines();
+
+  // After animation ends, switch back to PNG
+  setTimeout(() => {
+    icon.src = pngSrc;
+  }, 1200); // Adjust based on your GIF duration
+}
