@@ -57,7 +57,7 @@
 <!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingScreen" style="display:none;">
   <div class="loading-content">
-    <div id="gifContainer">
+    <div id="gifContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
       <img src="{% static 'emvco_logs/images/monkey.gif' %}" class="loading-gif">
       <img src="{% static 'emvco_logs/images/cut.gif' %}" class="loading-gif">
       <img src="{% static 'emvco_logs/images/president.gif' %}" class="loading-gif">
@@ -66,11 +66,11 @@
       <img src="{% static 'emvco_logs/images/technician.gif' %}" class="loading-gif">
       <img src="{% static 'emvco_logs/images/telecommuting.gif' %}" class="loading-gif">
       <img src="{% static 'emvco_logs/images/work-in-progress.gif' %}" class="loading-gif">
-
     </div>
-      <p>Processing your file...</p>
+    <p id="loadingText" style="margin-top: 20px; font-size: 20px; font-weight: bold;">Processing your file...</p>
   </div>
 </div>
+
 
 <script src="{% static 'astrex_html_logs/js/scripts.js' %}"></script>
 
