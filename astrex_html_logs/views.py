@@ -195,3 +195,12 @@ def load_config(request):
         data = json.load(f)
 
     return JsonResponse(data, safe=False)
+
+import re
+
+def extract_datetime_from_cell8norm(cell_text):
+    # Find [inside brackets]
+    match = re.search(r'\[(.*?)\]', cell_text)
+    if match:
+        return match.group(1)
+    return None
