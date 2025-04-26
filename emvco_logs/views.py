@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .scripts.breakemvco_1 import process_file as split_file
 from .scripts.adjustemvco_2 import adjust_file as fix_unclosed_online_messages
 from .scripts.adjustelements_3 import adjust_elements
-from .scripts.unique_de32_emvco_4 import extract_de032  # Ensure correct import
+from .scripts.unique_de32_emvco_4 import extract_de032
 from .scripts.emvco_filter_5 import filter_by_conditions
 from .scripts.format_emvco_filter_6 import format_filtered_xml
 
