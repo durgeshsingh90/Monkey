@@ -4,8 +4,9 @@ let startTime;
 let loadingTimerInterval;
 let loadingTimeout;
 let bm32NameMap = {};
-let loadingStartTime;
-let loadingInterval;
+let loadingStartTime = null;
+let loadingInterval = null;
+
 // Load config mapping (bm32 name mappings)
 fetch('/astrex_html_logs/load_config/')
   .then(res => res.json())
@@ -198,14 +199,15 @@ function showLoadingScreen() {
   document.getElementById('loadingScreen').style.display = 'flex';
   startGifCycle();
 
-  // Start counting elapsed time
-  loadingStartTime = new Date();
-  loadingInterval = setInterval(updateElapsedTime, 1000);
+  loadingStartTime = new Date(); // ✅ SET THIS when loading starts
+  clearInterval(loadingInterval); // Clear any previous timers if any
+  loadingInterval = setInterval(updateElapsedTime, 1000); // Start fresh
 }
+
 
 function hideLoadingScreen() {
   document.getElementById('loadingScreen').style.display = 'none';
-  clearInterval(loadingInterval); // Stop elapsed time counter
+  clearInterval(loadingInterval); // ✅ STOP the elapsed timer
 }
 
 
@@ -286,6 +288,8 @@ function hideLoadingScreen() {
 
 
 function updateElapsedTime() {
+  if (!loadingStartTime) return; // Safety
+
   const now = new Date();
   const elapsedMs = now - loadingStartTime;
   const elapsedSeconds = Math.floor(elapsedMs / 1000);
@@ -295,3 +299,4 @@ function updateElapsedTime() {
 
   document.getElementById('elapsedTime').textContent = `Elapsed Time: ${minutes}m ${seconds}s`;
 }
+
