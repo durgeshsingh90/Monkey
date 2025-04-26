@@ -1,26 +1,22 @@
-/* Base setup */
 body {
-  font-family: 'Poppins', sans-serif;
-  background-color: #eef6f7; /* Light bluish instead of gray */
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
   margin: 0;
   padding: 0;
 }
 
-/* Overall container */
 .container {
   display: flex;
   flex-direction: column;
   padding: 20px;
 }
 
-/* Top section */
 .top-row {
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
 }
 
-/* Left and Right boxes */
 .left-section, .right-section {
   flex: 1;
   margin: 10px;
@@ -29,48 +25,43 @@ body {
 .left-section {
   padding: 20px;
   background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .right-section .summary-container {
   padding: 20px;
   background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Bottom section */
 .bottom-row .unique-de32-container {
   padding: 20px;
   background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-top: 20px;
 }
 
-/* Buttons and File Name */
 .file-name, .button {
   display: block;
-  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .button {
   padding: 10px 20px;
-  background-color: #20c997; /* Teal for Astrex */
+  background-color: #007bff;
   color: #ffffff;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
 }
 
 .button:hover {
-  background-color: #198f77; /* Darker teal on hover */
+  background-color: #0056b3;
 }
 
-/* Loading overlay */
 .loading-overlay {
   display: flex;
   flex-direction: column;
@@ -95,51 +86,40 @@ body {
 }
 
 .loading-gif {
-  width: 80px;
+  width: 100px;
   margin: 10px;
 }
 
-/* Cards for DE032 */
+.summary-container h3, .unique-de32-container h3 {
+  margin-top: 0;
+}
+
 .de32-box-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 10px;
 }
 
-.de32-card, .de032-box {
+.de32-card {
   padding: 15px;
+  margin: 10px;
   background-color: #f8f9fa;
-  border: 1px solid #d1d1d1;
-  border-radius: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   width: 200px;
   text-align: center;
-  transition: transform 0.2s ease;
 }
 
-.de32-card:hover, .de032-box:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-}
-
-.de32-card h4, .de032-header {
+.de32-card h4 {
   margin: 0;
   font-size: 18px;
-  color: #333;
 }
 
-/* DE032 count inside card */
-.count {
-  font-size: 16px;
-  margin-top: 8px;
-}
-
-/* Minor details */
-.summary-container h3, .unique-de32-container h3, .left-section h2 {
-  margin-top: 0;
-  font-weight: 600;
-}
-
-/* Hide initially */
-#downloadAllBtn {
+.de32-card .button {
   margin-top: 10px;
+  background-color: #6c757d;
+}
+
+.de32-card .button:hover {
+  background-color: #5a6268;
 }
