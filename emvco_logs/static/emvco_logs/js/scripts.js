@@ -1,6 +1,11 @@
 document.getElementById('xmlLogFile').addEventListener('change', function(event) {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+        console.log('No file selected');
+        return;
+    }
+  
+    console.log('File selected:', file.name);
 
     if (!file.name.endsWith('.xml')) {
         alert('Please upload an XML file only.');
@@ -8,6 +13,7 @@ document.getElementById('xmlLogFile').addEventListener('change', function(event)
     }
 
     document.getElementById('loadingOverlay').style.display = 'block';
+    startTimer(); // Start the timer
 
     const formData = new FormData();
     formData.append('file', file);
@@ -21,21 +27,45 @@ document.getElementById('xmlLogFile').addEventListener('change', function(event)
     })
     .then(response => response.json())
     .then(data => {
+        console.log('Response received from server:', data);
+
         document.getElementById('loadingOverlay').style.display = 'none';
+        stopTimer(); // Stop the timer
 
         if (data.status === 'success') {
             document.getElementById('uploadedFileName').textContent = data.filename;
-            loadSummary();
+            document.getElementById('processingTime').textContent = data.processing_time;
+            document.getElementById('processingTimeContainer').style.display = 'block';
+            loadSummary(data); // Pass data to loadSummary
         } else {
             alert('Upload failed: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
         document.getElementById('loadingOverlay').style.display = 'none';
+        stopTimer(); // Stop the timer
         console.error('Upload error:', error);
         alert('Upload failed');
     });
 });
+
+let timerInterval;
+
+function startTimer() {
+    let startTime = Date.now();
+
+    timerInterval = setInterval(() => {
+        const elapsedTime = Date.now() - startTime;
+        const minutes = Math.floor(elapsedTime / 60000);
+        const seconds = Math.floor((elapsedTime % 60000) / 1000);
+        document.getElementById('timer').textContent = `Elapsed time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }, 1000);
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+    document.getElementById('timer').textContent = 'Elapsed time: 00:00';
+}
 
 function getCookie(name) {
     let cookieValue = null;
@@ -52,41 +82,56 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function loadSummary() {
+function loadSummary(uploadData) {
+    console.log('Loading summary data');
+
     fetch('/media/emvco_logs/unique_bm32_emvco.json')
     .then(response => response.json())
     .then(data => {
+        console.log('Summary data:', data);
+
+        const summaryContent = document.getElementById('summaryContent');
         const summaryContainer = document.getElementById('summaryContainer');
+        summaryContent.innerHTML = '';
         summaryContainer.innerHTML = '';
 
-        const de32List = Object.keys(data.total_counts || {});
-        
-        if (de32List.length > 0) {
+        // Display the overall summary in summaryContent container
+        summaryContent.innerHTML = `
+            <div>
+                <p>Total DE032 Count: ${data.total_de032_count}</p>
+                <p>Total Unique Count: ${data.total_unique_count}</p>
+                <p>Start Time: ${uploadData.start_time}</p>
+                <p>End Time: ${uploadData.end_time}</p>
+                <p>Time Difference: ${uploadData.time_difference}</p>
+            </div>
+        `;
+
+        const de32TotalCounts = data.total_counts;
+
+        if (Object.keys(de32TotalCounts).length > 0) {
             document.getElementById('downloadAllBtn').style.display = 'block';
         }
 
-        de32List.forEach(de32 => {
+        for (const [de32, count] of Object.entries(de32TotalCounts)) {
             const card = document.createElement('div');
             card.className = 'de32-card';
             card.innerHTML = `
                 <h4>DE032: ${de32}</h4>
-                <button onclick="downloadFiltered('${de32}', this)">Download Filtered ZIP</button>
+                <p>Count: ${count}</p>
+                <button onclick="downloadFiltered('${de32}')" class="button">Download Filtered ZIP</button>
             `;
             summaryContainer.appendChild(card);
-        });
+        }
 
-        document.getElementById('downloadAllBtn').onclick = () => downloadAllFiltered(de32List);
+        document.getElementById('downloadAllBtn').onclick = () => downloadAllFiltered(Object.keys(de32TotalCounts));
     })
     .catch(error => {
         console.error('Error loading summary:', error);
     });
 }
 
-function downloadFiltered(de32, button) {
+function downloadFiltered(de32) {
     const payload = { conditions: [de32] };
-
-    button.disabled = true;
-    button.innerText = 'Preparing...';
 
     fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
@@ -98,9 +143,6 @@ function downloadFiltered(de32, button) {
     })
     .then(response => response.blob())
     .then(blob => {
-        button.disabled = false;
-        button.innerText = 'Download Filtered ZIP';
-
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -110,8 +152,6 @@ function downloadFiltered(de32, button) {
         a.remove();
     })
     .catch(error => {
-        button.disabled = false;
-        button.innerText = 'Download Filtered ZIP';
         console.error('Download error:', error);
         alert('Failed to download');
     });
@@ -119,10 +159,6 @@ function downloadFiltered(de32, button) {
 
 function downloadAllFiltered(de32List) {
     const payload = { conditions: de32List };
-
-    const downloadAllBtn = document.getElementById('downloadAllBtn');
-    downloadAllBtn.disabled = true;
-    downloadAllBtn.innerText = 'Preparing...';
 
     fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
@@ -134,20 +170,15 @@ function downloadAllFiltered(de32List) {
     })
     .then(response => response.blob())
     .then(blob => {
-        downloadAllBtn.disabled = false;
-        downloadAllBtn.innerText = 'Download All Filtered (ZIP)';
-
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `filtered_all_de032.zip`;
+        a.download = 'filtered_all_de032.zip';
         document.body.appendChild(a);
         a.click();
         a.remove();
     })
     .catch(error => {
-        downloadAllBtn.disabled = false;
-        downloadAllBtn.innerText = 'Download All Filtered (ZIP)';
         console.error('Download error:', error);
         alert('Failed to download');
     });

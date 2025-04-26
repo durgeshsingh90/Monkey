@@ -9,30 +9,50 @@
 </head>
 <body>
 
-<div class="left-container">
-  <h3>XML EMVCo Logs Uploader</h3>
-  
-  <input type="file" id="xmlLogFile" accept=".xml">
-  
-  <div id="logInfo" class="file-name" style="margin-top: 10px;">
-    <span id="uploadedFileName"></span>
+<div class="container">
+  <div class="top-row">
+    <div class="left-section">
+      <h3>XML EMVCo Logs Uploader</h3>
+      
+      <input type="file" id="xmlLogFile" accept=".xml">
+      
+      <div id="logInfo" class="file-name" style="margin-top: 10px;">
+        <span id="uploadedFileName"></span>
+      </div>
+
+      <div id="processingTimeContainer" style="margin-top: 10px; display: none;">
+        <strong>Total Processing Time:</strong> <span id="processingTime">N/A</span>
+      </div>
+
+      <button id="downloadAllBtn" class="button" style="margin-top: 20px; display: none;">Download All Filtered (ZIP)</button>
+    </div>
+
+    <div class="right-section">
+      <div class="summary-container">
+        <h3>Summary</h3>
+        <div id="summaryContent"></div>
+      </div>
+    </div>
   </div>
 
-  <button id="downloadAllBtn" style="margin-top: 20px; display: none;">Download All Filtered (ZIP)</button>
+  <div class="bottom-row">
+    <div class="unique-de32-container">
+      <h3>Unique DE32 Counts</h3>
+      <div id="summaryContainer" class="de32-box-container"></div>
+    </div>
+  </div>
 </div>
 
-<div class="main-container">
-  <div id="summaryContainer" class="summary-container"></div>
-</div>
-
-<!-- Loading overlay with multiple GIFs -->
-<div id="loadingOverlay" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.9); z-index:9999; text-align:center; padding-top:100px; font-size:24px; font-weight:bold; color:#333;">
-    <div id="gifContainer" style="margin-bottom: 20px;">
-        <img src="{% static 'emvco_logs/images/search-file1.gif' %}" style="width: 100px; margin: 10px;">
-        <img src="{% static 'emvco_logs/images/search-file2.gif' %}" style="width: 100px; margin: 10px;">
-        <img src="{% static 'emvco_logs/images/search-file3.gif' %}" style="width: 100px; margin: 10px;">
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+  <div class="loading-content">
+    <div id="gifContainer">
+      <img src="{% static 'emvco_logs/images/search-file1.gif' %}" class="loading-gif">
+      <img src="{% static 'emvco_logs/images/search-file2.gif' %}" class="loading-gif">
+      <img src="{% static 'emvco_logs/images/search-file3.gif' %}" class="loading-gif">
     </div>
     ⏳ Processing... Please wait...
+    <div id="timer">Elapsed time: 00:00</div>
+  </div>
 </div>
 
 <script src="{% static 'emvco_logs/js/scripts.js' %}"></script>
