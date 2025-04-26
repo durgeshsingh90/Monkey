@@ -4,16 +4,20 @@ let startTime;
 let loadingTimerInterval;
 let loadingTimeout;
 let bm32NameMap = {};
+
+let gifIndex = 0;
+let gifs = [];
+
 let loadingStartTime = null;
 let loadingInterval = null;
 
-// Load config mapping (bm32 name mappings)
+// Load config mapping
 fetch('/astrex_html_logs/load_config/')
   .then(res => res.json())
   .then(config => {
     bm32NameMap = {};
 
-    // Flatten nested brand -> bin -> name structure
+    // Flatten nested structure
     Object.keys(config).forEach(brand => {
       const binMapping = config[brand];
       Object.keys(binMapping).forEach(bin => {
@@ -28,10 +32,10 @@ document.getElementById('htmlLogFile').addEventListener('change', function(e) {
   document.getElementById('uploadedFileName').textContent = file ? file.name : '';
 
   if (file) {
-    document.getElementById('copyFileNameBtn').style.display = 'inline-block'; // Show copy icon
+    document.getElementById('copyFileNameBtn').style.display = 'inline-block';
     uploadFile();
   } else {
-    document.getElementById('copyFileNameBtn').style.display = 'none'; // Hide copy icon
+    document.getElementById('copyFileNameBtn').style.display = 'none';
   }
 });
 
@@ -62,7 +66,7 @@ function uploadFile() {
       populateSummary(data);
       populateDE032Cards(data.de032_counts);
 
-      document.getElementById('scriptRunDuration').style.display = 'block'; // ✅ Show script duration AFTER processing
+      document.getElementById('scriptRunDuration').style.display = 'block';
     } else {
       alert(data.message);
     }
@@ -76,7 +80,7 @@ function uploadFile() {
   });
 }
 
-// Fill Summary Details
+// Populate Summary
 function populateSummary(data) {
   const summaryDetails = document.getElementById('summaryDetails');
   summaryDetails.innerHTML = `
@@ -90,7 +94,7 @@ function populateSummary(data) {
   document.getElementById('scriptRunDuration').textContent =
     `Script Run Duration: ${calculateExecutionDuration(Math.floor((new Date() - startTime) / 1000))}`;
 
-  document.getElementById('downloadAllBtn').style.display = 'inline-block'; // Enable download all
+  document.getElementById('downloadAllBtn').style.display = 'inline-block';
 }
 
 // Create DE032 cards
@@ -116,7 +120,7 @@ function populateDE032Cards(de032s) {
   });
 }
 
-// Download filtered by DE032
+// Download filtered DE032
 function downloadFilteredFile(de032Key) {
   const formData = new FormData();
   formData.append('de032', de032Key);
@@ -147,7 +151,7 @@ function downloadFilteredFile(de032Key) {
   });
 }
 
-// Download all filtered
+// Download all filtered files
 document.getElementById('downloadAllBtn').addEventListener('click', function(event) {
   event.stopPropagation();
   showLoadingScreen();
@@ -178,7 +182,7 @@ document.getElementById('downloadAllBtn').addEventListener('click', function(eve
   });
 });
 
-// Copy filename to clipboard
+// Copy filename
 document.getElementById('copyFileNameBtn').addEventListener('click', function () {
   const text = document.getElementById('uploadedFileName').textContent;
   navigator.clipboard.writeText(text)
@@ -194,61 +198,28 @@ document.getElementById('copyFileNameBtn').addEventListener('click', function ()
     });
 });
 
-// Show and hide loading screen
+// Loading screen functions
 function showLoadingScreen() {
   document.getElementById('loadingScreen').style.display = 'flex';
   startGifCycle();
 
-  loadingStartTime = new Date(); // ✅ SET THIS when loading starts
-  clearInterval(loadingInterval); // Clear any previous timers if any
-  loadingInterval = setInterval(updateElapsedTime, 1000); // Start fresh
+  loadingStartTime = new Date();
+  clearInterval(loadingInterval);
+  loadingInterval = setInterval(updateElapsedTime, 1000);
 }
-
 
 function hideLoadingScreen() {
   document.getElementById('loadingScreen').style.display = 'none';
-  clearInterval(loadingInterval); // ✅ STOP the elapsed timer
+  clearInterval(loadingInterval);
 }
 
-
-// Timer utilities
-function startLoadingTimer() {
-  loadingTimerInterval = setInterval(() => {
-    const elapsedSeconds = Math.floor((new Date() - startTime) / 1000);
-    document.getElementById('scriptRunDuration').textContent =
-      `Script Run Duration: ${calculateExecutionDuration(elapsedSeconds)}`;
-  }, 1000);
-}
-
-function calculateDuration(start, end) {
-  const startTime = new Date(start);
-  const endTime = new Date(end);
-  const duration = endTime - startTime;
-
-  const hours = Math.floor(duration / (1000 * 60 * 60));
-  const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((duration % (1000 * 60)) / 1000);
-
-  return `${hours}h ${minutes}m ${seconds}s`;
-}
-
-function calculateExecutionDuration(executionTime) {
-  const hours = Math.floor(executionTime / 3600);
-  const minutes = Math.floor((executionTime % 3600) / 60);
-  const seconds = executionTime % 60;
-  return `${hours}h ${minutes}m ${seconds}s`;
-}
-
-let gifIndex = 0;
-let gifs = [];
-
+// Cycle GIFs
 function startGifCycle() {
   const gifElements = document.querySelectorAll('.loading-gif');
   gifs = Array.from(gifElements);
 
   if (gifs.length === 0) return;
 
-  // Hide all gifs initially
   gifs.forEach(gif => {
     gif.style.display = 'none';
     gif.style.opacity = 0;
@@ -268,27 +239,25 @@ function showNextGif() {
   currentGif.style.display = 'block';
   setTimeout(() => {
     currentGif.style.opacity = 1;
-  }, 100); // Fade in
+  }, 100);
 
   gifIndex = (gifIndex + 1) % gifs.length;
 
-  setTimeout(showNextGif, 6000); // Change GIF every 2 seconds
+  setTimeout(showNextGif, 2000);
 }
 
-// When showing loading screen, start gif cycling
-function showLoadingScreen() {
-  document.getElementById('loadingScreen').style.display = 'flex';
-  startGifCycle();
+// Timer for main script execution
+function startLoadingTimer() {
+  loadingTimerInterval = setInterval(() => {
+    const elapsedSeconds = Math.floor((new Date() - startTime) / 1000);
+    document.getElementById('scriptRunDuration').textContent =
+      `Script Run Duration: ${calculateExecutionDuration(elapsedSeconds)}`;
+  }, 1000);
 }
 
-// Hide loading screen normally
-function hideLoadingScreen() {
-  document.getElementById('loadingScreen').style.display = 'none';
-}
-
-
+// Update elapsed time on loading screen
 function updateElapsedTime() {
-  if (!loadingStartTime) return; // Safety
+  if (!loadingStartTime) return;
 
   const now = new Date();
   const elapsedMs = now - loadingStartTime;
@@ -300,3 +269,22 @@ function updateElapsedTime() {
   document.getElementById('elapsedTime').textContent = `Elapsed Time: ${minutes}m ${seconds}s`;
 }
 
+// Utility time formatters
+function calculateDuration(start, end) {
+  const startTime = new Date(start);
+  const endTime = new Date(end);
+  const duration = endTime - startTime;
+
+  const hours = Math.floor(duration / (1000 * 60 * 60));
+  const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((duration % (1000 * 60)) / 1000);
+
+  return `${hours}h ${minutes}m ${seconds}s`;
+}
+
+function calculateExecutionDuration(executionTime) {
+  const hours = Math.floor(executionTime / 3600);
+  const minutes = Math.floor((executionTime % 3600) / 60);
+  const seconds = executionTime % 60;
+  return `${hours}h ${minutes}m ${seconds}s`;
+}
