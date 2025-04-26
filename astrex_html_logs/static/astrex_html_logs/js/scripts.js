@@ -5,19 +5,21 @@ let loadingTimerInterval;
 let loadingTimeout;
 let bm32NameMap = {};
 
+// Load config mapping (bm32 name mappings)
 fetch('/astrex_html_logs/load_config/')
   .then(res => res.json())
   .then(config => { bm32NameMap = config || {}; });
 
+// When file is selected
 document.getElementById('htmlLogFile').addEventListener('change', function(e) {
   file = e.target.files[0];
   document.getElementById('uploadedFileName').textContent = file ? file.name : '';
-  document.getElementById('copyFileNameBtn').style.display = file ? 'inline-block' : 'none';
   if (file) {
     uploadFile();
   }
 });
 
+// Upload HTML log file
 function uploadFile() {
   if (!file || !file.name.endsWith('.html')) {
     alert('Please select a valid HTML file.');
@@ -26,7 +28,7 @@ function uploadFile() {
 
   startTime = new Date();
   startLoadingTimer();
-  loadingTimeout = setTimeout(showLoadingScreen, 2000);
+  loadingTimeout = setTimeout(showLoadingScreen, 1000);
 
   const formData = new FormData();
   formData.append('file', file);
@@ -41,72 +43,8 @@ function uploadFile() {
     clearInterval(loadingTimerInterval);
 
     if (data.status === 'success') {
-      const container = document.getElementById('de032Container');
-      container.innerHTML = '';
-      const summaryDetails = document.getElementById('summaryDetails');
-      const rightItems = document.querySelector('.right-items');
-      rightItems.style.display = 'flex';
-      de032_counts = data.de032_counts;
-
-      summaryDetails.innerHTML = `
-        <p>Total DE032 Count: ${data.total_DE032_count}</p>
-        <p>Total Transactions: ${data.total_txn}</p>
-        <p>Start Log Time: ${data.start_log_time}</p>
-        <p>End Log Time: ${data.end_log_time}</p>
-        <p>Total Duration: ${calculateDuration(data.start_log_time, data.end_log_time)}</p>
-      `;
-      document.getElementById('scriptRunDuration').textContent = `Script Run Duration: ${calculateExecutionDuration(Math.floor((new Date() - startTime) / 1000))}`;
-
-      const de032s = data.de032_counts;
-
-      Object.entries(de032s).forEach(([key, count]) => {
-        const box = document.createElement('div');
-        const displayName = bm32NameMap[key] ? ` (${bm32NameMap[key]})` : '';
-
-        box.className = 'de032-box';
-        box.innerHTML = `
-          <div class="de032-header">DE032: ${key}${displayName}</div>
-          <div class="count">Count: ${count}</div>
-          <button class="download-btn">Download</button>
-        `;
-        
-        const btn = box.querySelector('.download-btn');
-        btn.addEventListener('click', () => {
-          const dlForm = new FormData();
-          dlForm.append('de032', key);
-          dlForm.append('filename', file.name);
-
-          showLoadingScreen();
-
-          fetch('/astrex_html_logs/download_filtered/', {
-            method: 'POST',
-            body: dlForm
-          }).then(res => res.json())
-          .then(result => {
-            if (result.status === 'success') {
-              const link = document.createElement('a');
-              link.href = `/media/${result.filtered_file}`;
-              link.download = result.filtered_file.split('/').pop();
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            } else {
-              alert(result.message);
-            }
-            hideLoadingScreen();
-          }).catch(err => {
-            hideLoadingScreen();
-            console.error(err);
-            alert('Download failed.');
-          });
-        });
-
-        container.appendChild(box);
-      });
-
-      const downloadAllBtn = document.getElementById('downloadAllBtn');
-      downloadAllBtn.style.display = Object.keys(de032_counts).length > 0 ? 'inline-block' : 'none';
-
+      populateSummary(data);
+      populateDE032Cards(data.de032_counts);
     } else {
       alert(data.message);
     }
@@ -120,87 +58,139 @@ function uploadFile() {
   });
 }
 
+// Populate Summary details
+function populateSummary(data) {
+  const summaryDetails = document.getElementById('summaryDetails');
+  summaryDetails.innerHTML = `
+    <p><strong>Total DE032 Count:</strong> ${data.total_DE032_count}</p>
+    <p><strong>Total Transactions:</strong> ${data.total_txn}</p>
+    <p><strong>Start Log Time:</strong> ${data.start_log_time}</p>
+    <p><strong>End Log Time:</strong> ${data.end_log_time}</p>
+    <p><strong>Log Duration:</strong> ${calculateDuration(data.start_log_time, data.end_log_time)}</p>
+  `;
+
+  document.getElementById('scriptRunDuration').textContent = 
+    `Script Run Duration: ${calculateExecutionDuration(Math.floor((new Date() - startTime) / 1000))}`;
+
+  document.getElementById('downloadAllBtn').style.display = 'inline-block';
+}
+
+// Create DE032 cards
+function populateDE032Cards(de032s) {
+  const container = document.getElementById('de032Container');
+  container.innerHTML = '';
+
+  Object.entries(de032s).forEach(([key, count]) => {
+    const card = document.createElement('div');
+    card.className = 'de32-card';
+    const displayName = bm32NameMap[key] ? ` (${bm32NameMap[key]})` : '';
+
+    card.innerHTML = `
+      <h4>DE032: ${key}${displayName}</h4>
+      <div class="count">Count: ${count}</div>
+      <button class="button">⬇️ Download</button>
+    `;
+
+    const btn = card.querySelector('.button');
+    btn.addEventListener('click', () => downloadFilteredFile(key));
+
+    container.appendChild(card);
+  });
+}
+
+// Download filtered file by DE032
+function downloadFilteredFile(de032Key) {
+  const formData = new FormData();
+  formData.append('de032', de032Key);
+  formData.append('filename', file.name);
+
+  showLoadingScreen();
+
+  fetch('/astrex_html_logs/download_filtered/', {
+    method: 'POST',
+    body: formData
+  }).then(res => res.json())
+  .then(result => {
+    hideLoadingScreen();
+    if (result.status === 'success') {
+      const link = document.createElement('a');
+      link.href = `/media/${result.filtered_file}`;
+      link.download = result.filtered_file.split('/').pop();
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      alert(result.message);
+    }
+  }).catch(err => {
+    hideLoadingScreen();
+    console.error(err);
+    alert('Download failed.');
+  });
+}
+
+// Download all filtered files
+document.getElementById('downloadAllBtn').addEventListener('click', function(event) {
+  event.stopPropagation();
+  showLoadingScreen();
+
+  const formData = new FormData();
+  formData.append('filename', file.name);
+
+  fetch('/astrex_html_logs/zip_filtered_files/', {
+    method: 'POST',
+    body: formData
+  }).then(res => res.json())
+  .then(result => {
+    hideLoadingScreen();
+    if (result.status === 'success') {
+      const link = document.createElement('a');
+      link.href = `/media/${result.zip_file}`;
+      link.download = result.zip_file.split('/').pop();
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      alert(result.message);
+    }
+  }).catch(err => {
+    hideLoadingScreen();
+    console.error(err);
+    alert('Download failed.');
+  });
+});
+
+// Copy filename button
+document.getElementById('copyFileNameBtn').addEventListener('click', function () {
+  const text = document.getElementById('uploadedFileName').textContent;
+  navigator.clipboard.writeText(text)
+    .then(() => {
+      document.getElementById('copyFileNameBtn').textContent = '✅ Copied!';
+      setTimeout(() => {
+        document.getElementById('copyFileNameBtn').textContent = '📋 Copy Filename';
+      }, 1500);
+    })
+    .catch(err => {
+      alert('Failed to copy filename');
+      console.error(err);
+    });
+});
+
+// Show/hide loading screen
 function showLoadingScreen() {
   document.getElementById('loadingScreen').style.display = 'flex';
-  cycleMedia();
 }
 
 function hideLoadingScreen() {
-  const media = document.querySelectorAll('.loading-media');
-  media.forEach(item => {
-    item.style.display = 'none';
-    if (item.tagName === 'VIDEO') {
-      item.pause();
-      item.currentTime = 0;
-    }
-  });
   document.getElementById('loadingScreen').style.display = 'none';
-  clearInterval(loadingTimerInterval);
 }
 
-function cycleMedia() {
-  const media = Array.from(document.querySelectorAll('.loading-media')).filter(el => {
-    if (el.tagName === 'VIDEO') {
-      return el.readyState > 0;
-    }
-    return true;
-  });
-
-  if (media.length === 0) return;
-
-  let currentIndex = 0;
-
-  function playNext() {
-    media[currentIndex].style.opacity = 0;
-    setTimeout(() => {
-      media[currentIndex].style.display = 'none';
-      currentIndex = (currentIndex + 1) % media.length;
-      const nextMedia = media[currentIndex];
-
-      if (nextMedia.tagName === 'VIDEO') {
-        try {
-          nextMedia.style.display = 'block';
-          nextMedia.style.opacity = 1;
-          nextMedia.play().then(() => {
-            nextMedia.onended = playNext;
-          }).catch(() => {
-            playNext();
-          });
-        } catch {
-          playNext();
-        }
-      } else {
-        nextMedia.style.display = 'block';
-        nextMedia.style.opacity = 1;
-        setTimeout(playNext, 2000);
-      }
-    }, 1000);
-  }
-
-  if (media[currentIndex].tagName === 'VIDEO') {
-    try {
-      media[currentIndex].style.display = 'block';
-      media[currentIndex].style.opacity = 1;
-      media[currentIndex].play().then(() => {
-        media[currentIndex].onended = playNext;
-      }).catch(() => {
-        playNext();
-      });
-    } catch {
-      playNext();
-    }
-  } else {
-    media[currentIndex].style.display = 'block';
-    media[currentIndex].style.opacity = 1;
-    setTimeout(playNext, 2000);
-  }
-}
-
+// Timer utilities
 function startLoadingTimer() {
-  const timerElement = document.getElementById('loadingTimer');
   loadingTimerInterval = setInterval(() => {
     const elapsedSeconds = Math.floor((new Date() - startTime) / 1000);
-    timerElement.textContent = calculateExecutionDuration(elapsedSeconds);
+    document.getElementById('scriptRunDuration').textContent = 
+      `Script Run Duration: ${calculateExecutionDuration(elapsedSeconds)}`;
   }, 1000);
 }
 
@@ -222,48 +212,3 @@ function calculateExecutionDuration(executionTime) {
   const seconds = executionTime % 60;
   return `${hours}h ${minutes}m ${seconds}s`;
 }
-
-document.getElementById('downloadAllBtn').addEventListener('click', function(event) {
-  event.stopPropagation();
-  showLoadingScreen();
-
-  const dlForm = new FormData();
-  dlForm.append('filename', file.name);
-
-  fetch('/astrex_html_logs/zip_filtered_files/', {
-    method: 'POST',
-    body: dlForm
-  }).then(res => res.json())
-  .then(result => {
-    if (result.status === 'success') {
-      const link = document.createElement('a');
-      link.href = `/media/${result.zip_file}`;
-      link.download = result.zip_file.split('/').pop();
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      alert(result.message);
-    }
-    hideLoadingScreen();
-  }).catch(err => {
-    hideLoadingScreen();
-    console.error(err);
-    alert('Download failed.');
-  });
-});
-
-document.getElementById('copyFileNameBtn').addEventListener('click', function () {
-  const text = document.getElementById('uploadedFileName').textContent;
-  navigator.clipboard.writeText(text)
-    .then(() => {
-      document.getElementById('copyFileNameBtn').textContent = '✅';
-      setTimeout(() => {
-        document.getElementById('copyFileNameBtn').textContent = '📋';
-      }, 1500);
-    })
-    .catch(err => {
-      alert('Failed to copy filename');
-      console.error(err);
-    });
-});
