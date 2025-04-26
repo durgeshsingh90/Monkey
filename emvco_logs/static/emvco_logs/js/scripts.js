@@ -1,3 +1,6 @@
+let bm32Config = {};
+let timerInterval;
+
 document.getElementById('xmlLogFile').addEventListener('change', function(event) {
     const file = event.target.files[0];
     if (!file) {
@@ -49,8 +52,6 @@ document.getElementById('xmlLogFile').addEventListener('change', function(event)
     });
 });
 
-let timerInterval;
-
 function startTimer() {
     let startTime = Date.now();
 
@@ -82,6 +83,59 @@ function getCookie(name) {
     return cookieValue;
 }
 
+function getBm32Info(bm32) {
+    for (const [scheme, stations] of Object.entries(bm32Config)) {
+        if (stations[bm32]) {
+            return {
+                stationName: stations[bm32],
+                schemeName: scheme
+            };
+        }
+    }
+    return null;
+}
+
+function displaySummary(data, uploadData) {
+    const summaryContent = document.getElementById('summaryContent');
+    const summaryContainer = document.getElementById('summaryContainer');
+    summaryContent.innerHTML = '';
+    summaryContainer.innerHTML = '';
+
+    summaryContent.innerHTML = `
+        <div>
+            <p>Total DE032 Count: ${data.total_de032_count}</p>
+            <p>Total Unique Count: ${data.total_unique_count}</p>
+            <p>Start Time: ${uploadData.start_time}</p>
+            <p>End Time: ${uploadData.end_time}</p>
+            <p>Time Difference: ${uploadData.time_difference}</p>
+        </div>
+    `;
+
+    const de32TotalCounts = data.total_counts;
+
+    if (Object.keys(de32TotalCounts).length > 0) {
+        document.getElementById('downloadAllBtn').style.display = 'block';
+    }
+
+    for (const [de32, count] of Object.entries(de32TotalCounts)) {
+        const info = getBm32Info(de32);
+        const card = document.createElement('div');
+        card.className = 'de32-card';
+
+        card.innerHTML = `
+        <h4>DE032: ${de32}</h4>
+        <p><strong>PSP:</strong> ${info ? info.stationName : 'Unknown'}</p>
+        <p><strong>Scheme:</strong> ${info ? info.schemeName : 'Unknown'}</p>
+        <p><strong>Count:</strong> ${count}</p>
+        <button onclick="downloadFiltered('${de32}')" class="button">Download Filtered ZIP</button>
+    `;
+    
+        summaryContainer.appendChild(card);
+    }
+
+    document.getElementById('downloadAllBtn').onclick = () => downloadAllFiltered(Object.keys(de32TotalCounts));
+}
+
 function loadSummary(uploadData) {
     console.log('Loading summary data');
 
@@ -90,39 +144,12 @@ function loadSummary(uploadData) {
     .then(data => {
         console.log('Summary data:', data);
 
-        const summaryContent = document.getElementById('summaryContent');
-        const summaryContainer = document.getElementById('summaryContainer');
-        summaryContent.innerHTML = '';
-        summaryContainer.innerHTML = '';
-
-        summaryContent.innerHTML = `
-            <div>
-                <p>Total DE032 Count: ${data.total_de032_count}</p>
-                <p>Total Unique Count: ${data.total_unique_count}</p>
-                <p>Start Time: ${uploadData.start_time}</p>
-                <p>End Time: ${uploadData.end_time}</p>
-                <p>Time Difference: ${uploadData.time_difference}</p>
-            </div>
-        `;
-
-        const de32TotalCounts = data.total_counts;
-
-        if (Object.keys(de32TotalCounts).length > 0) {
-            document.getElementById('downloadAllBtn').style.display = 'block';
-        }
-
-        for (const [de32, count] of Object.entries(de32TotalCounts)) {
-            const card = document.createElement('div');
-            card.className = 'de32-card';
-            card.innerHTML = `
-                <h4>DE032: ${de32}</h4>
-                <p>Count: ${count}</p>
-                <button onclick="downloadFiltered('${de32}')" class="button">Download Filtered ZIP</button>
-            `;
-            summaryContainer.appendChild(card);
-        }
-
-        document.getElementById('downloadAllBtn').onclick = () => downloadAllFiltered(Object.keys(de32TotalCounts));
+        return fetch('/media/astrex_html_logs/bm32_config.json')
+            .then(response => response.json())
+            .then(configData => {
+                bm32Config = configData;
+                displaySummary(data, uploadData);
+            });
     })
     .catch(error => {
         console.error('Error loading summary:', error);
