@@ -45,7 +45,7 @@
 
 <div id="loadingOverlay" class="loading-overlay" style="display: none;">
   <div class="loading-content">
-    <div id="gifContainer">
+    <div id="gifContainer" class="gif-container">
       <img src="{% static 'emvco_logs/images/monkey.gif' %}" class="loading-gif">
       <img src="{% static 'emvco_logs/images/cut.gif' %}" class="loading-gif">
       <img src="{% static 'emvco_logs/images/president.gif' %}" class="loading-gif">
@@ -54,12 +54,16 @@
       <img src="{% static 'emvco_logs/images/technician.gif' %}" class="loading-gif">
       <img src="{% static 'emvco_logs/images/telecommuting.gif' %}" class="loading-gif">
       <img src="{% static 'emvco_logs/images/work-in-progress.gif' %}" class="loading-gif">
-
     </div>
-    ⏳ Processing... Please wait...
+
+    <div class="processing-text">
+      ⏳ Processing... Please wait...
+    </div>
+
     <div id="timer">Elapsed time: 00:00</div>
   </div>
 </div>
+
 
 <script src="{% static 'emvco_logs/js/scripts.js' %}"></script>
 
