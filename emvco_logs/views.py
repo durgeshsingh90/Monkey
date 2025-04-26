@@ -109,10 +109,8 @@ def download_filtered_by_de032(request):
             if not conditions:
                 return JsonResponse({'status': 'error', 'error': 'No conditions provided'}, status=400)
 
-            json_path = os.path.join(settings.MEDIA_ROOT, 'emvco_logs', 'unique_bm32_emvco.json')
-
-            # Filter based on selected conditions
-            zip_file_path = filter_by_conditions(json_path, conditions)
+            # No need to pass JSON path anymore
+            zip_file_path = filter_by_conditions(conditions)
 
             zip_filename = os.path.basename(zip_file_path)
             return FileResponse(open(zip_file_path, 'rb'), as_attachment=True, filename=zip_filename)

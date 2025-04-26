@@ -10,6 +10,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Hardcoded global path for JSON
+SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # from scripts to emvco_logs
+JSON_FILE_PATH = os.path.join(SCRIPT_DIR, 'media', 'emvco_logs', 'unique_bm32_emvco.json')
+
+
 def element_to_string(element):
     """Convert element text and all subelement text to a single string."""
     content = []
@@ -88,16 +93,16 @@ def write_filtered_file(base_path, condition, part_xml_file, filtered_messages):
     new_tree.write(output_file, encoding='utf-8', xml_declaration=True)
     return output_file
 
-def filter_by_conditions(json_file_path, conditions):
+def filter_by_conditions(conditions):
     """
     Main callable function to filter XML messages based on DE032 conditions.
-    :param json_file_path: Path to unique_bm32_emvco.json
     :param conditions: List of DE032 values or conditions to filter
     """
     start_time = time.time()
 
-    output_base_path = os.path.dirname(json_file_path)
-    condition_file_map = load_json_mapping(json_file_path)
+    output_base_path = os.path.dirname(JSON_FILE_PATH)
+    condition_file_map = load_json_mapping(JSON_FILE_PATH)
+
 
     generated_files = []
 
