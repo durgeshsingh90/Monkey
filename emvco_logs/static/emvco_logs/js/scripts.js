@@ -131,6 +131,7 @@ function loadSummary(uploadData) {
 }
 
 function downloadFiltered(de32) {
+    console.log(`Downloading filtered results for DE032: ${de32}`);
     const payload = { conditions: [de32] };
 
     fetch('/emvco_logs/download_filtered_by_de032/', {
@@ -150,10 +151,11 @@ function downloadFiltered(de32) {
         document.body.appendChild(a);
         a.click();
         a.remove();
+        console.log(`Download started for ${de32} filtered results`);
     })
     .catch(error => {
         console.error('Download error:', error);
-        alert('Failed to download');
+        alert('Failed to download filtered results');
     });
 }
 
@@ -180,6 +182,6 @@ function downloadAllFiltered(de32List) {
     })
     .catch(error => {
         console.error('Download error:', error);
-        alert('Failed to download');
+        alert('Failed to download filtered results');
     });
 }
