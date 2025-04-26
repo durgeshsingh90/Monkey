@@ -142,16 +142,22 @@ function downloadFiltered(de32) {
         },
         body: JSON.stringify(payload)
     })
-    .then(response => response.blob())
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `filtered_${de32}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        console.log(`Download started for ${de32} filtered results`);
+    .then(response => response.json()) // ✅ expect JSON now, not blob
+    .then(data => {
+        if (data.status === 'success') {
+            const downloadUrl = '/media/' + data.filtered_file;
+            console.log(`Download URL: ${downloadUrl}`);
+
+            // Automatically trigger download
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = downloadUrl.split('/').pop();  // optional: force file name
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } else {
+            alert('Failed to download: ' + (data.error || 'Unknown error'));
+        }
     })
     .catch(error => {
         console.error('Download error:', error);
@@ -170,15 +176,22 @@ function downloadAllFiltered(de32List) {
         },
         body: JSON.stringify(payload)
     })
-    .then(response => response.blob())
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'filtered_all_de032.zip';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+    .then(response => response.json())  // ✅ expect JSON
+    .then(data => {
+        if (data.status === 'success') {
+            const downloadUrl = '/media/' + data.filtered_file;
+            console.log(`Download URL for all filtered: ${downloadUrl}`);
+
+            // Auto trigger download
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = downloadUrl.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } else {
+            alert('Failed to download all: ' + (data.error || 'Unknown error'));
+        }
     })
     .catch(error => {
         console.error('Download error:', error);
