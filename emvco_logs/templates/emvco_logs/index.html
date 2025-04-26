@@ -3,41 +3,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Upload Mastercard EMVCo Logs</title>
+  <title>Upload EMVCo XML Logs</title>
   <link rel="stylesheet" href="{% static 'emvco_logs/css/styles.css' %}">
-  <link rel="icon" href="{% static 'emvco_logs/images/data-filtering.png' %}" type="image/png">
+  <link rel="icon" href="{% static 'emvco_logs/images/debugging.png' %}" type="image/png">
 </head>
 <body>
 
 <div class="left-container">
-  <h3>Mastercard EMVCo Logs Uploader</h3>
+  <h3>XML EMVCo Logs Uploader</h3>
   
   <input type="file" id="xmlLogFile" accept=".xml">
   
-  <div id="logInfo" class="file-name" style="display: flex; justify-content: space-between; align-items: center;">
-    <span id="uploadedFileName" style="flex: 1;"></span>
-    <button id="copyFileNameBtn" title="Copy filename" style="background: none; border: none; cursor: pointer; font-size: 14px; display:none;">📋</button>
+  <div id="logInfo" class="file-name" style="margin-top: 10px;">
+    <span id="uploadedFileName"></span>
   </div>
+
+  <button id="downloadAllBtn" style="margin-top: 20px; display: none;">Download All Filtered (ZIP)</button>
 </div>
 
 <div class="main-container">
-  <div class="summary-container" id="summaryContainer">
-    <div class="summary-header">
-      <span class="summary-title">Summary</span>
-      <div class="right-items">
-        <button class="download-btn" id="downloadAllBtn" style="display: none;">Download All</button>
-      </div>
-    </div>
-    <div id="summaryDetails" class="summary-details"></div>
-  </div>
-
-  <div class="right-container" id="de032Container">
-    <!-- DE032 cards will be created dynamically -->
-  </div>
+  <div id="summaryContainer" class="summary-container"></div>
 </div>
 
-<div class="loading-screen" id="loadingScreen" style="display:none;">
-  <p id="loadingTimer">Loading...</p>
+<!-- Loading overlay with multiple GIFs -->
+<div id="loadingOverlay" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.9); z-index:9999; text-align:center; padding-top:100px; font-size:24px; font-weight:bold; color:#333;">
+    <div id="gifContainer" style="margin-bottom: 20px;">
+        <img src="{% static 'emvco_logs/images/search-file1.gif' %}" style="width: 100px; margin: 10px;">
+        <img src="{% static 'emvco_logs/images/search-file2.gif' %}" style="width: 100px; margin: 10px;">
+        <img src="{% static 'emvco_logs/images/search-file3.gif' %}" style="width: 100px; margin: 10px;">
+    </div>
+    ⏳ Processing... Please wait...
 </div>
 
 <script src="{% static 'emvco_logs/js/scripts.js' %}"></script>

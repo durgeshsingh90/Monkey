@@ -1,120 +1,137 @@
-// static/emvco_logs/js/scripts.js
+document.getElementById('xmlLogFile').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-let file = null;
-let de032_counts = {};
-let startTime;
-let loadingTimerInterval;
-
-document.getElementById('xmlLogFile').addEventListener('change', function(e) {
-    file = e.target.files[0];
-    document.getElementById('uploadedFileName').textContent = file ? file.name : '';
-
-    if (file) {
-        uploadFile();
-    }
-});
-
-function uploadFile() {
-    if (!file || !file.name.endsWith('.xml')) {
-        alert('Please select a valid XML file.');
+    if (!file.name.endsWith('.xml')) {
+        alert('Please upload an XML file only.');
         return;
     }
 
-    startTime = new Date();
-    startLoadingScreen();
+    document.getElementById('loadingOverlay').style.display = 'block';
 
     const formData = new FormData();
     formData.append('file', file);
 
-    fetch('/emvco_logs/upload_log/', {
+    fetch('/emvco_logs/upload/', {
         method: 'POST',
-        body: formData
-    }).then(res => res.json())
-      .then(data => {
-        stopLoadingScreen();
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('loadingOverlay').style.display = 'none';
 
         if (data.status === 'success') {
-            const container = document.getElementById('de032Container');
-            container.innerHTML = '';
+            document.getElementById('uploadedFileName').textContent = data.filename;
+            loadSummary();
+        } else {
+            alert('Upload failed: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        console.error('Upload error:', error);
+        alert('Upload failed');
+    });
+});
 
-            de032_counts = data.de032_counts;
-            const totalCount = data.total_de032_count;
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+            const trimmedCookie = cookie.trim();
+            if (trimmedCookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(trimmedCookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 
-            const summaryDetails = document.getElementById('summaryDetails');
-            summaryDetails.innerHTML = `
-                <p>Total Unique DE032: ${Object.keys(de032_counts).length}</p>
-                <p>Total Occurrences: ${totalCount}</p>
+function loadSummary() {
+    fetch('/media/emvco_logs/unique_bm32_emvco.json')
+    .then(response => response.json())
+    .then(data => {
+        const summaryContainer = document.getElementById('summaryContainer');
+        summaryContainer.innerHTML = '';
+
+        const de32List = Object.keys(data.total_counts || {});
+        
+        if (de32List.length > 0) {
+            document.getElementById('downloadAllBtn').style.display = 'block';
+        }
+
+        de32List.forEach(de32 => {
+            const card = document.createElement('div');
+            card.className = 'de32-card';
+            card.innerHTML = `
+                <h4>DE032: ${de32}</h4>
+                <button onclick="downloadFiltered('${de32}')">Download Filtered ZIP</button>
             `;
+            summaryContainer.appendChild(card);
+        });
 
-            Object.entries(de032_counts).forEach(([key, count]) => {
-                const box = document.createElement('div');
-                box.className = 'de032-box';
-                box.innerHTML = `
-                    <div class="de032-header">DE032: ${key}</div>
-                    <div class="count">Count: ${count}</div>
-                    <button class="download-btn">Download</button>
-                `;
-
-                const btn = box.querySelector('.download-btn');
-                btn.addEventListener('click', () => downloadFiltered(key));
-
-                container.appendChild(box);
-            });
-        } else {
-            alert(data.message);
-        }
+        document.getElementById('downloadAllBtn').onclick = () => downloadAllFiltered(de32List);
     })
-    .catch(err => {
-        stopLoadingScreen();
-        console.error(err);
-        alert('Upload failed.');
+    .catch(error => {
+        console.error('Error loading summary:', error);
     });
 }
 
-function downloadFiltered(de032) {
-    const dlForm = new FormData();
-    dlForm.append('de032', de032);
-    dlForm.append('filename', file.name);
+function downloadFiltered(de32) {
+    const payload = { conditions: [de32] };
 
-    startLoadingScreen();
-
-    fetch('/emvco_logs/download_filtered/', {
+    fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
-        body: dlForm
-    }).then(res => res.json())
-      .then(result => {
-        stopLoadingScreen();
-        if (result.status === 'success') {
-            const link = document.createElement('a');
-            link.href = `/media/${result.filtered_file}`;
-            link.download = result.filtered_file.split('/').pop();
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } else {
-            alert(result.message);
-        }
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(payload)
     })
-    .catch(err => {
-        stopLoadingScreen();
-        console.error(err);
-        alert('Download failed.');
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `filtered_${de32}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    })
+    .catch(error => {
+        console.error('Download error:', error);
+        alert('Failed to download');
     });
 }
 
-function startLoadingScreen() {
-    document.getElementById('loadingScreen').style.display = 'block';
-    startTimer();
-}
+function downloadAllFiltered(de32List) {
+    const payload = { conditions: de32List };
 
-function stopLoadingScreen() {
-    document.getElementById('loadingScreen').style.display = 'none';
-    clearInterval(loadingTimerInterval);
-}
-
-function startTimer() {
-    loadingTimerInterval = setInterval(() => {
-        const elapsedSeconds = Math.floor((new Date() - startTime) / 1000);
-        document.getElementById('loadingTimer').textContent = `Loading: ${elapsedSeconds}s`;
-    }, 1000);
+    fetch('/emvco_logs/download_filtered_by_de032/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'filtered_all_de032.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    })
+    .catch(error => {
+        console.error('Download error:', error);
+        alert('Failed to download');
+    });
 }

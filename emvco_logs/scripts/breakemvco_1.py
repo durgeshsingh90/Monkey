@@ -1,36 +1,34 @@
 import os
 import logging
 
-logger = logging.getLogger('emvco_logs')
+# Configure logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    handlers=[logging.StreamHandler()])
 
-
-def split_file(file_path, max_file_size=20*1024*1024):
-    """Split a file into smaller files with a maximum size."""
+def process_file(file_path, max_file_size=20*1024*1024):
+    """
+    Splits the uploaded XML file into smaller parts if it exceeds max_file_size.
+    Called automatically after file upload.
+    """
     base_name, ext = os.path.splitext(file_path)
-    
-    logger.info(f"Starting to split file: {file_path}")
-    
+
+    logging.info(f"Starting to split file: {file_path}")
+
     with open(file_path, 'rb') as source_file:
         file_part = 0
         while True:
-            logger.debug(f"Reading chunk {file_part} from the file.")
-            # Read chunks of max_file_size
+            logging.debug(f"Reading chunk {file_part} from the file.")
             chunk = source_file.read(max_file_size)
             if not chunk:
-                logger.info(f"Finished reading file. Total parts created: {file_part}.")
+                logging.info(f"Finished reading file. Total parts created: {file_part}.")
                 break
 
-            # Write chunks to new file parts
             file_part_name = f"{base_name}_part{file_part}{ext}"
-            logger.debug(f"Writing chunk {file_part} to file: {file_part_name}")
+            logging.debug(f"Writing chunk {file_part} to file: {file_part_name}")
             with open(file_part_name, 'wb') as dest_file:
                 dest_file.write(chunk)
-            file_part += 1
-    
-    logger.info(f"File split into {file_part} parts.")
 
-# Example usage
-# split_file(r"C:\Users\f94gdos\Desktop\TP\L3_2025-03-19-1722.xml")
-# At bottom of file
-def run_breakhtml(filepath, max_file_size=20*1024*1024):
-    split_file(filepath, max_file_size)
+            file_part += 1
+
+    logging.info(f"File split into {file_part} parts.")
