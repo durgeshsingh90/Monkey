@@ -178,19 +178,33 @@ def save_config(request):
 def load_config(request):
     config_path = os.path.join(settings.MEDIA_ROOT, 'astrex_html_logs', 'bm32_config.json')
 
-    # 👇 Add this block to recreate default if missing
+    # 🚀 If missing, recreate with full default nested structure
     if not os.path.exists(config_path):
         default_config = {
-            "411111": "Visa PSP India",
-            "512345": "MasterCard PSP Dubai",
-            "456789": "RuPay Test Node",
-            "622126": "UnionPay China Gateway",
-            "370000": "Amex Sandbox"
+            "Diners Club": {
+                "360001": "Diners Club Test Gateway",
+                "360002": "Diners Club Production Node"
+            },
+            "Visa": {
+                "411111": "Visa PSP India",
+                "450001": "Visa Europe Node",
+                "450002": "Visa USA Node"
+            },
+            "MasterCard": {
+                "512345": "MasterCard PSP Dubai",
+                "520082": "MasterCard Sandbox Singapore",
+                "530125": "MasterCard PSP India"
+            },
+            "JCB": {
+                "352800": "JCB Japan PSP",
+                "353011": "JCB Asia Production"
+            },
         }
         os.makedirs(os.path.dirname(config_path), exist_ok=True)
         with open(config_path, 'w') as f:
             json.dump(default_config, f, indent=2)
 
+    # 🚀 Now safely load the config
     with open(config_path, 'r') as f:
         data = json.load(f)
 
