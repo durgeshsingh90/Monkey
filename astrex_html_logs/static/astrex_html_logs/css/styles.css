@@ -143,3 +143,23 @@ body {
 #downloadAllBtn {
   margin-top: 10px;
 }
+
+.file-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#copyFileNameBtn {
+  padding: 5px 10px;
+  font-size: 14px;
+  background-color: #20c997;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#copyFileNameBtn:hover {
+  background-color: #198f77;
+}

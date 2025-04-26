@@ -8,18 +8,32 @@ let bm32NameMap = {};
 // Load config mapping (bm32 name mappings)
 fetch('/astrex_html_logs/load_config/')
   .then(res => res.json())
-  .then(config => { bm32NameMap = config || {}; });
+  .then(config => {
+    bm32NameMap = {};
 
-// When file is selected
+    // Flatten nested brand -> bin -> name structure
+    Object.keys(config).forEach(brand => {
+      const binMapping = config[brand];
+      Object.keys(binMapping).forEach(bin => {
+        bm32NameMap[bin] = binMapping[bin];
+      });
+    });
+  });
+
+// Handle file selection
 document.getElementById('htmlLogFile').addEventListener('change', function(e) {
   file = e.target.files[0];
   document.getElementById('uploadedFileName').textContent = file ? file.name : '';
+
   if (file) {
+    document.getElementById('copyFileNameBtn').style.display = 'inline-block'; // Show copy icon
     uploadFile();
+  } else {
+    document.getElementById('copyFileNameBtn').style.display = 'none'; // Hide copy icon
   }
 });
 
-// Upload HTML log file
+// Upload the selected file
 function uploadFile() {
   if (!file || !file.name.endsWith('.html')) {
     alert('Please select a valid HTML file.');
@@ -45,6 +59,8 @@ function uploadFile() {
     if (data.status === 'success') {
       populateSummary(data);
       populateDE032Cards(data.de032_counts);
+
+      document.getElementById('scriptRunDuration').style.display = 'block'; // ✅ Show script duration AFTER processing
     } else {
       alert(data.message);
     }
@@ -58,7 +74,7 @@ function uploadFile() {
   });
 }
 
-// Populate Summary details
+// Fill Summary Details
 function populateSummary(data) {
   const summaryDetails = document.getElementById('summaryDetails');
   summaryDetails.innerHTML = `
@@ -69,10 +85,10 @@ function populateSummary(data) {
     <p><strong>Log Duration:</strong> ${calculateDuration(data.start_log_time, data.end_log_time)}</p>
   `;
 
-  document.getElementById('scriptRunDuration').textContent = 
+  document.getElementById('scriptRunDuration').textContent =
     `Script Run Duration: ${calculateExecutionDuration(Math.floor((new Date() - startTime) / 1000))}`;
 
-  document.getElementById('downloadAllBtn').style.display = 'inline-block';
+  document.getElementById('downloadAllBtn').style.display = 'inline-block'; // Enable download all
 }
 
 // Create DE032 cards
@@ -98,7 +114,7 @@ function populateDE032Cards(de032s) {
   });
 }
 
-// Download filtered file by DE032
+// Download filtered by DE032
 function downloadFilteredFile(de032Key) {
   const formData = new FormData();
   formData.append('de032', de032Key);
@@ -129,7 +145,7 @@ function downloadFilteredFile(de032Key) {
   });
 }
 
-// Download all filtered files
+// Download all filtered
 document.getElementById('downloadAllBtn').addEventListener('click', function(event) {
   event.stopPropagation();
   showLoadingScreen();
@@ -160,14 +176,14 @@ document.getElementById('downloadAllBtn').addEventListener('click', function(eve
   });
 });
 
-// Copy filename button
+// Copy filename to clipboard
 document.getElementById('copyFileNameBtn').addEventListener('click', function () {
   const text = document.getElementById('uploadedFileName').textContent;
   navigator.clipboard.writeText(text)
     .then(() => {
-      document.getElementById('copyFileNameBtn').textContent = '✅ Copied!';
+      document.getElementById('copyFileNameBtn').textContent = '✅';
       setTimeout(() => {
-        document.getElementById('copyFileNameBtn').textContent = '📋 Copy Filename';
+        document.getElementById('copyFileNameBtn').textContent = '📋';
       }, 1500);
     })
     .catch(err => {
@@ -176,7 +192,7 @@ document.getElementById('copyFileNameBtn').addEventListener('click', function ()
     });
 });
 
-// Show/hide loading screen
+// Show and hide loading screen
 function showLoadingScreen() {
   document.getElementById('loadingScreen').style.display = 'flex';
 }
@@ -189,7 +205,7 @@ function hideLoadingScreen() {
 function startLoadingTimer() {
   loadingTimerInterval = setInterval(() => {
     const elapsedSeconds = Math.floor((new Date() - startTime) / 1000);
-    document.getElementById('scriptRunDuration').textContent = 
+    document.getElementById('scriptRunDuration').textContent =
       `Script Run Duration: ${calculateExecutionDuration(elapsedSeconds)}`;
   }, 1000);
 }

@@ -1,6 +1,6 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-{% load static %}
 <head>
   <meta charset="UTF-8">
   <title>Astrex HTML Log Processor</title>
@@ -12,26 +12,39 @@
 <div class="container">
 
   <div class="top-row">
+
+    <!-- LEFT: Upload Log Section -->
     <div class="left-section">
-      <h2>Upload Astrex HTML Log</h2>
-      <input type="file" id="htmlLogFile" accept=".html">
-      <div class="file-name">
-        <span id="uploadedFileName"></span>
-        <button id="copyFileNameBtn" class="button">📋 Copy Filename</button>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Upload Astrex HTML Log</h2>
+        <a href="/astrex_html_logs/admin/" title="Admin Settings" style="font-size: 24px; text-decoration: none; color: #20c997;">⚙️</a>
       </div>
-      <a href="/astrex_html_logs/admin/" class="button" style="background-color: #20c997;">⚙️ Admin Settings</a>
+
+      <input type="file" id="htmlLogFile" accept=".html" style="margin-top: 10px;">
+
+      <div class="file-name" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+        <span id="uploadedFileName" style="flex: 1;"></span>
+        <button id="copyFileNameBtn" class="button" style="padding: 5px 10px; font-size: 14px; display: none;">📋</button>
+      </div>
+
+      <button id="downloadAllBtn" class="button" style="margin-top: 10px; display: none;">⬇️ Download All Filtered Files</button>
+
+      <p id="scriptRunDuration" style="margin-top: 10px; font-weight: bold; display: none;">Script Run Duration: 0h 0m 0s</p>
+
     </div>
 
+    <!-- RIGHT: Summary Section -->
     <div class="right-section">
       <div class="summary-container">
         <h3>Summary</h3>
         <div id="summaryDetails"></div>
-        <button id="downloadAllBtn" class="button" style="display: none;">⬇️ Download All Filtered Files</button>
-        <p id="scriptRunDuration">Script Run Duration: 0h 0m 0s</p>
       </div>
     </div>
+
   </div>
 
+  <!-- BOTTOM: Unique DE032 Values -->
   <div class="bottom-row">
     <div class="unique-de32-container">
       <h3>Unique DE032 Values</h3>
@@ -41,6 +54,7 @@
 
 </div>
 
+<!-- Loading Overlay -->
 <div class="loading-overlay" id="loadingScreen" style="display:none;">
   <div class="loading-content">
     <img src="{% static 'astrex_html_logs/images/search-file1.gif' %}" alt="Loading" class="loading-gif">
