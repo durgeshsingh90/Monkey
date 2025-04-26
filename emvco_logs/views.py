@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from django.shortcuts import render
 from django.http import JsonResponse, FileResponse
 from django.conf import settings
@@ -9,9 +10,11 @@ from django.views.decorators.csrf import csrf_exempt
 from .scripts.breakemvco_1 import process_file as split_file
 from .scripts.adjustemvco_2 import adjust_file as fix_unclosed_online_messages
 from .scripts.adjustelements_3 import adjust_elements
-from .scripts.unique_de32_emvco_4 import extract_de032
+from .scripts.unique_de32_emvco_4 import extract_de032  # Ensure correct import
 from .scripts.emvco_filter_5 import filter_by_conditions
 from .scripts.format_emvco_filter_6 import format_filtered_xml
+
+logger = logging.getLogger(__name__)
 
 def clear_previous_files():
     folder = os.path.join(settings.MEDIA_ROOT, 'emvco_logs')
@@ -23,12 +26,13 @@ def clear_previous_files():
             try:
                 os.remove(file_path)
             except Exception as e:
-                print(f"Error deleting {file_path}: {e}")
+                logger.error(f"Error deleting {file_path}: {e}")
 
 def index(request):
     clear_previous_files()
     return render(request, 'emvco_logs/index.html')
 
+@csrf_exempt    
 def upload_file(request):
     if request.method == 'POST' and request.FILES.get('file'):
         try:
@@ -58,6 +62,7 @@ def upload_file(request):
             return JsonResponse({'status': 'success', 'filename': uploaded_file.name})
         
         except Exception as e:
+            logger.error(f"Error processing file: {e}")
             return JsonResponse({'status': 'error', 'error': str(e)}, status=500)
 
     return JsonResponse({'status': 'error', 'error': 'Invalid request'}, status=400)
@@ -100,6 +105,7 @@ def download_filtered_by_de032(request):
             return FileResponse(open(zip_file_path, 'rb'), as_attachment=True, filename=zip_filename)
 
         except Exception as e:
+            logger.error(f"Error downloading filtered data: {e}")
             return JsonResponse({'status': 'error', 'error': str(e)}, status=500)
 
     return JsonResponse({'status': 'error', 'error': 'Invalid request'}, status=400)

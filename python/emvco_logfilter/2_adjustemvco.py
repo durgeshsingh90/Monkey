@@ -67,4 +67,4 @@ def process_xml_parts(file_path):
         part_number += 1
 
 # Example usage:
-process_xml_parts(r"C:\Users\f94gdos\Desktop\TP\L3_2025-03-19-1722.xml")
+process_xml_parts("C:\Users\f94gdos\Desktop\New folder\L3_2025-03-19-1722.xml")

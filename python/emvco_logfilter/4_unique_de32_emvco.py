@@ -88,7 +88,7 @@ if __name__ == "__main__":
     logger.info("Script execution started.")
 
     # Provide the base path to your XML file (without the _partX suffix)
-    base_file_path = r"C:\Users\f94gdos\Desktop\TP\L3_2025-03-19-1722"
+    base_file_path = r"C:\Users\f94gdos\Desktop\New folder\L3_2025-03-19-1722"
     file_level_counts, total_value_counts, total_de032_count, total_unique_count = get_de032_values(base_file_path)
 
     output = {

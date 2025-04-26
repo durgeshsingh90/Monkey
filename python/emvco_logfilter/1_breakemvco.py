@@ -32,4 +32,4 @@ def split_file(file_path, max_file_size=20*1024*1024):
     logging.info(f"File split into {file_part} parts.")
 
 # Example usage
-split_file(r"C:\Users\f94gdos\Desktop\TP\L3_2025-03-19-1722.xml")
+split_file(r"C:\Users\f94gdos\Desktop\New folder\L3_2025-03-19-1722.xml")

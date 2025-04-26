@@ -27,15 +27,17 @@ document.getElementById('xmlLogFile').addEventListener('change', function(event)
             document.getElementById('uploadedFileName').textContent = data.filename;
             loadSummary();
         } else {
+            console.error('Server Error:', data.error);  // Log the specific server error
             alert('Upload failed: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
         document.getElementById('loadingOverlay').style.display = 'none';
-        console.error('Upload error:', error);
+        console.error('Fetch Error:', error);  // More specific error logging
         alert('Upload failed');
     });
 });
+
 
 function getCookie(name) {
     let cookieValue = null;
