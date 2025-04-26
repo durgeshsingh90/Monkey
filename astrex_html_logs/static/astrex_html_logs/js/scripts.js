@@ -287,6 +287,11 @@ function hideLoadingScreen() {
 
 function updateElapsedTime() {
   const now = new Date();
-  const elapsedSeconds = Math.floor((now - loadingStartTime) / 1000);
-  document.getElementById('elapsedTime').textContent = `Elapsed Time: ${elapsedSeconds}s`;
+  const elapsedMs = now - loadingStartTime;
+  const elapsedSeconds = Math.floor(elapsedMs / 1000);
+
+  const minutes = Math.floor(elapsedSeconds / 60);
+  const seconds = elapsedSeconds % 60;
+
+  document.getElementById('elapsedTime').textContent = `Elapsed Time: ${minutes}m ${seconds}s`;
 }
