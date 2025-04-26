@@ -46,6 +46,7 @@ urlpatterns = [
     path('runquery/', include('runquery.urls')),
     path('compare/', include('compare.urls')),
     path('yaml2json/', include('yaml2json.urls')),
+    path('xlog_mastercard/', include('xlog_mastercard.urls')),
 
 
 ]

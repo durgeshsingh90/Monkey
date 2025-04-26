@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'splunkrrn',
     'runquery',
     'compare',
-    'yaml2json'
+    'yaml2json',
+    'xlog_mastercard'
 ]
 
 LOG_DIR = BASE_DIR / 'logs'
@@ -257,6 +258,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "pdf_merger/static",
     BASE_DIR / "compare/static",
     BASE_DIR / "yaml2json/static",
+    BASE_DIR / "xlog_mastercard/static",
 
 
     

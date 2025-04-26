@@ -1,10 +1,11 @@
-import xml.etree.ElementTree as ET
 import os
+import glob
 import json
-from concurrent.futures import ProcessPoolExecutor
 import logging
 import time
 from datetime import datetime
+import xml.etree.ElementTree as ET
+from concurrent.futures import ProcessPoolExecutor
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -31,6 +32,7 @@ def process_file(part_file_path):
     file_value_counts = {}
     file_total_count = 0
     first_timestamp, last_timestamp = None, None
+
     try:
         tree = ET.parse(part_file_path)
         root = tree.getroot()
@@ -67,14 +69,8 @@ def process_file(part_file_path):
     }
 
 def get_all_files(base_path):
-    part_number = 0
-    part_file_paths = []
-    while True:
-        part_file_path = f"{base_path}_part{part_number}.xml"
-        if not os.path.exists(part_file_path):
-            break
-        part_file_paths.append(part_file_path)
-        part_number += 1
+    split_folder = f"{os.path.splitext(base_path)[0]}_split"
+    part_file_paths = sorted(glob.glob(os.path.join(split_folder, '*.xlog')))
     logger.debug(f"Found {len(part_file_paths)} files to process.")
     return part_file_paths
 
@@ -86,14 +82,14 @@ def format_time_difference(delta):
 
 def extract_de032(base_file_path, max_workers=10):
     """
-    Extracts DE.032 field values from XML part files and saves a summary JSON.
+    Extracts DE.032 field values from split .xlog files and saves a summary JSON.
     """
     base_path, _ = os.path.splitext(base_file_path)
 
     start_time = time.time()
     logger.info("Starting DE032 extraction")
 
-    part_file_paths = get_all_files(base_path)
+    part_file_paths = get_all_files(base_file_path)
     total_value_counts = {}
     file_level_counts = []
     overall_first_timestamp, overall_last_timestamp = None, None
@@ -106,7 +102,7 @@ def extract_de032(base_file_path, max_workers=10):
             file_level_counts.append(result)
             for value, count in result["counts"].items():
                 total_value_counts[value] = total_value_counts.get(value, 0) + count
-            
+
             if result["first_timestamp"] and (not overall_first_timestamp or result["first_timestamp"] < overall_first_timestamp):
                 overall_first_timestamp = result["first_timestamp"]
             if result["last_timestamp"] and (not overall_last_timestamp or result["last_timestamp"] > overall_last_timestamp):
@@ -127,8 +123,8 @@ def extract_de032(base_file_path, max_workers=10):
         time_difference = end_dt - start_dt
         output["time_difference"] = format_time_difference(time_difference)
 
-    output_file_path = os.path.join(os.path.dirname(base_path), "unique_bm32_emvco.json")
-    with open(output_file_path, 'w') as json_file:
+    output_file_path = os.path.join(os.path.dirname(base_path), "unique_bm32_xlog.json")
+    with open(output_file_path, 'w', encoding='utf-8') as json_file:
         json.dump(output, json_file, indent=4)
 
     end_time = time.time()

@@ -12,10 +12,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Hardcoded global path for JSON
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # go 2 levels up
-JSON_FILE_PATH = os.path.join(PROJECT_ROOT, 'media', 'emvco_logs', 'unique_bm32_emvco.json')
+JSON_FILE_PATH = os.path.join(PROJECT_ROOT, 'media', 'xlog_mastercard', 'unique_bm32_xlog.json')
 
-from emvco_logs.scripts.format_emvco_filter_6 import format_filtered_xml
-
+from xlog_mastercard.scripts.format_xlog_filter_6 import format_filtered_xml  # updated import
 
 def element_to_string(element):
     """Convert element text and all subelement text to a single string."""
@@ -42,29 +41,23 @@ def evaluate_conditions(content, conditions):
 
     return parse_condition(conditions)
 
-def filter_online_messages(part_xml_file, condition):
+def filter_log_entries(part_xlog_file, condition):
     try:
-        tree = ET.parse(part_xml_file)
+        tree = ET.parse(part_xlog_file)
     except ET.ParseError as e:
-        logging.error(f"Error parsing {part_xml_file}: {e}")
+        logging.error(f"Error parsing {part_xlog_file}: {e}")
         return []
 
     root = tree.getroot()
-    online_message_list = root.find('OnlineMessageList')
-    filtered_messages = []
+    filtered_entries = []
 
-    if online_message_list is not None:
-        keep_message = False
-        for online_message in online_message_list.findall('OnlineMessage'):
-            content = element_to_string(online_message)
+    if root.tag == 'log':
+        for log_entry in root.findall('logEntry'):
+            content = element_to_string(log_entry)
             if evaluate_conditions(content, condition):
-                keep_message = True
-                filtered_messages.append(online_message)
-            elif keep_message:
-                filtered_messages.append(online_message)
-                keep_message = False
+                filtered_entries.append(log_entry)
 
-    return filtered_messages
+    return filtered_entries
 
 def load_json_mapping(json_file_path):
     with open(json_file_path, 'r') as f:
@@ -80,37 +73,34 @@ def load_json_mapping(json_file_path):
             file_mappings[condition].append(file_path)
     return file_mappings
 
-def write_filtered_file(base_path, condition, part_xml_file, filtered_messages):
-    base_name, ext = os.path.splitext(os.path.basename(part_xml_file))
-    base_name = '_'.join(base_name.split('_')[:-1])
+def write_filtered_file(base_path, condition, part_xlog_file, filtered_entries):
+    base_name, ext = os.path.splitext(os.path.basename(part_xlog_file))
+    base_name = '_'.join(base_name.split('_')[:-1])  # Remove _block_0000
+
     output_file = os.path.join(base_path, f"{base_name}_filtered_{condition}{ext}")
 
-    new_tree = ET.ElementTree(ET.Element("Root"))
-    new_root = new_tree.getroot()
-    online_message_list = ET.SubElement(new_root, "OnlineMessageList")
+    new_log_root = ET.Element("log")
+    for entry in filtered_entries:
+        new_log_root.append(entry)
 
-    for message in filtered_messages:
-        online_message_list.append(message)
-
+    new_tree = ET.ElementTree(new_log_root)
     new_tree.write(output_file, encoding='utf-8', xml_declaration=True)
     return output_file
 
 def filter_by_conditions(conditions, uploaded_file_path):
     """
-    Main callable function to filter XML messages based on DE032 conditions.
-    :param conditions: List of DE032 values or conditions to filter
+    Main callable function to filter .xlog messages based on DE032 conditions.
     """
     start_time = time.time()
 
     output_base_path = os.path.dirname(JSON_FILE_PATH)
     condition_file_map = load_json_mapping(JSON_FILE_PATH)
 
-
     generated_files = []
 
     for idx, condition in enumerate(conditions, start=1):
         logging.info(f"Processing condition {idx}/{len(conditions)}: {condition}")
-        filtered_messages = []
+        filtered_entries = []
 
         part_files = condition_file_map.get(condition, [])
         if not part_files:
@@ -118,16 +108,16 @@ def filter_by_conditions(conditions, uploaded_file_path):
             continue
 
         with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = {executor.submit(filter_online_messages, part_file, condition): part_file for part_file in part_files}
+            futures = {executor.submit(filter_log_entries, part_file, condition): part_file for part_file in part_files}
             for future in as_completed(futures):
                 try:
-                    part_filtered_messages = future.result()
-                    filtered_messages.extend(part_filtered_messages)
+                    part_filtered_entries = future.result()
+                    filtered_entries.extend(part_filtered_entries)
                 except Exception as exc:
                     logging.error(f"Error in part file '{futures[future]}': {exc}")
 
-        if filtered_messages:
-            output_file = write_filtered_file(output_base_path, condition, part_files[0], filtered_messages)
+        if filtered_entries:
+            output_file = write_filtered_file(output_base_path, condition, part_files[0], filtered_entries)
             # Format the filtered XML before zipping
             format_filtered_xml(output_file, uploaded_file_path)
             generated_files.append(output_file)
@@ -140,7 +130,7 @@ def filter_by_conditions(conditions, uploaded_file_path):
         for file in generated_files:
             zipf.write(file, os.path.basename(file))
             logging.info(f"Added '{file}' to ZIP.")
-    
+
     # Clean up individual XMLs after zipping
     for file in generated_files:
         if os.path.exists(file):
