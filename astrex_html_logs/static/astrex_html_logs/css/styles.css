@@ -163,3 +163,11 @@ body {
 #copyFileNameBtn:hover {
   background-color: #198f77;
 }
+
+.loading-gif {
+  width: 120px;
+  margin: 10px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  display: none;
+}
