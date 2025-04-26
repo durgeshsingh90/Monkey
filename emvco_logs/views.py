@@ -107,17 +107,24 @@ def download_filtered_by_de032(request):
             conditions = data.get('conditions', [])
 
             if not conditions:
-                return JsonResponse({'status': 'error', 'error': 'No conditions provided'}, status=400)
+                return JsonResponse({'status': 'error', 'error': 'No conditions provided'})
 
-            # No need to pass JSON path anymore
+            # Run the filtering script
             zip_file_path = filter_by_conditions(conditions)
 
-            zip_filename = os.path.basename(zip_file_path)
-            return FileResponse(open(zip_file_path, 'rb'), as_attachment=True, filename=zip_filename)
+            if zip_file_path and os.path.exists(zip_file_path):
+                # Respond with JSON path (like astrex app)
+                relative_zip_path = f"emvco_logs/{os.path.basename(zip_file_path)}"
+                return JsonResponse({
+                    'status': 'success',
+                    'filtered_file': relative_zip_path
+                })
+            else:
+                return JsonResponse({'status': 'error', 'error': 'Filtered ZIP not created.'})
 
         except Exception as e:
-            logger.error(f"Error downloading filtered data: {e}")
-            return JsonResponse({'status': 'error', 'error': str(e)}, status=500)
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'status': 'error', 'error': f'Error: {str(e)}'})
 
-    logger.warning("Invalid request method or missing conditions")
-    return JsonResponse({'status': 'error', 'error': 'Invalid request'}, status=400)
+    return JsonResponse({'status': 'error', 'error': 'Invalid request'})
