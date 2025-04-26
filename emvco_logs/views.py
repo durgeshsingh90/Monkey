@@ -1,24 +1,24 @@
-# emvco_logs/views.py
-
 import os
 import json
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
-# Import your 6 scripts (your uploaded ones)
-from .scripts.breakemvco_1 import run_breakhtml
-from .scripts.adjustemvco_2 import adjust_emvco_file
+# Import your processing scripts
+from .scripts.breakemvco_1 import process_file as split_file
+from .scripts.adjustemvco_2 import adjust_file as fix_unclosed_online_messages
 from .scripts.adjustelements_3 import adjust_elements
 from .scripts.unique_de32_emvco_4 import extract_de032
-from .scripts.emvco_filter_5 import filter_conditions_and_zip
-from .scripts.format_emv_filter_6 import fix_filtered_file
+from .scripts.emvco_filter_5 import filter_by_conditions
+from .scripts.format_emvco_filter_6 import format_filtered_xml
 
 def clear_previous_files():
     folder = os.path.join(settings.MEDIA_ROOT, 'emvco_logs')
     if os.path.exists(folder):
         for filename in os.listdir(folder):
+            if filename in ["bm32_config.json"]:  # Skip important files
+                continue
             file_path = os.path.join(folder, filename)
             try:
                 os.remove(file_path)
@@ -29,85 +29,77 @@ def index(request):
     clear_previous_files()
     return render(request, 'emvco_logs/index.html')
 
-@csrf_exempt
-def upload_log(request):
+def upload_file(request):
     if request.method == 'POST' and request.FILES.get('file'):
         try:
-            uploaded_file = request.FILES['file']
-            filename = uploaded_file.name.lower()
-
-            upload_path = os.path.join(settings.MEDIA_ROOT, 'emvco_logs')
-            os.makedirs(upload_path, exist_ok=True)
-            file_path = os.path.join(upload_path, uploaded_file.name)
-
             clear_previous_files()
 
-            with open(file_path, 'wb+') as destination:
+            uploaded_file = request.FILES['file']
+            save_path = os.path.join(settings.MEDIA_ROOT, 'emvco_logs', uploaded_file.name)
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+            # Save uploaded file
+            with open(save_path, 'wb+') as destination:
                 for chunk in uploaded_file.chunks():
                     destination.write(chunk)
 
-            if filename.endswith('.xml'):
-                base_file_path = file_path[:-4]
+            # Step 1: Split the uploaded XML
+            split_file(save_path)
 
-                # Sequentially run your uploaded scripts
-                run_breakhtml(file_path)
-                adjust_emvco_file(file_path)
-                adjust_elements(file_path)
-                json_file = extract_de032(base_file_path)
+            # Step 2: Adjust unclosed OnlineMessage elements
+            fix_unclosed_online_messages(save_path)
 
-                with open(json_file, 'r') as f:
-                    data = json.load(f)
+            # Step 3: Prepend and append header/footer
+            adjust_elements(save_path)
 
-                de032_counts = data.get('total_counts', {})
-                total_de032_count = data.get('total_de032_count', 0)
+            # Step 4: Extract DE032 summary
+            extract_de032(save_path)
 
-                return JsonResponse({
-                    'status': 'success',
-                    'message': f'File {uploaded_file.name} uploaded and processed successfully.',
-                    'filename': uploaded_file.name,
-                    'de032_counts': de032_counts,
-                    'total_de032_count': total_de032_count,
-                })
-
-            return JsonResponse({'status': 'error', 'message': 'Only XML files are supported.'})
-
+            return JsonResponse({'status': 'success', 'filename': uploaded_file.name})
+        
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            return JsonResponse({'status': 'error', 'message': str(e)})
+            return JsonResponse({'status': 'error', 'error': str(e)}, status=500)
 
-    return JsonResponse({'status': 'error', 'message': 'Invalid request.'})
+    return JsonResponse({'status': 'error', 'error': 'Invalid request'}, status=400)
 
 @csrf_exempt
 def download_filtered_by_de032(request):
     if request.method == 'POST':
         try:
-            de032_value = request.POST.get('de032')
-            filename = request.POST.get('filename')
+            data = json.loads(request.body)
+            conditions = data.get('conditions', [])
 
-            if not de032_value or not filename:
-                return JsonResponse({'status': 'error', 'message': 'Missing DE032 or filename'})
+            if not conditions:
+                return JsonResponse({'status': 'error', 'error': 'No conditions provided'}, status=400)
 
-            base_file_path = os.path.join(settings.MEDIA_ROOT, 'emvco_logs', filename)
-            json_file = os.path.join(settings.MEDIA_ROOT, 'emvco_logs', 'unique_bm32_emvco.json')
+            json_path = os.path.join(settings.MEDIA_ROOT, 'emvco_logs', 'unique_bm32_emvco.json')
 
-            if not os.path.exists(json_file):
-                return JsonResponse({'status': 'error', 'message': 'unique_bm32_emvco.json not found'})
+            # Filter based on selected conditions
+            zip_file_path = filter_by_conditions(json_path, conditions)
 
-            conditions = [de032_value]
-            zip_file_path = filter_conditions_and_zip(json_file, conditions, os.path.dirname(base_file_path))
+            # Format all generated filtered files
+            output_base_path = os.path.dirname(json_path)
+            uploaded_filename = None
 
-            if zip_file_path and os.path.exists(zip_file_path):
-                return JsonResponse({
-                    'status': 'success',
-                    'filtered_file': f"emvco_logs/{os.path.basename(zip_file_path)}"
-                })
-            else:
-                return JsonResponse({'status': 'error', 'message': 'Filtered ZIP not created.'})
+            for filename in os.listdir(output_base_path):
+                if filename.endswith('.xml') and '_filtered_' in filename:
+                    uploaded_filename = filename.split('_filtered_')[0] + '.xml'
+                    break
+
+            if uploaded_filename:
+                original_file_path = os.path.join(output_base_path, uploaded_filename)
+                for condition in conditions:
+                    filtered_file_path = os.path.join(
+                        output_base_path,
+                        f"{os.path.splitext(uploaded_filename)[0]}_filtered_{condition}.xml"
+                    )
+                    if os.path.exists(filtered_file_path):
+                        format_filtered_xml(filtered_file_path, original_file_path)
+
+            zip_filename = os.path.basename(zip_file_path)
+            return FileResponse(open(zip_file_path, 'rb'), as_attachment=True, filename=zip_filename)
 
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            return JsonResponse({'status': 'error', 'message': str(e)})
+            return JsonResponse({'status': 'error', 'error': str(e)}, status=500)
 
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+    return JsonResponse({'status': 'error', 'error': 'Invalid request'}, status=400)
