@@ -13,7 +13,6 @@ from .scripts.adjustemvco_2 import adjust_file as fix_unclosed_online_messages
 from .scripts.adjustelements_3 import adjust_elements
 from .scripts.unique_de32_emvco_4 import extract_de032  # Ensure correct import
 from .scripts.emvco_filter_5 import filter_by_conditions
-from .scripts.format_emvco_filter_6 import format_filtered_xml
 
 logger = logging.getLogger(__name__)
 
@@ -114,25 +113,6 @@ def download_filtered_by_de032(request):
 
             # Filter based on selected conditions
             zip_file_path = filter_by_conditions(json_path, conditions)
-
-            # Format all generated filtered files
-            output_base_path = os.path.dirname(json_path)
-            uploaded_filename = None
-
-            for filename in os.listdir(output_base_path):
-                if filename.endswith('.xml') and '_filtered_' in filename:
-                    uploaded_filename = filename.split('_filtered_')[0] + '.xml'
-                    break
-
-            if uploaded_filename:
-                original_file_path = os.path.join(output_base_path, uploaded_filename)
-                for condition in conditions:
-                    filtered_file_path = os.path.join(
-                        output_base_path,
-                        f"{os.path.splitext(uploaded_filename)[0]}_filtered_{condition}.xml"
-                    )
-                    if os.path.exists(filtered_file_path):
-                        format_filtered_xml(filtered_file_path, original_file_path)
 
             zip_filename = os.path.basename(zip_file_path)
             return FileResponse(open(zip_file_path, 'rb'), as_attachment=True, filename=zip_filename)
