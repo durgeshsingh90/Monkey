@@ -228,3 +228,50 @@ function calculateExecutionDuration(executionTime) {
   const seconds = executionTime % 60;
   return `${hours}h ${minutes}m ${seconds}s`;
 }
+
+let gifIndex = 0;
+let gifs = [];
+
+function startGifCycle() {
+  const gifElements = document.querySelectorAll('.loading-gif');
+  gifs = Array.from(gifElements);
+
+  if (gifs.length === 0) return;
+
+  // Hide all gifs initially
+  gifs.forEach(gif => {
+    gif.style.display = 'none';
+    gif.style.opacity = 0;
+  });
+
+  gifIndex = 0;
+  showNextGif();
+}
+
+function showNextGif() {
+  gifs.forEach(gif => {
+    gif.style.display = 'none';
+    gif.style.opacity = 0;
+  });
+
+  const currentGif = gifs[gifIndex];
+  currentGif.style.display = 'block';
+  setTimeout(() => {
+    currentGif.style.opacity = 1;
+  }, 100); // Fade in
+
+  gifIndex = (gifIndex + 1) % gifs.length;
+
+  setTimeout(showNextGif, 2000); // Change GIF every 2 seconds
+}
+
+// When showing loading screen, start gif cycling
+function showLoadingScreen() {
+  document.getElementById('loadingScreen').style.display = 'flex';
+  startGifCycle();
+}
+
+// Hide loading screen normally
+function hideLoadingScreen() {
+  document.getElementById('loadingScreen').style.display = 'none';
+}
