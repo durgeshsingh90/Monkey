@@ -54,6 +54,7 @@ document.getElementById('xmlLogFile').addEventListener('change', function(event)
 
 function startTimer() {
     let startTime = Date.now();
+    startGifSlideshow(); // Start GIF rotation
 
     timerInterval = setInterval(() => {
         const elapsedTime = Date.now() - startTime;
@@ -63,10 +64,13 @@ function startTimer() {
     }, 1000);
 }
 
+
 function stopTimer() {
     clearInterval(timerInterval);
+    stopGifSlideshow(); // Stop GIF rotation
     document.getElementById('timer').textContent = 'Elapsed time: 00:00';
 }
+
 
 function getCookie(name) {
     let cookieValue = null;
@@ -225,4 +229,29 @@ function downloadAllFiltered(de32List) {
         console.error('Download error:', error);
         alert('Failed to download filtered results');
     });
+}
+let gifIndex = 0;
+let gifTimer;
+
+function startGifSlideshow() {
+    const gifs = document.querySelectorAll('#gifContainer .loading-gif');
+    if (gifs.length === 0) return;
+
+    // Hide all GIFs initially
+    gifs.forEach(gif => gif.style.display = 'none');
+
+    // Show the first GIF
+    gifs[gifIndex].style.display = 'block';
+
+    // Start rotating
+    gifTimer = setInterval(() => {
+        gifs[gifIndex].style.display = 'none'; // Hide current
+        gifIndex = (gifIndex + 1) % gifs.length; // Next index
+        gifs[gifIndex].style.display = 'block'; // Show next
+    }, 6000); // 6 seconds
+}
+
+function stopGifSlideshow() {
+    clearInterval(gifTimer);
+    gifIndex = 0;
 }
