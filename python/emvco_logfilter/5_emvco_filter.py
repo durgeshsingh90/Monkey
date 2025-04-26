@@ -158,7 +158,7 @@ def process_conditions(conditions, condition_file_map, output_base_path):
     logging.info(f"All filtered files have been zipped into: {zip_path}")
 
 if __name__ == "__main__":
-    json_file = r"C:\Users\f94gdos\Desktop\TP\unique_bm32_emvco.json"
+    json_file = "C:\Users\f94gdos\Desktop\New folder\unique_bm32_emvco.json"
     conditions = [
 "00000367631",
 "411975",

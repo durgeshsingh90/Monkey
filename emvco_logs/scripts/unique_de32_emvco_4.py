@@ -9,56 +9,56 @@ import time
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def process_file(part_file_path):
+    file_value_counts = {}
+    file_total_count = 0
+    try:
+        tree = ET.parse(part_file_path)
+        root = tree.getroot()
+        logger.debug(f"Parsed {part_file_path}")
+    except ET.ParseError as e:
+        logger.error(f"Parse error in {part_file_path}: {e}")
+        return None
+
+    fields = root.findall(".//Field")
+    logger.debug(f"Found {len(fields)} Field elements in {part_file_path}")
+
+    for field in fields:
+        field_id = field.get('ID')
+        if field_id and 'DE.032' in field_id:
+            field_viewable = field.find('FieldViewable')
+            if field_viewable is not None:
+                value = field_viewable.text
+                if value:
+                    file_value_counts[value] = file_value_counts.get(value, 0) + 1
+                    file_total_count += 1
+
+    file_unique_count = len(file_value_counts)
+    logger.info(f"Processed {part_file_path}: total_count={file_total_count}, unique_count={file_unique_count}")
+    return {
+        "file": part_file_path,
+        "counts": file_value_counts,
+        "total_count": file_total_count,
+        "unique_count": file_unique_count
+}
+
+def get_all_files(base_path):
+    part_number = 0
+    part_file_paths = []
+    while True:
+        part_file_path = f"{base_path}_part{part_number}.xml"
+        if not os.path.exists(part_file_path):
+            break
+        part_file_paths.append(part_file_path)
+        part_number += 1
+    logger.debug(f"Found {len(part_file_paths)} files to process.")
+    return part_file_paths
+
 def extract_de032(base_file_path, max_workers=10):
     """
     Extracts DE.032 field values from XML part files and saves a summary JSON.
     """
     base_path, _ = os.path.splitext(base_file_path)
-
-    def process_file(part_file_path):
-        file_value_counts = {}
-        file_total_count = 0
-        try:
-            tree = ET.parse(part_file_path)
-            root = tree.getroot()
-            logger.debug(f"Parsed {part_file_path}")
-        except ET.ParseError as e:
-            logger.error(f"Parse error in {part_file_path}: {e}")
-            return None
-
-        fields = root.findall(".//Field")
-        logger.debug(f"Found {len(fields)} Field elements in {part_file_path}")
-
-        for field in fields:
-            field_id = field.get('ID')
-            if field_id and 'DE.032' in field_id:
-                field_viewable = field.find('FieldViewable')
-                if field_viewable is not None:
-                    value = field_viewable.text
-                    if value:
-                        file_value_counts[value] = file_value_counts.get(value, 0) + 1
-                        file_total_count += 1
-
-        file_unique_count = len(file_value_counts)
-        logger.info(f"Processed {part_file_path}: total_count={file_total_count}, unique_count={file_unique_count}")
-        return {
-            "file": part_file_path,
-            "counts": file_value_counts,
-            "total_count": file_total_count,
-            "unique_count": file_unique_count
-        }
-
-    def get_all_files(base_path):
-        part_number = 0
-        part_file_paths = []
-        while True:
-            part_file_path = f"{base_path}_part{part_number}.xml"
-            if not os.path.exists(part_file_path):
-                break
-            part_file_paths.append(part_file_path)
-            part_number += 1
-        logger.debug(f"Found {len(part_file_paths)} files to process.")
-        return part_file_paths
 
     start_time = time.time()
     logger.info("Starting DE032 extraction")
