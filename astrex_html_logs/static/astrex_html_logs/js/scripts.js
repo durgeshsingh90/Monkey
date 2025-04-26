@@ -262,7 +262,7 @@ function showNextGif() {
 
   gifIndex = (gifIndex + 1) % gifs.length;
 
-  setTimeout(showNextGif, 2000); // Change GIF every 2 seconds
+  setTimeout(showNextGif, 6000); // Change GIF every 2 seconds
 }
 
 // When showing loading screen, start gif cycling
