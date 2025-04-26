@@ -11,8 +11,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Hardcoded global path for JSON
-SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # from scripts to emvco_logs
-JSON_FILE_PATH = os.path.join(SCRIPT_DIR, 'media', 'emvco_logs', 'unique_bm32_emvco.json')
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # go 2 levels up
+JSON_FILE_PATH = os.path.join(PROJECT_ROOT, 'media', 'emvco_logs', 'unique_bm32_emvco.json')
+
+from emvco_logs.scripts.format_emvco_filter_6 import format_filtered_xml
 
 
 def element_to_string(element):
@@ -93,7 +95,7 @@ def write_filtered_file(base_path, condition, part_xml_file, filtered_messages):
     new_tree.write(output_file, encoding='utf-8', xml_declaration=True)
     return output_file
 
-def filter_by_conditions(conditions):
+def filter_by_conditions(conditions, uploaded_file_path):
     """
     Main callable function to filter XML messages based on DE032 conditions.
     :param conditions: List of DE032 values or conditions to filter
@@ -126,6 +128,8 @@ def filter_by_conditions(conditions):
 
         if filtered_messages:
             output_file = write_filtered_file(output_base_path, condition, part_files[0], filtered_messages)
+            # Format the filtered XML before zipping
+            format_filtered_xml(output_file, uploaded_file_path)
             generated_files.append(output_file)
 
     # Zip all filtered files
