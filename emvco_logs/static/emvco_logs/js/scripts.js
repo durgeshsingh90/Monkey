@@ -4,7 +4,7 @@ document.getElementById('xmlLogFile').addEventListener('change', function(event)
         console.log('No file selected');
         return;
     }
-  
+
     console.log('File selected:', file.name);
 
     if (!file.name.endsWith('.xml')) {
@@ -13,7 +13,7 @@ document.getElementById('xmlLogFile').addEventListener('change', function(event)
     }
 
     document.getElementById('loadingOverlay').style.display = 'block';
-    startTimer(); // Start the timer
+    startTimer();
 
     const formData = new FormData();
     formData.append('file', file);
@@ -30,20 +30,20 @@ document.getElementById('xmlLogFile').addEventListener('change', function(event)
         console.log('Response received from server:', data);
 
         document.getElementById('loadingOverlay').style.display = 'none';
-        stopTimer(); // Stop the timer
+        stopTimer();
 
         if (data.status === 'success') {
             document.getElementById('uploadedFileName').textContent = data.filename;
             document.getElementById('processingTime').textContent = data.processing_time;
             document.getElementById('processingTimeContainer').style.display = 'block';
-            loadSummary(data); // Pass data to loadSummary
+            loadSummary(data);
         } else {
             alert('Upload failed: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
         document.getElementById('loadingOverlay').style.display = 'none';
-        stopTimer(); // Stop the timer
+        stopTimer();
         console.error('Upload error:', error);
         alert('Upload failed');
     });
@@ -95,7 +95,6 @@ function loadSummary(uploadData) {
         summaryContent.innerHTML = '';
         summaryContainer.innerHTML = '';
 
-        // Display the overall summary in summaryContent container
         summaryContent.innerHTML = `
             <div>
                 <p>Total DE032 Count: ${data.total_de032_count}</p>
@@ -132,7 +131,11 @@ function loadSummary(uploadData) {
 
 function downloadFiltered(de32) {
     console.log(`Downloading filtered results for DE032: ${de32}`);
-    const payload = { conditions: [de32] };
+    const filename = document.getElementById('uploadedFileName').textContent;
+    const payload = {
+        conditions: [de32],
+        filename: filename
+    };
 
     fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
@@ -142,16 +145,13 @@ function downloadFiltered(de32) {
         },
         body: JSON.stringify(payload)
     })
-    .then(response => response.json()) // ✅ expect JSON now, not blob
+    .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
-            console.log(`Download URL: ${downloadUrl}`);
-
-            // Automatically trigger download
             const a = document.createElement('a');
             a.href = downloadUrl;
-            a.download = downloadUrl.split('/').pop();  // optional: force file name
+            a.download = downloadUrl.split('/').pop();
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -166,7 +166,11 @@ function downloadFiltered(de32) {
 }
 
 function downloadAllFiltered(de32List) {
-    const payload = { conditions: de32List };
+    const filename = document.getElementById('uploadedFileName').textContent;
+    const payload = {
+        conditions: de32List,
+        filename: filename
+    };
 
     fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
@@ -176,13 +180,10 @@ function downloadAllFiltered(de32List) {
         },
         body: JSON.stringify(payload)
     })
-    .then(response => response.json())  // ✅ expect JSON
+    .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
-            console.log(`Download URL for all filtered: ${downloadUrl}`);
-
-            // Auto trigger download
             const a = document.createElement('a');
             a.href = downloadUrl;
             a.download = downloadUrl.split('/').pop();
@@ -190,7 +191,7 @@ function downloadAllFiltered(de32List) {
             a.click();
             a.remove();
         } else {
-            alert('Failed to download all: ' + (data.error || 'Unknown error'));
+            alert('Failed to download: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {

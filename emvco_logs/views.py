@@ -2,16 +2,17 @@ import os
 import json
 import logging
 from django.shortcuts import render
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from django.http import FileResponse
 import time
 
 # Import your processing scripts
 from .scripts.breakemvco_1 import process_file as split_file
 from .scripts.adjustemvco_2 import adjust_file as fix_unclosed_online_messages
 from .scripts.adjustelements_3 import adjust_elements
-from .scripts.unique_de32_emvco_4 import extract_de032  # Ensure correct import
+from .scripts.unique_de32_emvco_4 import extract_de032
 from .scripts.emvco_filter_5 import filter_by_conditions
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ def clear_previous_files():
     folder = os.path.join(settings.MEDIA_ROOT, 'emvco_logs')
     if os.path.exists(folder):
         for filename in os.listdir(folder):
-            if filename in ["bm32_config.json"]:  # Skip important files
+            if filename in ["bm32_config.json"]:
                 continue
             file_path = os.path.join(folder, filename)
             try:
@@ -34,7 +35,7 @@ def index(request):
     clear_previous_files()
     return render(request, 'emvco_logs/index.html')
 
-@csrf_exempt    
+@csrf_exempt
 def upload_file(request):
     if request.method == 'POST' and request.FILES.get('file'):
         try:
@@ -45,13 +46,12 @@ def upload_file(request):
             save_path = os.path.join(settings.MEDIA_ROOT, 'emvco_logs', uploaded_file.name)
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-            # Save uploaded file
             with open(save_path, 'wb+') as destination:
                 for chunk in uploaded_file.chunks():
                     destination.write(chunk)
             logger.info(f"File saved to {save_path}")
 
-            start_time = time.time()  # Start timer
+            start_time = time.time()
 
             # Step 1: Split the uploaded XML
             split_file(save_path)
@@ -69,15 +69,12 @@ def upload_file(request):
             extract_de032(save_path)
             logger.info("Step 4: DE032 summary extracted")
 
-            end_time = time.time()  # End timer
+            end_time = time.time()
             processing_time = end_time - start_time
-
-            # Format processing time into hours, minutes, and seconds
             hours, remainder = divmod(processing_time, 3600)
             minutes, seconds = divmod(remainder, 60)
             formatted_processing_time = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
 
-            # Load the summary data
             summary_file_path = os.path.join(os.path.dirname(save_path), "unique_bm32_emvco.json")
             with open(summary_file_path, 'r') as summary_file:
                 summary_data = json.load(summary_file)
@@ -91,7 +88,7 @@ def upload_file(request):
                 'end_time': summary_data.get('end_time'),
                 'time_difference': summary_data.get('time_difference')
             })
-        
+
         except Exception as e:
             logger.error(f"Error processing file: {e}")
             return JsonResponse({'status': 'error', 'error': str(e)}, status=500)
@@ -105,15 +102,15 @@ def download_filtered_by_de032(request):
         try:
             data = json.loads(request.body)
             conditions = data.get('conditions', [])
+            filename = data.get('filename')
 
-            if not conditions:
-                return JsonResponse({'status': 'error', 'error': 'No conditions provided'})
+            if not conditions or not filename:
+                return JsonResponse({'status': 'error', 'error': 'Missing conditions or filename'})
 
-            # Run the filtering script
-            zip_file_path = filter_by_conditions(conditions)
+            uploaded_file_path = os.path.join(settings.MEDIA_ROOT, 'emvco_logs', filename)
+            zip_file_path = filter_by_conditions(conditions, uploaded_file_path)
 
             if zip_file_path and os.path.exists(zip_file_path):
-                # Respond with JSON path (like astrex app)
                 relative_zip_path = f"emvco_logs/{os.path.basename(zip_file_path)}"
                 return JsonResponse({
                     'status': 'success',
