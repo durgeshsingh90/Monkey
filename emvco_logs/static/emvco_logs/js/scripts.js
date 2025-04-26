@@ -70,7 +70,7 @@ function loadSummary() {
             card.className = 'de32-card';
             card.innerHTML = `
                 <h4>DE032: ${de32}</h4>
-                <button onclick="downloadFiltered('${de32}')">Download Filtered ZIP</button>
+                <button onclick="downloadFiltered('${de32}', this)">Download Filtered ZIP</button>
             `;
             summaryContainer.appendChild(card);
         });
@@ -82,8 +82,11 @@ function loadSummary() {
     });
 }
 
-function downloadFiltered(de32) {
+function downloadFiltered(de32, button) {
     const payload = { conditions: [de32] };
+
+    button.disabled = true;
+    button.innerText = 'Preparing...';
 
     fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
@@ -95,6 +98,9 @@ function downloadFiltered(de32) {
     })
     .then(response => response.blob())
     .then(blob => {
+        button.disabled = false;
+        button.innerText = 'Download Filtered ZIP';
+
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -104,6 +110,8 @@ function downloadFiltered(de32) {
         a.remove();
     })
     .catch(error => {
+        button.disabled = false;
+        button.innerText = 'Download Filtered ZIP';
         console.error('Download error:', error);
         alert('Failed to download');
     });
@@ -111,6 +119,10 @@ function downloadFiltered(de32) {
 
 function downloadAllFiltered(de32List) {
     const payload = { conditions: de32List };
+
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
+    downloadAllBtn.disabled = true;
+    downloadAllBtn.innerText = 'Preparing...';
 
     fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
@@ -122,15 +134,20 @@ function downloadAllFiltered(de32List) {
     })
     .then(response => response.blob())
     .then(blob => {
+        downloadAllBtn.disabled = false;
+        downloadAllBtn.innerText = 'Download All Filtered (ZIP)';
+
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'filtered_all_de032.zip';
+        a.download = `filtered_all_de032.zip`;
         document.body.appendChild(a);
         a.click();
         a.remove();
     })
     .catch(error => {
+        downloadAllBtn.disabled = false;
+        downloadAllBtn.innerText = 'Download All Filtered (ZIP)';
         console.error('Download error:', error);
         alert('Failed to download');
     });
