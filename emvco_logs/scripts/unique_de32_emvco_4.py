@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 logger = logging.getLogger(__name__)
 
 def process_file(part_file_path):
+    """Moved to top-level."""
     file_value_counts = {}
     file_total_count = 0
     try:
@@ -40,19 +41,23 @@ def process_file(part_file_path):
         "counts": file_value_counts,
         "total_count": file_total_count,
         "unique_count": file_unique_count
-}
+    }
 
-def get_all_files(base_path):
-    part_number = 0
-    part_file_paths = []
-    while True:
-        part_file_path = f"{base_path}_part{part_number}.xml"
-        if not os.path.exists(part_file_path):
-            break
-        part_file_paths.append(part_file_path)
-        part_number += 1
-    logger.debug(f"Found {len(part_file_paths)} files to process.")
-    return part_file_paths
+def extract_de032(base_file_path, max_workers=10):
+    """
+    Extracts DE.032 field values from XML part files and saves a summary JSON.
+    """
+    def get_all_files(base_path):
+        part_number = 0
+        part_file_paths = []
+        while True:
+            part_file_path = f"{base_path}_part{part_number}.xml"
+            if not os.path.exists(part_file_path):
+                break
+            part_file_paths.append(part_file_path)
+            part_number += 1
+        logger.debug(f"Found {len(part_file_paths)} files to process.")
+        return part_file_paths
 
 def extract_de032(base_file_path, max_workers=10):
     """
@@ -63,6 +68,7 @@ def extract_de032(base_file_path, max_workers=10):
     start_time = time.time()
     logger.info("Starting DE032 extraction")
 
+    base_path, _ = os.path.splitext(base_file_path)
     part_file_paths = get_all_files(base_path)
     total_value_counts = {}
     file_level_counts = []
@@ -83,7 +89,7 @@ def extract_de032(base_file_path, max_workers=10):
         "total_unique_count": len(total_value_counts)
     }
 
-    output_file_path = os.path.join(os.path.dirname(base_path), "unique_bm32_emvco.json")
+    output_file_path = os.path.join(os.path.dirname(base_file_path), "unique_bm32_emvco.json")
     with open(output_file_path, 'w') as json_file:
         json.dump(output, json_file, indent=4)
 
