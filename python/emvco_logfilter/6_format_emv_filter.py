@@ -2,7 +2,7 @@ import glob
 import os
 
 # Define the full filename with .xml extension
-base_filename = r'C:\Users\f94gdos\Desktop\TP\L3_2025-03-19-1722.xml'
+base_filename = r"C:\Users\f94gdos\Desktop\New folder\L3_2025-03-19-1722.xml"
 
 # Remove the .xml extension to get the base path
 base_path = base_filename[:-4]
