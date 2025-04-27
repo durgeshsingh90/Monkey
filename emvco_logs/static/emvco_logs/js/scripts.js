@@ -132,16 +132,20 @@ function populateDE032Cards(de032s) {
 
 // Download Filtered Single File
 function downloadFilteredFile(de32) {
-  const formData = new FormData();
-  formData.append('de032', de32);
-  formData.append('filename', file.name);
+  if (!file) return;
 
   showLoadingScreen();
 
   fetch('/emvco_logs/download_filtered_by_de032/', {
     method: 'POST',
-    body: formData,
-    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    body: JSON.stringify({
+      conditions: [de32],
+      filename: file.name
+    }),
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/json'
+    }
   })
   .then(res => res.json())
   .then(result => {
@@ -154,7 +158,7 @@ function downloadFilteredFile(de32) {
       link.click();
       document.body.removeChild(link);
     } else {
-      alert(result.message || 'Download failed.');
+      alert(result.error || 'Download failed.');
     }
   })
   .catch(err => {
@@ -169,15 +173,20 @@ const downloadAllBtn = document.getElementById('downloadAllBtn');
 if (downloadAllBtn) {
   downloadAllBtn.addEventListener('click', function(event) {
     event.stopPropagation();
-    const formData = new FormData();
-    formData.append('filename', file.name);
+    if (!file) return;
 
     showLoadingScreen();
 
     fetch('/emvco_logs/download_filtered_by_de032/', {
       method: 'POST',
-      body: formData,
-      headers: { 'X-CSRFToken': getCookie('csrftoken') }
+      body: JSON.stringify({
+        conditions: [],
+        filename: file.name
+      }),
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-Type': 'application/json'
+      }
     })
     .then(res => res.json())
     .then(result => {
@@ -190,7 +199,7 @@ if (downloadAllBtn) {
         link.click();
         document.body.removeChild(link);
       } else {
-        alert(result.message || 'Download failed.');
+        alert(result.error || 'Download failed.');
       }
     })
     .catch(err => {
