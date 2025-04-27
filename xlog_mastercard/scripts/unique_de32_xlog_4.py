@@ -55,7 +55,7 @@ def get_all_files(base_path):
     part_number = 0
     part_file_paths = []
     while True:
-        part_file_path = f"{base_path}_part{part_number}.xml"
+        part_file_path = f"{base_path}_part{part_number}.xlog"
         if not os.path.exists(part_file_path):
             break
         part_file_paths.append(part_file_path)
