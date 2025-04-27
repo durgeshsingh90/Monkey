@@ -1,274 +1,289 @@
-let bm32Config = {};
-let timerInterval;
+// New scripts.js for emvco_logs app matching astrex_html_logs style
 
-document.getElementById('xmlLogFile').addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (!file) {
-        console.log('No file selected');
-        return;
-    }
-
-    console.log('File selected:', file.name);
-
-    if (!file.name.endsWith('.xml')) {
-        alert('Please upload an XML file only.');
-        return;
-    }
-
-    document.getElementById('loadingOverlay').style.display = 'block';
-    startTimer();
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    fetch('/emvco_logs/upload/', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Response received from server:', data);
-
-        document.getElementById('loadingOverlay').style.display = 'none';
-        stopTimer();
-
-        if (data.status === 'success') {
-            document.getElementById('uploadedFileName').textContent = data.filename;
-            document.getElementById('processingTime').textContent = data.processing_time;
-            document.getElementById('processingTimeContainer').style.display = 'block';
-            loadSummary(data);
-        } else {
-            alert('Upload failed: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        document.getElementById('loadingOverlay').style.display = 'none';
-        stopTimer();
-        console.error('Upload error:', error);
-        alert('Upload failed');
-    });
-});
-
-function startTimer() {
-    let startTime = Date.now();
-    startGifSlideshow(); // Start GIF rotation
-
-    timerInterval = setInterval(() => {
-        const elapsedTime = Date.now() - startTime;
-        const minutes = Math.floor(elapsedTime / 60000);
-        const seconds = Math.floor((elapsedTime % 60000) / 1000);
-        document.getElementById('timer').textContent = `Elapsed time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }, 1000);
-}
-
-
-function stopTimer() {
-    clearInterval(timerInterval);
-    stopGifSlideshow(); // Stop GIF rotation
-    document.getElementById('timer').textContent = 'Elapsed time: 00:00';
-}
-
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (const cookie of cookies) {
-            const trimmedCookie = cookie.trim();
-            if (trimmedCookie.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(trimmedCookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-function getBm32Info(bm32) {
-    for (const [scheme, stations] of Object.entries(bm32Config)) {
-        if (stations[bm32]) {
-            return {
-                stationName: stations[bm32],
-                schemeName: scheme
-            };
-        }
-    }
-    return null;
-}
-
-function displaySummary(data, uploadData) {
-    const summaryContent = document.getElementById('summaryContent');
-    const summaryContainer = document.getElementById('summaryContainer');
-    summaryContent.innerHTML = '';
-    summaryContainer.innerHTML = '';
-
-    summaryContent.innerHTML = `
-        <div>
-            <p>Total Transactions: ${data.total_de032_count}</p>
-            <p>Total PSP: ${data.total_unique_count}</p>
-            <p>Start Time: ${uploadData.start_time}</p>
-            <p>End Time: ${uploadData.end_time}</p>
-            <p>Time Difference: ${uploadData.time_difference}</p>
-        </div>
-    `;
-
-    const de32TotalCounts = data.total_counts;
-
-    if (Object.keys(de32TotalCounts).length > 0) {
-        document.getElementById('downloadAllBtn').style.display = 'block';
-    }
-
-    for (const [de32, count] of Object.entries(de32TotalCounts)) {
-        const info = getBm32Info(de32);
-        const card = document.createElement('div');
-        card.className = 'de32-card';
-
-        card.innerHTML = `
-        <h4>DE032: ${de32}</h4>
-        <p><strong>PSP:</strong> ${info ? info.stationName : 'Unknown'}</p>
-        <p><strong>Scheme:</strong> ${info ? info.schemeName : 'Unknown'}</p>
-        <p><strong>Count:</strong> ${count}</p>
-        <button onclick="downloadFiltered('${de32}')" class="button">Download Filtered ZIP</button>
-    `;
-    
-        summaryContainer.appendChild(card);
-    }
-
-    document.getElementById('downloadAllBtn').onclick = () => downloadAllFiltered(Object.keys(de32TotalCounts));
-}
-
-function loadSummary(uploadData) {
-    console.log('Loading summary data');
-
-    fetch('/media/emvco_logs/unique_bm32_emvco.json')
-    .then(response => response.json())
-    .then(data => {
-        console.log('Summary data:', data);
-
-        return fetch('/media/astrex_html_logs/bm32_config.json')
-            .then(response => response.json())
-            .then(configData => {
-                bm32Config = configData;
-                displaySummary(data, uploadData);
-            });
-    })
-    .catch(error => {
-        console.error('Error loading summary:', error);
-    });
-}
-
-function downloadFiltered(de32) {
-    console.log(`Downloading filtered results for DE032: ${de32}`);
-    const filename = document.getElementById('uploadedFileName').textContent;
-    const payload = {
-        conditions: [de32],
-        filename: filename
-    };
-
-    document.getElementById('loadingOverlay').style.display = 'block';
-    startTimer();
-
-    fetch('/emvco_logs/download_filtered_by_de032/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('loadingOverlay').style.display = 'none';
-        stopTimer();
-
-        if (data.status === 'success') {
-            const downloadUrl = '/media/' + data.filtered_file;
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = downloadUrl.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        } else {
-            alert('Failed to download: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        document.getElementById('loadingOverlay').style.display = 'none';
-        stopTimer();
-        console.error('Download error:', error);
-        alert('Failed to download filtered results');
-    });
-}
-
-function downloadAllFiltered(de32List) {
-    const filename = document.getElementById('uploadedFileName').textContent;
-    const payload = {
-        conditions: de32List,
-        filename: filename
-    };
-
-    document.getElementById('loadingOverlay').style.display = 'block';
-    startTimer();
-
-    fetch('/emvco_logs/download_filtered_by_de032/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('loadingOverlay').style.display = 'none';
-        stopTimer();
-
-        if (data.status === 'success') {
-            const downloadUrl = '/media/' + data.filtered_file;
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = downloadUrl.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        } else {
-            alert('Failed to download: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        document.getElementById('loadingOverlay').style.display = 'none';
-        stopTimer();
-        console.error('Download error:', error);
-        alert('Failed to download filtered results');
-    });
-}
+let file = null;
+let de032_counts = {};
+let startTime;
+let loadingTimerInterval;
+let loadingTimeout;
+let bm32NameMap = {};
 
 let gifIndex = 0;
-let gifTimer;
+let gifs = [];
 
-function startGifSlideshow() {
-    const gifs = document.querySelectorAll('#gifContainer .loading-gif');
-    if (gifs.length === 0) return;
+let loadingStartTime = null;
+let loadingInterval = null;
 
-    // Hide all GIFs initially
-    gifs.forEach(gif => gif.style.display = 'none');
+// Load config mapping (bm32_config.json)
+fetch('/media/astrex_html_logs/bm32_config.json')
+  .then(res => res.json())
+  .then(config => {
+    bm32NameMap = {};
+    Object.keys(config).forEach(brand => {
+      const binMapping = config[brand];
+      Object.keys(binMapping).forEach(bin => {
+        bm32NameMap[bin] = { stationName: binMapping[bin], schemeName: brand };
+      });
+    });
+  });
 
-    // Show the first GIF
-    gifs[gifIndex].style.display = 'block';
+// Handle file selection
+const xmlInput = document.getElementById('xmlLogFile');
+if (xmlInput) {
+  xmlInput.addEventListener('change', function(event) {
+    file = event.target.files[0];
+    document.getElementById('uploadedFileName').textContent = file ? file.name : '';
 
-    // Start rotating
-    gifTimer = setInterval(() => {
-        gifs[gifIndex].style.display = 'none'; // Hide current
-        gifIndex = (gifIndex + 1) % gifs.length; // Next index
-        gifs[gifIndex].style.display = 'block'; // Show next
-    }, 6000); // 6 seconds
+    if (file) {
+      uploadFile();
+    }
+  });
 }
 
-function stopGifSlideshow() {
-    clearInterval(gifTimer);
-    gifIndex = 0;
+// Upload File
+function uploadFile() {
+  if (!file || !file.name.endsWith('.xml')) {
+    alert('Please select a valid XML file.');
+    return;
+  }
+
+  startTime = new Date();
+  startLoadingTimer();
+  loadingTimeout = setTimeout(showLoadingScreen, 1000);
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  fetch('/emvco_logs/upload/', {
+    method: 'POST',
+    body: formData,
+    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+  }).then(res => res.json())
+  .then(data => {
+    clearTimeout(loadingTimeout);
+    hideLoadingScreen();
+    clearInterval(loadingTimerInterval);
+
+    if (data.status === 'success') {
+      loadSummary(data);
+      document.getElementById('processingTimeContainer').style.display = 'block';
+    } else {
+      alert(data.error || 'Upload failed.');
+    }
+  })
+  .catch(err => {
+    clearTimeout(loadingTimeout);
+    hideLoadingScreen();
+    clearInterval(loadingTimerInterval);
+    console.error(err);
+    alert('Upload failed.');
+  });
+}
+
+// Load Summary
+function loadSummary(uploadData) {
+  fetch('/media/emvco_logs/unique_bm32_emvco.json')
+    .then(res => res.json())
+    .then(summary => {
+      populateSummary(summary, uploadData);
+      populateDE032Cards(summary.total_counts);
+    })
+    .catch(err => console.error('Summary load error:', err));
+}
+
+// Populate Summary Data
+function populateSummary(summary, uploadData) {
+  const container = document.getElementById('summaryContent');
+  container.innerHTML = `
+    <p><strong>Total Transactions:</strong> ${summary.total_de032_count}</p>
+    <p><strong>Total PSP:</strong> ${summary.total_unique_count}</p>
+    <p><strong>Start Time:</strong> ${uploadData.start_time}</p>
+    <p><strong>End Time:</strong> ${uploadData.end_time}</p>
+    <p><strong>Time Difference:</strong> ${uploadData.time_difference}</p>
+  `;
+
+  document.getElementById('downloadAllBtn').style.display = 'inline-block';
+}
+
+// Populate DE032 Cards
+function populateDE032Cards(de032s) {
+  const container = document.getElementById('summaryContainer');
+  container.innerHTML = '';
+
+  Object.entries(de032s).forEach(([de32, count]) => {
+    const card = document.createElement('div');
+    card.className = 'de32-card';
+
+    const info = bm32NameMap[de32] || { stationName: 'Unknown', schemeName: 'Unknown' };
+
+    card.innerHTML = `
+      <h4>DE032: ${de32}</h4>
+      <p><strong>PSP:</strong> ${info.stationName}</p>
+      <p><strong>Scheme:</strong> ${info.schemeName}</p>
+      <p><strong>Count:</strong> ${count}</p>
+      <button class="button">⬇️ Download</button>
+    `;
+
+    const btn = card.querySelector('.button');
+    btn.addEventListener('click', () => downloadFilteredFile(de32));
+
+    container.appendChild(card);
+  });
+}
+
+// Download Filtered Single File
+function downloadFilteredFile(de32) {
+  const formData = new FormData();
+  formData.append('de032', de32);
+  formData.append('filename', file.name);
+
+  showLoadingScreen();
+
+  fetch('/emvco_logs/download_filtered_by_de032/', {
+    method: 'POST',
+    body: formData,
+    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+  })
+  .then(res => res.json())
+  .then(result => {
+    hideLoadingScreen();
+    if (result.status === 'success') {
+      const link = document.createElement('a');
+      link.href = `/media/${result.filtered_file}`;
+      link.download = result.filtered_file.split('/').pop();
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      alert(result.message || 'Download failed.');
+    }
+  })
+  .catch(err => {
+    hideLoadingScreen();
+    console.error(err);
+    alert('Download failed.');
+  });
+}
+
+// Download All Filtered Files
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+if (downloadAllBtn) {
+  downloadAllBtn.addEventListener('click', function(event) {
+    event.stopPropagation();
+    const formData = new FormData();
+    formData.append('filename', file.name);
+
+    showLoadingScreen();
+
+    fetch('/emvco_logs/download_filtered_by_de032/', {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(res => res.json())
+    .then(result => {
+      hideLoadingScreen();
+      if (result.status === 'success') {
+        const link = document.createElement('a');
+        link.href = `/media/${result.filtered_file}`;
+        link.download = result.filtered_file.split('/').pop();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert(result.message || 'Download failed.');
+      }
+    })
+    .catch(err => {
+      hideLoadingScreen();
+      console.error(err);
+      alert('Download failed.');
+    });
+  });
+}
+
+// Loading Screen Functions
+function showLoadingScreen() {
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  startGifCycle();
+
+  loadingStartTime = new Date();
+  clearInterval(loadingInterval);
+  loadingInterval = setInterval(updateElapsedTime, 1000);
+}
+
+function hideLoadingScreen() {
+  document.getElementById('loadingOverlay').style.display = 'none';
+  clearInterval(loadingInterval);
+}
+
+function startGifCycle() {
+  const gifElements = document.querySelectorAll('#gifContainer .loading-gif');
+  gifs = Array.from(gifElements);
+
+  if (gifs.length === 0) return;
+
+  gifs.forEach(gif => {
+    gif.style.display = 'none';
+    gif.style.opacity = 0;
+  });
+
+  gifIndex = 0;
+  showNextGif();
+}
+
+function showNextGif() {
+  gifs.forEach(gif => {
+    gif.style.display = 'none';
+    gif.style.opacity = 0;
+  });
+
+  const currentGif = gifs[gifIndex];
+  currentGif.style.display = 'block';
+  setTimeout(() => {
+    currentGif.style.opacity = 1;
+  }, 100);
+
+  gifIndex = (gifIndex + 1) % gifs.length;
+  setTimeout(showNextGif, 6000);
+}
+
+function startLoadingTimer() {
+  loadingTimerInterval = setInterval(() => {
+    const elapsedSeconds = Math.floor((new Date() - startTime) / 1000);
+    document.getElementById('processingTime').textContent = `Elapsed Time: ${formatDuration(elapsedSeconds)}`;
+  }, 1000);
+}
+
+function updateElapsedTime() {
+  if (!loadingStartTime) return;
+
+  const now = new Date();
+  const elapsedMs = now - loadingStartTime;
+  const elapsedSeconds = Math.floor(elapsedMs / 1000);
+
+  const minutes = Math.floor(elapsedSeconds / 60);
+  const seconds = elapsedSeconds % 60;
+
+  document.getElementById('timer').textContent = `Elapsed time: ${minutes}m ${seconds}s`;
+}
+
+function formatDuration(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}m ${secs}s`;
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const trimmedCookie = cookie.trim();
+      if (trimmedCookie.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(trimmedCookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
 }
