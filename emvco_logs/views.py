@@ -31,6 +31,11 @@ def clear_previous_files():
                 except Exception as e:
                     logger.error(f"Error deleting {file_path}: {e}")
 
+def index(request):
+    logger.info("Rendering index page")
+    clear_previous_files()
+    return render(request, 'emvco_logs/index.html')
+
 @csrf_exempt
 def upload_file(request):
     if request.method == 'POST' and request.FILES.get('file'):
