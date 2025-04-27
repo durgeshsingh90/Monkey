@@ -38,8 +38,8 @@ def process_file(part_file_path):
     # Find timestamps
     log_entries = root.findall(".//LogEntry")
     if log_entries:
-        first_timestamp = log_entries[0].get('timestamp')
-        last_timestamp = log_entries[-1].get('timestamp')
+        first_timestamp = log_entries[0].get('timeStamp')
+        last_timestamp = log_entries[-1].get('timeStamp')
 
     logger.info(f"Processed {part_file_path}: total_count={file_total_count}, unique_count={len(file_value_counts)}")
     return {
