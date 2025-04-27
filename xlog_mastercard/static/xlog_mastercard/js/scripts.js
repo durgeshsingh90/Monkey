@@ -150,26 +150,30 @@ function downloadFiltered(de32) {
     })
     .then(response => response.json())
     .then(data => {
-        hideLoadingScreen();  // <-- Correct way
-
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = downloadUrl.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            
+            setTimeout(() => {  // wait 700ms to show loading overlay
+                hideLoadingScreen();  // <-- AFTER small delay
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = downloadUrl.split('/').pop();
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }, 700); 
         } else {
+            hideLoadingScreen();
             alert('Failed to download: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
-        hideLoadingScreen();  // <-- Correct way
+        hideLoadingScreen();
         console.error('Download error:', error);
         alert('Failed to download filtered results');
     });
 }
+
 
 function downloadAllFiltered(de32List) {
     const filename = document.getElementById('uploadedFileName').textContent;
@@ -178,7 +182,7 @@ function downloadAllFiltered(de32List) {
         filename: filename
     };
 
-    showLoadingScreen();  // <-- Correct way
+    showLoadingScreen();
 
     fetch('/xlog_mastercard/download_filtered_by_de032/', {
         method: 'POST',
@@ -189,22 +193,26 @@ function downloadAllFiltered(de32List) {
     })
     .then(response => response.json())
     .then(data => {
-        hideLoadingScreen();  // <-- Correct way
-
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = downloadUrl.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+
+            setTimeout(() => { // <- small delay here too
+                hideLoadingScreen();
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = downloadUrl.split('/').pop();
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }, 700); 
+
         } else {
+            hideLoadingScreen();
             alert('Failed to download: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
-        hideLoadingScreen();  // <-- Correct way
+        hideLoadingScreen();
         console.error('Download error:', error);
         alert('Failed to download filtered results');
     });
