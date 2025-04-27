@@ -104,8 +104,8 @@ def download_filtered_by_de032(request):
             conditions = data.get('conditions', [])
             filename = data.get('filename')
 
-            if not conditions or not filename:
-                return JsonResponse({'status': 'error', 'error': 'Missing conditions or filename'})
+            if not filename:
+                return JsonResponse({'status': 'error', 'error': 'Missing filename'})
 
             uploaded_file_path = os.path.join(settings.MEDIA_ROOT, 'emvco_logs', filename)
             zip_file_path = filter_by_conditions(conditions, uploaded_file_path)
