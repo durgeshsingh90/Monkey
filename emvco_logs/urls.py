@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'emvco_logs'
+
 urlpatterns = [
     path('', views.index, name='emvco_logs_index'),
     path('upload/', views.upload_file, name='upload_file'),
