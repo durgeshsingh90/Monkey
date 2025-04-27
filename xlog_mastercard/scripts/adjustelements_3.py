@@ -8,10 +8,9 @@ logger = logging.getLogger(__name__)
 def adjust_elements(base_file_path):
     """
     Ensures each split part of the .xlog has a proper XML structure:
-    - Only middle parts (not part0, not last part) will be fixed:
-      - Add XML declaration if missing
-      - Add <log> opening tag if missing
-      - Add </log> closing tag if missing
+    - part0: ensure ends with </log>
+    - middle parts: add header and footer
+    - last part: ensure ends with </log>
     """
     base_path, _ = os.path.splitext(base_file_path)
     part_number = 0
@@ -41,38 +40,50 @@ def adjust_elements(base_file_path):
 
     logger.info(f"Total parts: {len(part_files)} (Middle parts to fix: {len(middle_parts)})")
 
-    # Fix only middle parts
+    # --- Fix Part0 ---
+    logger.debug(f"Checking footer for {part0}")
+    with open(part0, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    if not content.strip().endswith('</log>'):
+        logger.info(f"Adding missing </log> to {part0}")
+        content = content.rstrip() + '\n</log>\n'
+        with open(part0, 'w', encoding='utf-8') as file:
+            file.write(content)
+
+    # --- Fix Middle Parts ---
     for part_file in middle_parts:
-        logger.debug(f"Adjusting {part_file}")
+        logger.debug(f"Fixing {part_file}")
 
         with open(part_file, 'r', encoding='utf-8') as file:
             content = file.read()
 
-        modified = False
         new_content = content
 
-        # Ensure XML declaration
+        # Add header at the top
         if not new_content.lstrip().startswith('<?xml'):
-            logger.info(f"Missing XML declaration in {part_file}. Adding it.")
-            new_content = '<?xml version="1.0" encoding="utf-8"?>\n' + new_content
-            modified = True
+            logger.info(f"Adding XML declaration to {part_file}")
+            new_content = '<?xml version="1.0" encoding="utf-8"?>\n<log>\n' + new_content
 
-        # Ensure <log> tag at top
-        lines = new_content.splitlines()
-        if len(lines) < 2 or '<log>' not in lines[1]:
-            logger.info(f"Missing <log> tag in {part_file}. Adding it.")
-            new_content = lines[0] + '\n<log>\n' + '\n'.join(lines[1:])
-            modified = True
-
-        # Ensure </log> tag at bottom
+        # Add footer at the end
         if not new_content.strip().endswith('</log>'):
-            logger.info(f"Missing </log> tag in {part_file}. Adding it.")
+            logger.info(f"Adding closing </log> to {part_file}")
             new_content = new_content.rstrip() + '\n</log>\n'
-            modified = True
 
-        if modified:
-            with open(part_file, 'w', encoding='utf-8') as file:
-                file.write(new_content)
-            logger.debug(f"Adjusted {part_file} successfully.")
+        with open(part_file, 'w', encoding='utf-8') as file:
+            file.write(new_content)
 
-    logger.info("adjust_elements completed successfully for all middle parts.")
+        logger.debug(f"Adjusted {part_file} successfully.")
+
+    # --- Fix Last Part ---
+    logger.debug(f"Checking footer for {last_part}")
+    with open(last_part, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    if not content.strip().endswith('</log>'):
+        logger.info(f"Adding missing </log> to {last_part}")
+        content = content.rstrip() + '\n</log>\n'
+        with open(last_part, 'w', encoding='utf-8') as file:
+            file.write(content)
+
+    logger.info("adjust_elements completed successfully for all parts.")
