@@ -8,10 +8,10 @@ logger = logging.getLogger(__name__)
 def adjust_elements(base_file_path):
     """
     Ensures each split part of the .xlog has a proper XML structure:
-    - XML declaration at the top
-    - <log> opening tag after declaration
-    - </log> closing tag at the end
-    This replaces adjustelements_3.py for xlog_mastercard project.
+    - Only middle parts (not part0, not last part) will be fixed:
+      - Add XML declaration if missing
+      - Add <log> opening tag if missing
+      - Add </log> closing tag if missing
     """
     base_path, _ = os.path.splitext(base_file_path)
     part_number = 0
@@ -31,8 +31,18 @@ def adjust_elements(base_file_path):
         logger.error(f"No part files found for {base_file_path}. Exiting adjust_elements.")
         return
 
-    # Fix each part
-    for part_file in part_files:
+    if len(part_files) == 1:
+        logger.info("Only one part exists. No adjustment needed.")
+        return
+
+    part0 = part_files[0]
+    last_part = part_files[-1]
+    middle_parts = part_files[1:-1]
+
+    logger.info(f"Total parts: {len(part_files)} (Middle parts to fix: {len(middle_parts)})")
+
+    # Fix only middle parts
+    for part_file in middle_parts:
         logger.debug(f"Adjusting {part_file}")
 
         with open(part_file, 'r', encoding='utf-8') as file:
@@ -65,5 +75,4 @@ def adjust_elements(base_file_path):
                 file.write(new_content)
             logger.debug(f"Adjusted {part_file} successfully.")
 
-    logger.info("adjust_elements completed successfully for all parts.")
-
+    logger.info("adjust_elements completed successfully for all middle parts.")
