@@ -160,56 +160,45 @@ function loadSummary(uploadData) {
     });
 }
 
-function showLoadingScreen() {
-    const overlay = document.getElementById('loadingOverlay');
-    overlay.classList.add('active');
-    startGifSlideshow();
-    startTimer();
-}
-
-function hideLoadingScreen() {
-    const overlay = document.getElementById('loadingOverlay');
-    overlay.classList.remove('active');
-    stopTimer();
-}
-
 function downloadFiltered(de32) {
+    console.log(`Downloading filtered results for DE032: ${de32}`);
     const filename = document.getElementById('uploadedFileName').textContent;
     const payload = {
         conditions: [de32],
         filename: filename
     };
 
-    showLoadingScreen();  // <-- Correct way
+    document.getElementById('loadingOverlay').style.display = 'block';
+    startTimer();
 
     fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
         },
         body: JSON.stringify(payload)
     })
     .then(response => response.json())
     .then(data => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        stopTimer();
+
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
-            
-            setTimeout(() => {  // wait 700ms to show loading overlay
-                hideLoadingScreen();  // <-- AFTER small delay
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = downloadUrl.split('/').pop();
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            }, 700); 
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = downloadUrl.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
         } else {
-            hideLoadingScreen();
             alert('Failed to download: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
-        hideLoadingScreen();
+        document.getElementById('loadingOverlay').style.display = 'none';
+        stopTimer();
         console.error('Download error:', error);
         alert('Failed to download filtered results');
     });
@@ -222,37 +211,37 @@ function downloadAllFiltered(de32List) {
         filename: filename
     };
 
-    showLoadingScreen();
+    document.getElementById('loadingOverlay').style.display = 'block';
+    startTimer();
 
     fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
         },
         body: JSON.stringify(payload)
     })
     .then(response => response.json())
     .then(data => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        stopTimer();
+
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
-
-            setTimeout(() => { // <- small delay here too
-                hideLoadingScreen();
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = downloadUrl.split('/').pop();
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            }, 700); 
-
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = downloadUrl.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
         } else {
-            hideLoadingScreen();
             alert('Failed to download: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
-        hideLoadingScreen();
+        document.getElementById('loadingOverlay').style.display = 'none';
+        stopTimer();
         console.error('Download error:', error);
         alert('Failed to download filtered results');
     });
