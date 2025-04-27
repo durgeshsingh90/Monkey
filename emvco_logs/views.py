@@ -24,16 +24,12 @@ def clear_previous_files():
             if filename in ["bm32_config.json"]:
                 continue
             file_path = os.path.join(folder, filename)
-            try:
-                os.remove(file_path)
-                logger.info(f"Deleted file: {file_path}")
-            except Exception as e:
-                logger.error(f"Error deleting {file_path}: {e}")
-
-def index(request):
-    logger.info("Rendering index page")
-    clear_previous_files()
-    return render(request, 'emvco_logs/index.html')
+            if os.path.isfile(file_path):  # ✅ Extra safety
+                try:
+                    os.remove(file_path)
+                    logger.info(f"Deleted file: {file_path}")
+                except Exception as e:
+                    logger.error(f"Error deleting {file_path}: {e}")
 
 @csrf_exempt
 def upload_file(request):
