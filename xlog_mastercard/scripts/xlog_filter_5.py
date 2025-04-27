@@ -16,6 +16,32 @@ JSON_FILE_PATH = os.path.join(PROJECT_ROOT, 'media', 'xlog_mastercard', 'unique_
 from xlog_mastercard.scripts.format_xlog_filter_6 import format_filtered_xml
 
 
+def element_to_string(element):
+    """Convert element text and all subelement text to a single string."""
+    content = []
+    for elem in element.iter():
+        if elem.text:
+            content.append(elem.text.strip())
+    return " ".join(content)
+
+def evaluate_conditions(content, conditions):
+    """Evaluate complex conditions within the given content."""
+    def parse_condition(condition):
+        if ' AND ' in condition:
+            sub_conditions = condition.split(' AND ')
+            return all(parse_condition(sub) for sub in sub_conditions)
+        elif ' OR ' in condition:
+            sub_conditions = condition.split(' OR ')
+            return any(parse_condition(sub) for sub in sub_conditions)
+        elif ' NOT ' in condition:
+            sub_conditions = condition.split(' NOT ')
+            return not parse_condition(sub_conditions[1])
+        else:
+            return condition in content
+
+    return parse_condition(conditions)
+
+
 def load_json_mapping(json_file_path):
     logging.debug(f"Loading JSON mapping from: {json_file_path}")
     with open(json_file_path, 'r') as f:
@@ -45,7 +71,8 @@ def filter_online_messages(part_xml_file, condition):
 
     for log_entry in root.findall('.//LogEntry'):
         for field in log_entry.findall('Field'):
-            if field.attrib.get('Name') == '32':
+            name_attr = field.attrib.get('Name')
+            if name_attr and name_attr.lstrip('0') == '32':  # <- FIX: allow "32" or "032"
                 value_elem = field.find('Value')
                 if value_elem is not None and value_elem.text and value_elem.text.strip() == condition:
                     filtered_entries.append(log_entry)
