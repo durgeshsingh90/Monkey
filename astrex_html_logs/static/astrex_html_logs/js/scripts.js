@@ -87,7 +87,6 @@ function populateSummary(data) {
   const uniqueDE032Count = Object.keys(data.de032_counts || {}).length; // ✅ count unique DE032s
 
   summaryDetails.innerHTML = `
-    // <p><strong>Total Transactions:</strong> ${data.total_txn}</p>
     <p><strong>Total Transactions:</strong> ${data.total_DE032_count}</p>
     <p><strong>Total PSP:</strong> ${uniqueDE032Count}</p>
     <p><strong>Start Log Time:</strong> ${data.start_log_time}</p>
