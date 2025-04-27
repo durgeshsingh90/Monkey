@@ -51,14 +51,32 @@
   });
 
   function saveConfig() {
-    const content = editor.getValue();
-    fetch('/astrex_html_logs/save_config/', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: content
-    }).then(res => res.json())
-      .then(data => alert(data.message));
+  const content = editor.getValue();
+  fetch('/astrex_html_logs/save_config/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: content
+  }).then(res => res.json())
+    .then(data => {
+      // Change button text to "Saved!" temporarily
+      const saveBtn = document.querySelector('.save-button');
+      saveBtn.textContent = '✅ Saved!';
+      
+      // After 1 second, revert back to "💾 Save"
+      setTimeout(() => {
+        saveBtn.textContent = '💾 Save';
+      }, 1000);
+    });
+}
+
+  // Listen for Ctrl+S and call saveConfig
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+    e.preventDefault(); // Stop the browser's Save Page dialog
+    saveConfig();
   }
+});
+
 </script>
 
 </body>
