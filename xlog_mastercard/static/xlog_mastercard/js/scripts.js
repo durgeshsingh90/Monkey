@@ -1,7 +1,8 @@
-let bm32Config = {};
 let timerInterval;
+let gifIndex = 0;
+let gifTimer;
 
-document.getElementById('xmlLogFile').addEventListener('change', function(event) {
+document.getElementById('xlogFile').addEventListener('change', function(event) {
     const file = event.target.files[0];
     if (!file) {
         console.log('No file selected');
@@ -10,23 +11,20 @@ document.getElementById('xmlLogFile').addEventListener('change', function(event)
 
     console.log('File selected:', file.name);
 
-    if (!file.name.endsWith('.xml')) {
-        alert('Please upload an XML file only.');
+    if (!file.name.endsWith('.xlog')) {
+        alert('Please upload a XLOG file only.');
         return;
     }
 
-    document.getElementById('loadingOverlay').style.display = 'block';
+    document.getElementById('loadingOverlay').style.display = 'flex';
     startTimer();
 
     const formData = new FormData();
     formData.append('file', file);
 
-    fetch('/emvco_logs/upload/', {
+    fetch('/xlog_mastercard/upload_file/', {
         method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        }
+        body: formData
     })
     .then(response => response.json())
     .then(data => {
@@ -54,6 +52,7 @@ document.getElementById('xmlLogFile').addEventListener('change', function(event)
 
 function startTimer() {
     let startTime = Date.now();
+    startGifSlideshow();
 
     timerInterval = setInterval(() => {
         const elapsedTime = Date.now() - startTime;
@@ -65,34 +64,22 @@ function startTimer() {
 
 function stopTimer() {
     clearInterval(timerInterval);
+    stopGifSlideshow();
     document.getElementById('timer').textContent = 'Elapsed time: 00:00';
 }
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (const cookie of cookies) {
-            const trimmedCookie = cookie.trim();
-            if (trimmedCookie.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(trimmedCookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+function loadSummary(uploadData) {
+    console.log('Loading summary data');
 
-function getBm32Info(bm32) {
-    for (const [scheme, stations] of Object.entries(bm32Config)) {
-        if (stations[bm32]) {
-            return {
-                stationName: stations[bm32],
-                schemeName: scheme
-            };
-        }
-    }
-    return null;
+    fetch('/media/xlog_mastercard/unique_bm32_xlog.json')
+    .then(response => response.json())
+    .then(data => {
+        console.log('Summary data:', data);
+        displaySummary(data, uploadData);
+    })
+    .catch(error => {
+        console.error('Error loading summary:', error);
+    });
 }
 
 function displaySummary(data, uploadData) {
@@ -103,8 +90,8 @@ function displaySummary(data, uploadData) {
 
     summaryContent.innerHTML = `
         <div>
-            <p>Total DE032 Count: ${data.total_de032_count}</p>
-            <p>Total Unique Count: ${data.total_unique_count}</p>
+            <p>Total Transactions: ${data.total_de032_count}</p>
+            <p>Total Unique DE032: ${data.total_unique_count}</p>
             <p>Start Time: ${uploadData.start_time}</p>
             <p>End Time: ${uploadData.end_time}</p>
             <p>Time Difference: ${uploadData.time_difference}</p>
@@ -118,17 +105,14 @@ function displaySummary(data, uploadData) {
     }
 
     for (const [de32, count] of Object.entries(de32TotalCounts)) {
-        const info = getBm32Info(de32);
         const card = document.createElement('div');
         card.className = 'de32-card';
 
         card.innerHTML = `
-        <h4>DE032: ${de32}</h4>
-        <p><strong>PSP:</strong> ${info ? info.stationName : 'Unknown'}</p>
-        <p><strong>Scheme:</strong> ${info ? info.schemeName : 'Unknown'}</p>
-        <p><strong>Count:</strong> ${count}</p>
-        <button onclick="downloadFiltered('${de32}')" class="button">Download Filtered ZIP</button>
-    `;
+            <h4>DE032: ${de32}</h4>
+            <p><strong>Count:</strong> ${count}</p>
+            <button onclick="downloadFiltered('${de32}')" class="button">Download Filtered ZIP</button>
+        `;
     
         summaryContainer.appendChild(card);
     }
@@ -136,39 +120,17 @@ function displaySummary(data, uploadData) {
     document.getElementById('downloadAllBtn').onclick = () => downloadAllFiltered(Object.keys(de32TotalCounts));
 }
 
-function loadSummary(uploadData) {
-    console.log('Loading summary data');
-
-    fetch('/media/emvco_logs/unique_bm32_emvco.json')
-    .then(response => response.json())
-    .then(data => {
-        console.log('Summary data:', data);
-
-        return fetch('/media/astrex_html_logs/bm32_config.json')
-            .then(response => response.json())
-            .then(configData => {
-                bm32Config = configData;
-                displaySummary(data, uploadData);
-            });
-    })
-    .catch(error => {
-        console.error('Error loading summary:', error);
-    });
-}
-
 function downloadFiltered(de32) {
-    console.log(`Downloading filtered results for DE032: ${de32}`);
     const filename = document.getElementById('uploadedFileName').textContent;
     const payload = {
         conditions: [de32],
         filename: filename
     };
 
-    fetch('/emvco_logs/download_filtered_by_de032/', {
+    fetch('/xlog_mastercard/download_filtered_by_de032/', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
     })
@@ -199,11 +161,10 @@ function downloadAllFiltered(de32List) {
         filename: filename
     };
 
-    fetch('/emvco_logs/download_filtered_by_de032/', {
+    fetch('/xlog_mastercard/download_filtered_by_de032/', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
     })
@@ -225,4 +186,23 @@ function downloadAllFiltered(de32List) {
         console.error('Download error:', error);
         alert('Failed to download filtered results');
     });
+}
+
+function startGifSlideshow() {
+    const gifs = document.querySelectorAll('#gifContainer .loading-gif');
+    if (gifs.length === 0) return;
+
+    gifs.forEach(gif => gif.style.display = 'none');
+    gifs[gifIndex].style.display = 'block';
+
+    gifTimer = setInterval(() => {
+        gifs[gifIndex].style.display = 'none';
+        gifIndex = (gifIndex + 1) % gifs.length;
+        gifs[gifIndex].style.display = 'block';
+    }, 6000);
+}
+
+function stopGifSlideshow() {
+    clearInterval(gifTimer);
+    gifIndex = 0;
 }

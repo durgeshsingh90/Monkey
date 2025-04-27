@@ -3,18 +3,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Upload EMVCo XML Logs</title>
-  <link rel="stylesheet" href="{% static 'emvco_logs/css/styles.css' %}">
-  <link rel="icon" href="{% static 'emvco_logs/images/debugging.png' %}" type="image/png">
+  <title>Upload XLOG Mastercard Logs</title>
+  <link rel="stylesheet" href="{% static 'xlog_mastercard/css/styles.css' %}">
+  <link rel="icon" href="{% static 'xlog_mastercard/images/mastercard.png' %}" type="image/png">
 </head>
 <body>
 
 <div class="container">
   <div class="top-row">
-    <div class="left-section">
-      <h3>XML EMVCo Logs Uploader</h3>
-      
-      <input type="file" id="xmlLogFile" accept=".xml">
+    <div class="left-section" style="position: relative;">
+      <!-- Settings icon -->
+      <a href="/astrex_html_logs/admin/" class="settings-icon" title="Settings" target="_blank">
+        ⚙️
+      </a>
+      <h3>XLOG Mastercard Logs Uploader</h3>
+
+      <input type="file" id="xlogFile" accept=".xlog">
       
       <div id="logInfo" class="file-name" style="margin-top: 10px;">
         <span id="uploadedFileName"></span>
@@ -25,6 +29,7 @@
       </div>
 
       <button id="downloadAllBtn" class="button" style="margin-top: 20px; display: none;">Download All Filtered (ZIP)</button>
+    
     </div>
 
     <div class="right-section">
@@ -45,17 +50,26 @@
 
 <div id="loadingOverlay" class="loading-overlay" style="display: none;">
   <div class="loading-content">
-    <div id="gifContainer">
-      <img src="{% static 'emvco_logs/images/search-file1.gif' %}" class="loading-gif">
-      <img src="{% static 'emvco_logs/images/search-file2.gif' %}" class="loading-gif">
-      <img src="{% static 'emvco_logs/images/search-file3.gif' %}" class="loading-gif">
+    <div id="gifContainer" class="gif-container">
+      <img src="{% static 'xlog_mastercard/images/monkey.gif' %}" class="loading-gif">
+      <img src="{% static 'xlog_mastercard/images/cut.gif' %}" class="loading-gif">
+      <img src="{% static 'xlog_mastercard/images/president.gif' %}" class="loading-gif">
+      <img src="{% static 'xlog_mastercard/images/search-file1.gif' %}" class="loading-gif">
+      <img src="{% static 'xlog_mastercard/images/search.gif' %}" class="loading-gif">
+      <img src="{% static 'xlog_mastercard/images/technician.gif' %}" class="loading-gif">
+      <img src="{% static 'xlog_mastercard/images/telecommuting.gif' %}" class="loading-gif">
+      <img src="{% static 'xlog_mastercard/images/work-in-progress.gif' %}" class="loading-gif">
     </div>
-    ⏳ Processing... Please wait...
+
+    <div class="processing-text">
+      ⏳ Processing... Please wait...
+    </div>
+
     <div id="timer">Elapsed time: 00:00</div>
   </div>
 </div>
 
-<script src="{% static 'emvco_logs/js/scripts.js' %}"></script>
+<script src="{% static 'xlog_mastercard/js/scripts.js' %}"></script>
 
 </body>
 </html>
