@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 JSON_FILE_PATH = os.path.join(PROJECT_ROOT, 'media', 'xlog_mastercard', 'unique_bm32_xlog.json')
 
-from xlog_mastercard.scripts.format_xlog_filter_6 import format_filtered_xml
+# from xlog_mastercard.scripts.format_xlog_filter_6 import format_filtered_xml
 
 
 def element_to_string(element):
@@ -88,17 +88,26 @@ def write_filtered_file(base_path, condition, part_xml_file, filtered_messages):
     base_name = '_'.join(base_name.split('_')[:-1])
     output_file = os.path.join(base_path, f"{base_name}_filtered_{condition}{ext}")
 
-    logging.debug(f"Writing {len(filtered_messages)} messages to {output_file}")
+    # Read the first line from the original part0 (or any part) file
+    with open(part_xml_file, 'r', encoding='utf-8') as f:
+        first_line = f.readline().strip()
 
-    new_tree = ET.ElementTree(ET.Element("xmltag"))
-    new_root = new_tree.getroot()
-    log_elem = ET.SubElement(new_root, "Log")
+    logging.debug(f"First line copied from {part_xml_file}: {first_line}")
+
+    # Create XML structure under <Log>
+    log_elem = ET.Element("Log")
 
     for message in filtered_messages:
         log_elem.append(message)
 
-    new_tree.write(output_file, encoding='utf-8', xml_declaration=True)
+    # Write manually: first write <xmltag> line, then the rest of the XML
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(first_line + "\n")  # Write the copied <xmltag> line
+        f.write(ET.tostring(log_elem, encoding='unicode', method='xml'))  # Then the <Log> structure
+
+    logging.info(f"Filtered file written: {output_file}")
     return output_file
+
 
 def filter_by_conditions(conditions, uploaded_file_path):
     start_time = time.time()
@@ -134,7 +143,7 @@ def filter_by_conditions(conditions, uploaded_file_path):
 
         if filtered_messages:
             output_file = write_filtered_file(output_base_path, condition, part_files[0], filtered_messages)
-            format_filtered_xml(output_file, uploaded_file_path)
+            # format_filtered_xml(output_file, uploaded_file_path)
             generated_files.append(output_file)
         else:
             logging.warning(f"No messages matched for condition {condition}, skipping file creation.")
