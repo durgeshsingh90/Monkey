@@ -107,8 +107,8 @@ function displaySummary(data, uploadData) {
 
     summaryContent.innerHTML = `
         <div>
-            <p>Total DE032 Count: ${data.total_de032_count}</p>
-            <p>Total Unique Count: ${data.total_unique_count}</p>
+            <p>Total Transactions: ${data.total_de032_count}</p>
+            <p>Total PSP: ${data.total_unique_count}</p>
             <p>Start Time: ${uploadData.start_time}</p>
             <p>End Time: ${uploadData.end_time}</p>
             <p>Time Difference: ${uploadData.time_difference}</p>
