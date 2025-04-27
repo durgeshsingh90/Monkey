@@ -10,35 +10,51 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Global path for JSON
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Hardcoded global path for JSON
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # go 2 levels up
 JSON_FILE_PATH = os.path.join(PROJECT_ROOT, 'media', 'xlog_mastercard', 'unique_bm32_xlog.json')
 
-# from xlog_mastercard.scripts.format_xlog_filter import format_filtered_xml_xlog
+from xlog_mastercard.scripts.format_xlog_filter_6 import format_filtered_xml  # updated import
 
-def find_de32_value(log_entry):
-    """Find DE032 value inside a <LogEntry>."""
-    for field in log_entry.findall('.//Field[@Name="32"]'):
-        value_elem = field.find('Value')
-        if value_elem is not None and value_elem.text:
-            return value_elem.text.strip()
-    return None
+def element_to_string(element):
+    """Convert element text and all subelement text to a single string."""
+    content = []
+    for elem in element.iter():
+        if elem.text:
+            content.append(elem.text.strip())
+    return " ".join(content)
 
-def filter_log_entries(part_xml_file, condition):
+def evaluate_conditions(content, conditions):
+    """Evaluate complex conditions within the given content."""
+    def parse_condition(condition):
+        if ' AND ' in condition:
+            sub_conditions = condition.split(' AND ')
+            return all(parse_condition(sub) for sub in sub_conditions)
+        elif ' OR ' in condition:
+            sub_conditions = condition.split(' OR ')
+            return any(parse_condition(sub) for sub in sub_conditions)
+        elif ' NOT ' in condition:
+            sub_conditions = condition.split(' NOT ')
+            return not parse_condition(sub_conditions[1])
+        else:
+            return condition in content
+
+    return parse_condition(conditions)
+
+def filter_log_entries(part_xlog_file, condition):
     try:
-        tree = ET.parse(part_xml_file)
+        tree = ET.parse(part_xlog_file)
     except ET.ParseError as e:
-        logging.error(f"Error parsing {part_xml_file}: {e}")
+        logging.error(f"Error parsing {part_xlog_file}: {e}")
         return []
 
     root = tree.getroot()
-    log = root.find('Log')
     filtered_entries = []
 
-    if log is not None:
-        for log_entry in log.findall('LogEntry'):
-            de32_value = find_de32_value(log_entry)
-            if de32_value == condition:
+    if root.tag == 'log':
+        for log_entry in root.findall('LogEntry'):
+            content = element_to_string(log_entry)
+            if evaluate_conditions(content, condition):
                 filtered_entries.append(log_entry)
 
     return filtered_entries
@@ -57,22 +73,24 @@ def load_json_mapping(json_file_path):
             file_mappings[condition].append(file_path)
     return file_mappings
 
-def write_filtered_file(base_path, condition, part_xml_file, filtered_entries):
-    base_name, ext = os.path.splitext(os.path.basename(part_xml_file))
-    base_name = '_'.join(base_name.split('_')[:-1])
+def write_filtered_file(base_path, condition, part_xlog_file, filtered_entries):
+    base_name, ext = os.path.splitext(os.path.basename(part_xlog_file))
+    base_name = '_'.join(base_name.split('_')[:-1])  # Remove _block_0000
+
     output_file = os.path.join(base_path, f"{base_name}_filtered_{condition}{ext}")
 
-    new_tree = ET.ElementTree(ET.Element("xmltag"))
-    new_root = new_tree.getroot()
-    log_elem = ET.SubElement(new_root, "Log")
-
+    new_log_root = ET.Element("log")
     for entry in filtered_entries:
-        log_elem.append(entry)
+        new_log_root.append(entry)
 
+    new_tree = ET.ElementTree(new_log_root)
     new_tree.write(output_file, encoding='utf-8', xml_declaration=True)
     return output_file
 
 def filter_by_conditions(conditions, uploaded_file_path):
+    """
+    Main callable function to filter .xlog messages based on DE032 conditions.
+    """
     start_time = time.time()
 
     output_base_path = os.path.dirname(JSON_FILE_PATH)
@@ -101,7 +119,7 @@ def filter_by_conditions(conditions, uploaded_file_path):
         if filtered_entries:
             output_file = write_filtered_file(output_base_path, condition, part_files[0], filtered_entries)
             # Format the filtered XML before zipping
-            # format_filtered_xml_xlog(output_file, uploaded_file_path)
+            format_filtered_xml(output_file, uploaded_file_path)
             generated_files.append(output_file)
 
     # Zip all filtered files
