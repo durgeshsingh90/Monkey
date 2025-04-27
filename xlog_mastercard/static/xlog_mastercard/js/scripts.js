@@ -127,7 +127,7 @@ function downloadFiltered(de32) {
         filename: filename
     };
 
-    document.getElementById('loadingOverlay').style.display = 'flex'; // <-- Show loading
+    document.getElementById('loadingOverlay').style.display = 'flex';
     startTimer();
 
     fetch('/xlog_mastercard/download_filtered_by_de032/', {
@@ -139,23 +139,28 @@ function downloadFiltered(de32) {
     })
     .then(response => response.json())
     .then(data => {
-        document.getElementById('loadingOverlay').style.display = 'none'; // <-- Hide loading
-        stopTimer();
-
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = downloadUrl.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            
+            setTimeout(() => {  // <- DELAY HERE
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = downloadUrl.split('/').pop();
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+    
+                document.getElementById('loadingOverlay').style.display = 'none';  // Hide AFTER click
+                stopTimer();
+            }, 800); // 0.8 second delay to let loading screen appear
         } else {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            stopTimer();
             alert('Failed to download: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
-        document.getElementById('loadingOverlay').style.display = 'none'; // <-- Hide on error too
+        document.getElementById('loadingOverlay').style.display = 'none';
         stopTimer();
         console.error('Download error:', error);
         alert('Failed to download filtered results');
