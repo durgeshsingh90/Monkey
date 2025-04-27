@@ -70,16 +70,18 @@ def filter_online_messages(part_xml_file, condition):
     filtered_entries = []
 
     for log_entry in root.findall('.//LogEntry'):
-        for field in log_entry.findall('Field'):
+        for field in log_entry.findall('.//Field'):  # search recursively inside LogEntry
             name_attr = field.attrib.get('Name')
-            if name_attr and name_attr.lstrip('0') == '32':  # <- FIX: allow "32" or "032"
+            if name_attr and name_attr.lstrip('0') == '32':  # normalize 032 and 32
                 value_elem = field.find('Value')
                 if value_elem is not None and value_elem.text and value_elem.text.strip() == condition:
                     filtered_entries.append(log_entry)
-                    break
+                    logging.debug(f"Match found in file: {part_xml_file}")
+                    break  # no need to check more Fields inside this LogEntry
 
     logging.debug(f"Found {len(filtered_entries)} matching entries in {part_xml_file} for condition {condition}")
     return filtered_entries
+
 
 def write_filtered_file(base_path, condition, part_xml_file, filtered_messages):
     base_name, ext = os.path.splitext(os.path.basename(part_xml_file))
