@@ -176,3 +176,13 @@ body {
   transform: rotate(30deg);
   color: #007bff;
 }
+.loading-overlay {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.loading-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}

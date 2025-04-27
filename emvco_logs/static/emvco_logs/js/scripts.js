@@ -160,19 +160,32 @@ function loadSummary(uploadData) {
     });
 }
 
+function showLoadingScreen() {
+    const overlay = document.getElementById('loadingOverlay');
+    overlay.classList.add('active');
+    startGifSlideshow();
+    startTimer();
+}
+
+function hideLoadingScreen() {
+    const overlay = document.getElementById('loadingOverlay');
+    overlay.classList.remove('active');
+    stopTimer();
+}
+
 function downloadFiltered(de32) {
-    console.log(`Downloading filtered results for DE032: ${de32}`);
     const filename = document.getElementById('uploadedFileName').textContent;
     const payload = {
         conditions: [de32],
         filename: filename
     };
 
+    showLoadingScreen();  // <-- Correct way
+
     fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
     })
@@ -180,17 +193,23 @@ function downloadFiltered(de32) {
     .then(data => {
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = downloadUrl.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            
+            setTimeout(() => {  // wait 700ms to show loading overlay
+                hideLoadingScreen();  // <-- AFTER small delay
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = downloadUrl.split('/').pop();
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }, 700); 
         } else {
+            hideLoadingScreen();
             alert('Failed to download: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
+        hideLoadingScreen();
         console.error('Download error:', error);
         alert('Failed to download filtered results');
     });
@@ -203,11 +222,12 @@ function downloadAllFiltered(de32List) {
         filename: filename
     };
 
+    showLoadingScreen();
+
     fetch('/emvco_logs/download_filtered_by_de032/', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
     })
@@ -215,21 +235,29 @@ function downloadAllFiltered(de32List) {
     .then(data => {
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = downloadUrl.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+
+            setTimeout(() => { // <- small delay here too
+                hideLoadingScreen();
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = downloadUrl.split('/').pop();
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }, 700); 
+
         } else {
+            hideLoadingScreen();
             alert('Failed to download: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
+        hideLoadingScreen();
         console.error('Download error:', error);
         alert('Failed to download filtered results');
     });
 }
+
 let gifIndex = 0;
 let gifTimer;
 
