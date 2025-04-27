@@ -1,38 +1,34 @@
 import os
 import logging
-import xml.etree.ElementTree as ET
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s',
                     handlers=[logging.StreamHandler()])
 
-def process_file(file_path):
+def process_file(file_path, max_file_size=20*1024*1024):
     """
-    Splits the uploaded .xlog XML file into individual logEntry XML files.
-    Each <logEntry> is saved separately, wrapped inside a <log> root.
+    Splits the uploaded XML file into smaller parts if it exceeds max_file_size.
+    Called automatically after file upload.
     """
     base_name, ext = os.path.splitext(file_path)
-    output_folder = f"{base_name}_split"
-    os.makedirs(output_folder, exist_ok=True)
 
-    logging.info(f"Starting to split XLOG (XML format) file: {file_path}")
+    logging.info(f"Starting to split file: {file_path}")
 
-    tree = ET.parse(file_path)
-    root = tree.getroot()
+    with open(file_path, 'rb') as source_file:
+        file_part = 0
+        while True:
+            logging.debug(f"Reading chunk {file_part} from the file.")
+            chunk = source_file.read(max_file_size)
+            if not chunk:
+                logging.info(f"Finished reading file. Total parts created: {file_part}.")
+                break
 
-    block_index = 0
-    for log_entry in root.findall('logEntry'):
-        block_filename = os.path.join(output_folder, f"block_{block_index:04}.xlog")
-        logging.debug(f"Saving logEntry {block_index} to file: {block_filename}")
+            file_part_name = f"{base_name}_part{file_part}{ext}"
+            logging.debug(f"Writing chunk {file_part} to file: {file_part_name}")
+            with open(file_part_name, 'wb') as dest_file:
+                dest_file.write(chunk)
 
-        # Wrap it inside <log> root
-        new_log_root = ET.Element('log')
-        new_log_root.append(log_entry)
+            file_part += 1
 
-        new_tree = ET.ElementTree(new_log_root)
-        new_tree.write(block_filename, encoding='utf-8', xml_declaration=True)
-
-        block_index += 1
-
-    logging.info(f"Splitting complete. Total logEntry blocks created: {block_index}")
+    logging.info(f"File split into {file_part} parts.")
