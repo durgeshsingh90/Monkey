@@ -69,19 +69,45 @@ def filter_online_messages(part_xml_file, condition):
     root = tree.getroot()
     filtered_entries = []
 
-    for log_entry in root.findall('.//LogEntry'):
-        for field in log_entry.findall('.//Field'):  # search recursively inside LogEntry
+    all_log_entries = root.findall('.//LogEntry')
+
+    previous_entry = None
+    for log_entry in all_log_entries:
+        found_match = False
+        for field in log_entry.findall('.//Field'):
             name_attr = field.attrib.get('Name')
-            if name_attr and name_attr.lstrip('0') == '32':  # normalize 032 and 32
+            if name_attr and name_attr.lstrip('0') == '32':
                 value_elem = field.find('Value')
                 if value_elem is not None and value_elem.text and value_elem.text.strip() == condition:
-                    filtered_entries.append(log_entry)
-                    logging.debug(f"Match found in file: {part_xml_file}")
-                    break  # no need to check more Fields inside this LogEntry
+                    found_match = True
+                    break
 
-    logging.debug(f"Found {len(filtered_entries)} matching entries in {part_xml_file} for condition {condition}")
+        if found_match:
+            if previous_entry is not None:
+                filtered_entries.append(previous_entry)  # add previous LogEntry first
+            filtered_entries.append(log_entry)  # add the matching LogEntry
+            logging.debug(f"Match found and added previous + current LogEntry from file: {part_xml_file}")
+
+        previous_entry = log_entry  # Move previous pointer forward
+
+    logging.debug(f"Total {len(filtered_entries)} LogEntries collected for condition {condition}")
     return filtered_entries
 
+
+
+def indent(elem, level=0):
+    """Helper to pretty format XML with 4 spaces indentation."""
+    i = "\n" + level*"    "  # 4 spaces
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = i + "    "
+        for child in elem:
+            indent(child, level+1)
+        if not child.tail or not child.tail.strip():
+            child.tail = i
+    if level and (not elem.tail or not elem.tail.strip()):
+        elem.tail = i
+    return elem
 
 def write_filtered_file(base_path, condition, part_xml_file, filtered_messages):
     base_name, ext = os.path.splitext(os.path.basename(part_xml_file))
@@ -100,13 +126,17 @@ def write_filtered_file(base_path, condition, part_xml_file, filtered_messages):
     for message in filtered_messages:
         log_elem.append(message)
 
-    # Write manually: first write <xmltag> line, then the rest of the XML
+    # Indent the XML tree nicely
+    indent(log_elem)
+
+    # Write manually: first <xmltag> line, then pretty printed <Log> and <LogEntry>
     with open(output_file, 'w', encoding='utf-8') as f:
-        f.write(first_line + "\n")  # Write the copied <xmltag> line
-        f.write(ET.tostring(log_elem, encoding='unicode', method='xml'))  # Then the <Log> structure
+        f.write(first_line + "\n")  # <xmltag> line
+        f.write(ET.tostring(log_elem, encoding='unicode', method='xml'))  # pretty printed <Log>
 
     logging.info(f"Filtered file written: {output_file}")
     return output_file
+
 
 
 def filter_by_conditions(conditions, uploaded_file_path):
