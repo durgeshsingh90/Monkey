@@ -127,6 +127,9 @@ function downloadFiltered(de32) {
         filename: filename
     };
 
+    document.getElementById('loadingOverlay').style.display = 'flex'; // <-- Show loading
+    startTimer();
+
     fetch('/xlog_mastercard/download_filtered_by_de032/', {
         method: 'POST',
         headers: {
@@ -136,6 +139,9 @@ function downloadFiltered(de32) {
     })
     .then(response => response.json())
     .then(data => {
+        document.getElementById('loadingOverlay').style.display = 'none'; // <-- Hide loading
+        stopTimer();
+
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
             const a = document.createElement('a');
@@ -149,10 +155,13 @@ function downloadFiltered(de32) {
         }
     })
     .catch(error => {
+        document.getElementById('loadingOverlay').style.display = 'none'; // <-- Hide on error too
+        stopTimer();
         console.error('Download error:', error);
         alert('Failed to download filtered results');
     });
 }
+
 
 function downloadAllFiltered(de32List) {
     const filename = document.getElementById('uploadedFileName').textContent;
@@ -161,6 +170,9 @@ function downloadAllFiltered(de32List) {
         filename: filename
     };
 
+    document.getElementById('loadingOverlay').style.display = 'flex'; // <-- Show loading
+    startTimer();
+
     fetch('/xlog_mastercard/download_filtered_by_de032/', {
         method: 'POST',
         headers: {
@@ -170,6 +182,9 @@ function downloadAllFiltered(de32List) {
     })
     .then(response => response.json())
     .then(data => {
+        document.getElementById('loadingOverlay').style.display = 'none'; // <-- Hide loading
+        stopTimer();
+
         if (data.status === 'success') {
             const downloadUrl = '/media/' + data.filtered_file;
             const a = document.createElement('a');
@@ -183,10 +198,13 @@ function downloadAllFiltered(de32List) {
         }
     })
     .catch(error => {
+        document.getElementById('loadingOverlay').style.display = 'none'; // <-- Hide loading
+        stopTimer();
         console.error('Download error:', error);
         alert('Failed to download filtered results');
     });
 }
+
 
 function startGifSlideshow() {
     const gifs = document.querySelectorAll('#gifContainer .loading-gif');

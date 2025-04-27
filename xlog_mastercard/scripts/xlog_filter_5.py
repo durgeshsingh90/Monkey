@@ -13,9 +13,6 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 JSON_FILE_PATH = os.path.join(PROJECT_ROOT, 'media', 'xlog_mastercard', 'unique_bm32_xlog.json')
 
-# from xlog_mastercard.scripts.format_xlog_filter_6 import format_filtered_xml
-
-
 def element_to_string(element):
     """Convert element text and all subelement text to a single string."""
     content = []
@@ -92,8 +89,6 @@ def filter_online_messages(part_xml_file, condition):
 
     logging.debug(f"Total {len(filtered_entries)} LogEntries collected for condition {condition}")
     return filtered_entries
-
-
 
 def indent(elem, level=0):
     """Helper to pretty format XML with 4 spaces indentation."""
