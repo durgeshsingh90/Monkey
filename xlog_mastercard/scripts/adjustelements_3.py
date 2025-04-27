@@ -15,39 +15,42 @@ def adjust_elements(base_file_path):
 
     logging.info(f"Processing adjust_elements for {base_file_path}")
 
-    # Step 1: Read header (everything BEFORE first <LogEntry>)
+    # Step 1: Read first 2 lines from part0.xml (header)
     lines_to_prepend = []
     if os.path.exists(part0_file):
         with open(part0_file, 'r', encoding='utf-8') as file:
-            for line in file:
-                lines_to_prepend.append(line)
-                if '<LogEntry' in line:  # very important: '<LogEntry' not exactly '<LogEntry>'
-                    lines_to_prepend.pop()  # Remove the <LogEntry> line itself
-                    break
+            lines = file.readlines()
+            if len(lines) >= 2:
+                lines_to_prepend = lines[:2]
+            else:
+                logging.error("Part0 file does not have enough lines to extract header.")
+                return
     else:
         logging.error(f"Part 0 file {part0_file} not found.")
         return
 
-    # Step 2: Find footer (everything AFTER last </LogEntry>)
+    # Step 2: Read last line from last part (footer)
     part_files_pattern = base_path + '_part[1-9]*.xml'
     other_parts = sorted(glob.glob(part_files_pattern))
 
-    lines_to_append = []
     if other_parts:
         last_part_file = other_parts[-1]
     else:
-        last_part_file = part0_file  # If only part0 exists
+        last_part_file = part0_file  # only part0 exists
 
-    found_last_logentry = False
+    lines_to_append = []
     if os.path.exists(last_part_file):
         with open(last_part_file, 'r', encoding='utf-8') as file:
             temp_lines = file.readlines()
-            for idx in reversed(range(len(temp_lines))):
-                if '</LogEntry>' in temp_lines[idx] and not found_last_logentry:
-                    found_last_logentry = True
-                    continue  # skip the </LogEntry> line itself
-                if found_last_logentry:
-                    lines_to_append.insert(0, temp_lines[idx])  # Prepend lines after </LogEntry>
+            if temp_lines:
+                last_line = temp_lines[-1]
+                if '</log>' in last_line:
+                    lines_to_append = [last_line]
+                else:
+                    logging.warning("Footer </log> tag not found in last part file.")
+            else:
+                logging.error("Last part file is empty.")
+                return
     else:
         logging.error(f"Last part file {last_part_file} not found.")
         return
@@ -65,7 +68,7 @@ def adjust_elements(base_file_path):
 
     all_parts = [part0_file] + other_parts
 
-    # Step 3: Apply prepend and append to all parts
+    # Step 3: Apply to all parts
     for part_file in all_parts:
         logging.info(f"Adjusting {part_file}")
         prepend_content(part_file, lines_to_prepend)
