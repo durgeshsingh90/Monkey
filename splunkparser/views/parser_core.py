@@ -5,7 +5,7 @@ import json
 import re
 import logging
 
-from .utils import extract_timestamp, extract_route, extract_message_id, FIELD_DEFINITIONS  # ✅ Import FIELD_DEFINITIONS directly
+from .utils import extract_timestamp, extract_route, extract_message_id, get_field_definitions  # ✅ Import FIELD_DEFINITIONS directly
 from .parser_helper import parse_emv_field_55, update_de55, parse_de090_fields
 
 # Logger
@@ -56,6 +56,8 @@ def parse_logs(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
 def parse_iso8583(log_data):
+    FIELD_DEFINITIONS = get_field_definitions()  # ✅ Lazy load here
+
     message = {}
     de007_parts = []
     bm43_parts = []
@@ -67,7 +69,7 @@ def parse_iso8583(log_data):
     lines = log_data.split("\n")
     logger.debug(f"Number of lines received for parsing: {len(lines)}")
 
-    # Detect if log uses only one of "in[" or "out["
+    # Detect if log uses only one of "in[" or "out[" 
     has_in = any("in[" in line for line in lines)
     has_out = any("out[" in line for line in lines)
 
@@ -83,11 +85,8 @@ def parse_iso8583(log_data):
 
     escaped_prefix = prefix.replace('[', r'\[').replace(']', r'\]')  # Escape for regex
 
-    data_elements = {}  # Dictionary to store Data Elements
-
-    # Define which DE fields should be converted to integers
-    integer_fields = ['004', '049']  # Add more fields if needed
-    # Define which DE fields need to be zero-padded and their respective lengths
+    data_elements = {}
+    integer_fields = ['004', '049']
     pad_zero_fields = {
         '013': 4,
         '019': 3,
@@ -95,11 +94,9 @@ def parse_iso8583(log_data):
         '023': 3,
         '025': 2
     }
-
-    # Define the flags for DE053
     first_bm53_skipped = False
 
-    # Search for MTI anywhere in the input
+    # Search for MTI first
     for line in lines:
         logger.debug(f"Processing line: '{line.strip()}'")
         if not mti:
@@ -109,14 +106,13 @@ def parse_iso8583(log_data):
                 logger.info(f"MTI extracted: {mti}")
                 continue
 
-    # Extract Data Elements
+    # Parse DE fields
     for line in lines:
         line = line.strip()
         if not line:
             logger.debug("Skipping empty line.")
             continue
 
-        # ✅ Skip DE129 explicitly regardless of direction or format
         if re.search(r'\[\s*129\s*:\s*\]|DE0129', line):
             logger.info(f"Omitting DE129: {line.strip()}")
             continue
@@ -128,140 +124,113 @@ def parse_iso8583(log_data):
 
             logger.debug(f"Field {field_number} detected with value: {value}")
 
-            # Retrieve field definition
+            # Fix DE003 unconditionally (always 6-digit string)
+            if field_number == '003':
+                value = value.zfill(6) if value.strip() else "000000"
+                logger.debug(f"Adjusted DE003 to 6 digits: {value}")
+            # Fix DE004 unconditionally (always integer, remove prefix zeros)
+            elif field_number == '004':
+                value = 0 if value.strip('0') == '' else int(value.lstrip('0'))
+                logger.debug(f"Converted DE004 to integer: {value}")
+            
+            # Get field definition
             field_def = FIELD_DEFINITIONS.get(field_number)
             if field_def:
                 field_length = field_def.get('length')
 
-                # Adjust the length if needed
-                if field_number == '003':
-                    # DE003 must always be 6-digit string
-                    if value.strip() == '':
-                        value = "000000"
-                    else:
-                        value = value.zfill(6)
-                    logger.debug(f"Adjusted DE003 to 6 digits: {value}")
 
-                # Enable below line for DE004 to get output like     "DE004": "000000001000"
-                # elif field_number == '004':
-                #     if value.strip() and value.strip('0'):  # Ensure non-empty and not just zeros
-                #         value = int(value.lstrip('0'))
-                
-                # Enable below line for DE004 to get output like     "DE004": 1000,
-                elif field_number == '004':
-                    # DE004 must always be integer
-                    if value.strip('0') == '':
-                        value = 0
-                    else:
-                        value = int(value.lstrip('0'))
-                    logger.debug(f"Converted DE004 to integer: {value}")
-
-            # Special handling for DE060, 061, and 062
-            if field_number in ['060', '061', '062','065', '066']:
+            # Special handling
+            if field_number in ['060', '061', '062', '065', '066']:
                 value = parse_bm6x(value)
                 logger.info(f"Parsed DE {field_number}: {value}")
 
-            # Handling for DE 55 across multiple lines
+            # DE accumulation
             if field_number == '055':
                 de055_parts.append(value)
-                logger.debug(f"Accumulating DE 55 parts: {de055_parts}")
+                logger.debug(f"Accumulating DE055 parts: {de055_parts}")
                 continue
 
-            # Handling for DE007
             if field_number == '007':
                 de007_parts.append(value)
-                logger.debug(f"Accumulating DE 007 parts: {de007_parts}")
+                logger.debug(f"Accumulating DE007 parts: {de007_parts}")
                 continue
 
-            # Handling for DE090
             if field_number == '090':
                 de090_parts.append(value)
-                logger.debug(f"Accumulating DE 090 parts: {de090_parts}")
+                logger.debug(f"Accumulating DE090 parts: {de090_parts}")
                 continue
 
-            # Handling for DE 43
             if field_number == '043':
-                bm43_parts.append(value)  # Append value without stripping spaces
-                logger.debug(f"Accumulating DE 43 parts: {bm43_parts}")
+                bm43_parts.append(value)
+                logger.debug(f"Accumulating DE043 parts: {bm43_parts}")
                 continue
 
-            # Handling for DE 53: Ignore the first line and combine the rest
             if field_number == '053':
                 if not first_bm53_skipped:
                     first_bm53_skipped = True
-                    logger.debug(f"Skipping first DE 53 part: {value}")
+                    logger.debug(f"Skipping first DE053 part: {value}")
                 else:
-                    de053_parts.append(value.strip())  # You can decide whether to strip or not
-                    logger.debug(f"Accumulating DE 53 parts: {de053_parts}")
+                    de053_parts.append(value.strip())
+                    logger.debug(f"Accumulating DE053 parts: {de053_parts}")
                 continue
 
-            # Convert to integer if the field is in the integer_fields list, and it's not empty
-            if field_number in integer_fields and field_number != '004':  # Skip DE004 here, as it's handled above
-                if value.strip():  # Ensure value is not empty
+            # Convert some DEs to int
+            if field_number in integer_fields and field_number != '004':
+                if value.strip():
                     value = int(value.lstrip('0'))
                     logger.debug(f"Converted field {field_number} to integer: {value}")
 
-            # Pad with zeros if the field is in the pad_zero_fields list
+            # Zero pad some fields
             if field_number in pad_zero_fields:
                 value = value.zfill(pad_zero_fields[field_number])
                 logger.debug(f"Padded field {field_number} with zeros: {value}")
 
             data_elements[f"DE{field_number}"] = value
 
-    # Combine and pad DE007
+    # Combine accumulated fields
     if de007_parts:
         combined_de007 = ''.join(de007_parts)
         data_elements["DE007"] = combined_de007.zfill(10)
         logger.info(f"Combined DE007: {data_elements['DE007']}")
 
-    # Combine and pad DE090
     if de090_parts:
         combined_de090 = ''.join(de090_parts)
-        logger.debug(f"Combined DE090: {combined_de090}")
-        parsed_de090 = parse_de090_fields(combined_de090)  # Call parse function for DE090
+        parsed_de090 = parse_de090_fields(combined_de090)
         data_elements["DE090"] = parsed_de090
         logger.info(f"Parsed DE090: {data_elements['DE090']}")
 
-    # Combine parts of DE043 without stripping spaces
     if bm43_parts:
-        data_elements["DE043"] = ''.join(bm43_parts)  # Combine without stripping spaces
+        data_elements["DE043"] = ''.join(bm43_parts)
         logger.info(f"Combined DE043: {data_elements['DE043']}")
 
-    # Combine parts of DE053
     if de053_parts:
-        data_elements["DE053"] = ''.join(de053_parts)  # Retain spaces if needed
+        data_elements["DE053"] = ''.join(de053_parts)
         logger.info(f"Combined DE053: {data_elements['DE053']}")
 
-    # Combine parts of DE055 and parse as TLV
     if de055_parts:
         combined_de055 = ''.join(de055_parts)
-        logger.debug(f"Combined DE055: {combined_de055}")
-        parsed_de055 = parse_emv_field_55(combined_de055)  # Parse the combined DE55
-        # Update the DE55 data if necessary
+        parsed_de055 = parse_emv_field_55(combined_de055)
         update_de55(parsed_de055)
         data_elements["DE055"] = parsed_de055
         logger.info(f"Parsed DE055: {data_elements['DE055']}")
 
-    # Sort data_elements by keys in ascending order
+    # Final output
     sorted_data_elements = dict(sorted(data_elements.items()))
-
     logger.info("Final data elements constructed successfully.")
-    logger.debug(f"Final sorted data elements: {sorted_data_elements}")
 
-    # Convert MTI to integer if it is numeric
+    # Try converting MTI to int
     try:
         mti = int(mti)
     except ValueError:
         logger.debug(f"MTI is not numeric: {mti}")
 
-    # Construct the final message
     if mti:
         message["mti"] = mti
 
     message["data_elements"] = sorted_data_elements
 
-    logger.info("Final message constructed successfully with data elements.")
-    logger.debug(f"Final message: {message}")
+    logger.info("Final ISO8583 message ready.")
+    logger.debug(f"Final ISO8583 message: {message}")
 
     return message
 

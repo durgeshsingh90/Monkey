@@ -48,3 +48,35 @@ def extract_message_id(log_data):
     match = re.search(r'MESSAGE ID\[(.*?)\]', log_data)
     return match.group(1).strip() if match else None
 
+
+import os
+import json
+import logging
+from django.conf import settings
+
+logger = logging.getLogger('splunkparser')
+
+# Initialize FIELD_DEFINITIONS as None
+FIELD_DEFINITIONS = None
+
+def get_field_definitions():
+    global FIELD_DEFINITIONS
+    if FIELD_DEFINITIONS is None:
+        try:
+            field_def_path = os.path.join(settings.MEDIA_ROOT, 'schemas', 'omnipay.json')
+            logger.info(f"Loading FIELD_DEFINITIONS from {field_def_path}")
+            with open(field_def_path, 'r') as f:
+                raw_definitions = json.load(f)
+            FIELD_DEFINITIONS = raw_definitions.get("fields", raw_definitions)
+
+            # Normalize DE055 if needed
+            if "DE055" in FIELD_DEFINITIONS and "055" not in FIELD_DEFINITIONS:
+                FIELD_DEFINITIONS["055"] = FIELD_DEFINITIONS["DE055"]
+
+            logger.info("FIELD_DEFINITIONS loaded successfully.")
+
+        except Exception as e:
+            logger.error(f"Failed to load field definitions: {e}")
+            FIELD_DEFINITIONS = {}
+
+    return FIELD_DEFINITIONS
