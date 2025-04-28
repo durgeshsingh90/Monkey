@@ -1,0 +1,16 @@
+{
+  "DE002": "LLVAR mismatch",
+  "DE004": "Invalid length 4 (expected 12)",
+  "DE012": "Invalid length 5 (expected 6)",
+  "DE014": "Invalid format for expected N",
+  "DE032": "LLVAR mismatch",
+  "DE043": "Invalid length 28 (expected 40)",
+  "DE060.34": "Invalid length 3 (expected 4)",
+  "DE060.35": "Unknown subfield",
+  "DE060.40": "Unknown subfield",
+  "DE061.10": "Unknown subfield",
+  "DE061.11": "Unknown subfield",
+  "DE061.12": "Unknown subfield",
+  "DE061.13": "Unknown subfield",
+  "DE061.14": "Unknown subfield"
+}
