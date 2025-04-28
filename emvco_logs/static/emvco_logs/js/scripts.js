@@ -79,6 +79,7 @@ function uploadFile() {
   }
   
 
+  
 // Load Summary
 function loadSummary(uploadData) {
   fetch('/media/emvco_logs/unique_bm32_emvco.json')
