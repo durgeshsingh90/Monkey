@@ -4,7 +4,6 @@ let file = null;
 let de032_counts = {};
 let startTime;
 let loadingTimerInterval;
-let loadingTimeout;
 let bm32NameMap = {};
 
 let gifIndex = 0;
@@ -40,44 +39,45 @@ if (xmlInput) {
 }
 
 // Upload File
+// Upload File
 function uploadFile() {
-  if (!file || !file.name.endsWith('.xml')) {
-    alert('Please select a valid XML file.');
-    return;
-  }
-
-  startTime = new Date();
-  startLoadingTimer();
-  loadingTimeout = setTimeout(showLoadingScreen, 1000);
-
-  const formData = new FormData();
-  formData.append('file', file);
-
-  fetch('/emvco_logs/upload/', {
-    method: 'POST',
-    body: formData,
-    headers: { 'X-CSRFToken': getCookie('csrftoken') }
-  }).then(res => res.json())
-  .then(data => {
-    clearTimeout(loadingTimeout);
-    hideLoadingScreen();
-    clearInterval(loadingTimerInterval);
-
-    if (data.status === 'success') {
-      loadSummary(data);
-      document.getElementById('processingTimeContainer').style.display = 'block';
-    } else {
-      alert(data.error || 'Upload failed.');
+    if (!file || !file.name.endsWith('.xml')) {
+      alert('Please select a valid XML file.');
+      return;
     }
-  })
-  .catch(err => {
-    clearTimeout(loadingTimeout);
-    hideLoadingScreen();
-    clearInterval(loadingTimerInterval);
-    console.error(err);
-    alert('Upload failed.');
-  });
-}
+  
+    startTime = new Date();
+    showLoadingScreen();   // Show loading overlay immediately
+    startLoadingTimer();   // Start showing elapsed time immediately
+  
+    const formData = new FormData();
+    formData.append('file', file);
+  
+    fetch('/emvco_logs/upload/', {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(res => res.json())
+    .then(data => {
+      hideLoadingScreen();             // Hide loading after success
+      clearInterval(loadingTimerInterval);  // Stop the timer
+  
+      if (data.status === 'success') {
+        loadSummary(data);   // Load the summary view
+        document.getElementById('processingTimeContainer').style.display = 'block';
+      } else {
+        alert(data.error || 'Upload failed.');
+      }
+    })
+    .catch(err => {
+      hideLoadingScreen();             // Hide loading on failure too
+      clearInterval(loadingTimerInterval);
+      console.error(err);
+      alert('Upload failed.');
+    });
+  }
+  
 
 // Load Summary
 function loadSummary(uploadData) {
