@@ -4,7 +4,7 @@
     "format": "N",
     "description": "Message Type Indicator (MTI)"
   },
-  "bitmap": {
+    "bitmap": {
     "length": 16,
     "format": "H",
     "description": "Bitmap (Hexadecimal representation of present data elements)"
@@ -91,6 +91,36 @@
         }
       },
       "DE062": { "name": "Reserved Private", "length": null }
+    },
+    "attributes": {
+    "formats": {
+      "A": "Alphabetic (A-Z only)",
+      "N": "Numeric (0-9 only)",
+      "S": "Special characters",
+      "AN": "Alphanumeric (A-Z, 0-9)",
+      "ANS": "Alphanumeric and Special (A-Z, 0-9, special characters)",
+      "B": "Binary data",
+      "Z": "Track data (Track1/Track2/Track3 - digits and special chars like '=' and '^')",
+      "^": "ASCII space character (padding character in some track formats)",
+      "H": "Hexadecimal (0-9, A-F)",
+      "LLVAR": "Variable length (up to 99), first 2 digits indicate length",
+      "LLLVAR": "Variable length (up to 999), first 3 digits indicate length"
+    },
+    "field_length_types": {
+      "fixed": "Fields with a pre-defined, constant length",
+      "llvar": "Variable length fields up to 99 characters (prefix with 2-digit length)",
+      "lllvar": "Variable length fields up to 999 characters (prefix with 3-digit length)"
+    },
+    "common_mti_values": {
+      "0100": "Authorization Request",
+      "0110": "Authorization Response",
+      "0200": "Financial Transaction Request",
+      "0210": "Financial Transaction Response",
+      "0400": "Reversal Request",
+      "0410": "Reversal Response",
+      "0800": "Network Management Request (e.g., sign-on, echo)",
+      "0810": "Network Management Response"
+    }
     }
   }
   
