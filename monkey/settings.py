@@ -51,7 +51,9 @@ INSTALLED_APPS = [
     'runquery',
     'compare',
     'yaml2json',
-    'xlog_mastercard'
+    'xlog_mastercard',
+    'certifications',
+    'hex2iso'
 ]
 
 LOG_DIR = BASE_DIR / 'logs'
@@ -259,6 +261,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "compare/static",
     BASE_DIR / "yaml2json/static",
     BASE_DIR / "xlog_mastercard/static",
+    BASE_DIR / "certifications/static",
+    BASE_DIR / "hex2iso/static",
 
 
     
