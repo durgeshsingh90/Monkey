@@ -1,126 +1,135 @@
 {
-    "mti": {
-    "length": 4,
-    "format": "N",
-    "description": "Message Type Indicator (MTI)"
+  "mti": {
+  "length": 4,
+  "format": "N",
+  "description": "Message Type Indicator (MTI)"
+},
+  "bitmap": {
+  "length": 16,
+  "format": "H",
+  "description": "Bitmap (Hexadecimal representation of present data elements)"
+},
+  "fields": {
+    "DE002": { "name": "Primary Account Number", "max_length": 19, "variable_length": true, "format": "N"},
+    "DE003": { "name": "Processing Code", "length": 6, "format": "N" },
+    "DE004": { "name": "Transaction Amount", "length": 12, "format": "N" },
+    "DE007": { "name": "Transmission Date and Time", "length": 10, "format": "N" },
+    "DE011": { "name": "Systems Trace Audit Number", "length": 6, "format": "N" },
+    "DE012": { "name": "Local Transaction Time", "length": 6, "format": "N" },
+    "DE013": { "name": "Local Transaction Date", "length": 4, "format": "N" },
+    "DE014": { "name": "Expiration Date", "length": 4, "format": "N" },
+    "DE018": { "name": "Merchant Category Code", "length": 4, "format": "N" },
+    "DE019": { "name": "Acquiring Institution Country Code", "length": 3, "format": "N" },
+    "DE022": { "name": "Point of Service Entry Mode", "length": 3, "format": "N" },
+    "DE023": { "name": "Card Sequence Number", "length": 3, "format": "N" },
+    "DE025": { "name": "Point of Service Condition Code", "length": 2, "format": "N" },
+    "DE032": { "name": "Acquiring Institution Identification Code", "max_length": 11, "variable_length": true, "format": "N" },
+    "DE035": { "name": "Track 2 Data", "max_length": 37, "variable_length": true, "format": "Z" },
+    "DE037": { "name": "Retrieval Reference Number", "length": 12, "format": "AN" },
+    "DE041": { "name": "Card Acceptor Terminal Identification", "length": 8, "format": "ANS" },
+    "DE042": { "name": "Card Acceptor Identification Code", "length": 15, "format": "ANS" },
+    "DE043": { "name": "Card Acceptor Name/Location", "length": 40, "format": "ANS" },
+    "DE049": { "name": "Transaction Currency Code", "length": 3, "format": "N" },
+    "DE055": {
+      "subfields": {
+        "71": { "name": "Issuer script template 1", "max_length": 255, "format": "B" },
+        "72": { "name": "Issuer script template 2", "max_length": 255, "format": "B" },
+        "82": { "name": "Application Interchange Profile", "max_length": 2, "format": "B" },
+        "84": { "name": "Dedicated File Name", "max_length": 16, "format": "B" },
+        "8A": { "name": "Authorization Response Code", "max_length": 2, "format": "AN" },
+        "91": { "name": "Issuer Authentication Data", "max_length": 16, "format": "B" },
+        "95": { "name": "Terminal Verification Results", "max_length": 5, "format": "B" },
+        "96": { "name": "Kernel Identifier", "max_length": 8, "format": "B" },
+        "9A": { "name": "Transaction Date (YYMMDD)", "max_length": 3, "format": "N" },
+        "9C": { "name": "Transaction Type", "max_length": 1, "format": "N" },
+        "9F02": { "name": "Amount Authorized", "max_length": 6, "format": "N" },
+        "9F03": { "name": "Amount Other", "max_length": 6, "format": "N" },
+        "9F09": { "name": "Terminal Application Version Number", "max_length": 2, "format": "N" },
+        "9F10": { "name": "Issuer Application Data", "max_length": 32, "format": "B" },
+        "9F1A": { "name": "Terminal Country Code", "max_length": 2, "format": "N" },
+        "9F1E": { "name": "Interface Device Serial Number", "max_length": 16, "format": "ANS" },
+        "9F26": { "name": "Application Cryptogram", "max_length": 8, "format": "B" },
+        "9F27": { "name": "Cryptogram Information Data", "max_length": 1, "format": "B" },
+        "9F33": { "name": "Terminal Capabilities", "max_length": 3, "format": "B" },
+        "9F34": { "name": "Cardholder Verification Method Results", "max_length": 3, "format": "B" },
+        "9F35": { "name": "Terminal Type", "max_length": 1, "format": "N" },
+        "9F36": { "name": "Application Transaction Counter", "max_length": 2, "format": "N" },
+        "9F37": { "name": "Unpredictable Number", "max_length": 4, "format": "B" },
+        "9F53": { "name": "Transaction Category Code (MC)", "max_length": 1, "format": "N" },
+        "9F5B": { "name": "Issuer Script Results (VISA)", "max_length": 20, "format": "B" },
+        "9F60": { "name": "Authenticated Application Data", "max_length": 128, "format": "B" },
+        "9F6E": { "name": "Form Factor Indicator (Visa and Diners)", "max_length": 6, "format": "N" },
+        "DF31": { "name": "Issuer Script Results (UnionPay)", "max_length": 20, "format": "B" },
+        "DF3F": { "name": "Storage Data (Diners)", "max_length": 114, "format": "B" },
+        "5F2A": { "name": "Transaction Currency Code", "max_length": 2, "format": "N" }
+      }
+    },
+    "DE060": {
+      "name": "Reserved Private",
+      "max_length": 20,
+      "variable_length": true,
+      "format": "LLVAR",
+      "subfields": {
+        "34": { "name": "Advice Reason Code", "length": 4, "format": "N" },
+        "2": { "name": "Original Data Elements", "length": 42, "format": "N" },
+        "3": { "name": "Replacement Amounts", "max_length": 24, "variable_length": true, "format": "N" },
+        "4": { "name": "Authorization Profile", "length": 6, "format": "N" }
+      }
+    },
+    "DE061": {
+      "name": "Reserved Private",
+      "max_length": 999,
+      "variable_length": true,
+      "format": "LLLVAR",
+      "subfields": {
+        "1": { "name": "Billing Amount", "length": 12, "format": "N" },
+        "2": { "name": "Settlement Amount", "length": 12, "format": "N" },
+        "3": { "name": "Cashback Amount", "length": 12, "format": "N" },
+        "4": { "name": "Fee Amount", "max_length": 12, "variable_length": true, "format": "N" },
+        "5": { "name": "Account Type", "length": 2, "format": "N" },
+        "6": { "name": "Authorization Characteristics Indicator", "length": 3, "format": "AN" }
+      }
+    },
+    "DE062": {
+      "name": "Reserved Private",
+      "max_length": 999,
+      "variable_length": true,
+      "format": "LLLVAR",
+      "subfields": {
+        "1": { "name": "Billing Amount", "length": 12, "format": "N" },
+        "02": { "name": "Settlement Amount", "length": 15, "format": "N" },
+        "3": { "name": "Cashback Amount", "length": 12, "format": "N" },
+        "4": { "name": "Fee Amount", "max_length": 12, "variable_length": true, "format": "N" },
+        "5": { "name": "Account Type", "length": 2, "format": "N" },
+        "6": { "name": "Authorization Characteristics Indicator", "length": 3, "format": "AN" }
+      }
+    },
+  "attributes": {
+  "formats": {
+    "A": "Alphabetic (A-Z only)",
+    "N": "Numeric (0-9 only)",
+    "S": "Special characters",
+    "AN": "Alphanumeric (A-Z, 0-9)",
+    "ANS": "Alphanumeric and Special (A-Z, 0-9, special characters)",
+    "B": "Binary data",
+    "Z": "Track data (Track1/Track2/Track3 - digits and special chars like '=' and '^')",
+    "^": "ASCII space character (padding character in some track formats)",
+    "H": "Hexadecimal (0-9, A-F)" 
   },
-    "bitmap": {
-    "length": 16,
-    "format": "H",
-    "description": "Bitmap (Hexadecimal representation of present data elements)"
+  "field_length_types": {
+    "llvar": "Variable length fields up to 99 characters (prefix with 2-digit length)",
+    "lllvar": "Variable length fields up to 999 characters (prefix with 3-digit length)"
   },
-    "fields": {
-      "DE002": { "name": "Primary Account Number", "max_length": 19, "variable_length": true, "format": "LLVAR" },
-      "DE003": { "name": "Processing Code", "length": 6, "format": "N" },
-      "DE004": { "name": "Transaction Amount", "length": 12, "format": "N" },
-      "DE007": { "name": "Transmission Date and Time", "length": 10, "format": "N" },
-      "DE011": { "name": "Systems Trace Audit Number", "length": 6, "format": "N" },
-      "DE012": { "name": "Local Transaction Time", "length": 6, "format": "N" },
-      "DE013": { "name": "Local Transaction Date", "length": 4, "format": "N" },
-      "DE014": { "name": "Expiration Date", "length": 4, "format": "N" },
-      "DE018": { "name": "Merchant Category Code", "length": 4, "format": "N" },
-      "DE019": { "name": "Acquiring Institution Country Code", "length": 3, "format": "N" },
-      "DE022": { "name": "Point of Service Entry Mode", "length": 3, "format": "N" },
-      "DE023": { "name": "Card Sequence Number", "length": 3, "format": "N" },
-      "DE025": { "name": "Point of Service Condition Code", "length": 2, "format": "N" },
-      "DE032": { "name": "Acquiring Institution Identification Code", "max_length": 11, "variable_length": true, "format": "LLVAR" },
-      "DE035": { "name": "Track 2 Data", "max_length": 37, "variable_length": true, "format": "Z" },
-      "DE037": { "name": "Retrieval Reference Number", "length": 12, "format": "AN" },
-      "DE041": { "name": "Card Acceptor Terminal Identification", "length": 8, "format": "ANS" },
-      "DE042": { "name": "Card Acceptor Identification Code", "length": 15, "format": "ANS" },
-      "DE043": { "name": "Card Acceptor Name/Location", "length": 40, "format": "ANS" },
-      "DE049": { "name": "Transaction Currency Code", "length": 3, "format": "N" },
-      "DE055": {
-        "subfields": {
-          "71": { "name": "Issuer script template 1", "max_length": 255, "format": "B" },
-          "72": { "name": "Issuer script template 2", "max_length": 255, "format": "B" },
-          "82": { "name": "Application Interchange Profile", "max_length": 2, "format": "B" },
-          "84": { "name": "Dedicated File Name", "max_length": 16, "format": "B" },
-          "8A": { "name": "Authorization Response Code", "max_length": 2, "format": "AN" },
-          "91": { "name": "Issuer Authentication Data", "max_length": 16, "format": "B" },
-          "95": { "name": "Terminal Verification Results", "max_length": 5, "format": "B" },
-          "96": { "name": "Kernel Identifier", "max_length": 8, "format": "B" },
-          "9A": { "name": "Transaction Date (YYMMDD)", "max_length": 3, "format": "N" },
-          "9C": { "name": "Transaction Type", "max_length": 1, "format": "N" },
-          "9F02": { "name": "Amount Authorized", "max_length": 6, "format": "N" },
-          "9F03": { "name": "Amount Other", "max_length": 6, "format": "N" },
-          "9F09": { "name": "Terminal Application Version Number", "max_length": 2, "format": "N" },
-          "9F10": { "name": "Issuer Application Data", "max_length": 32, "format": "B" },
-          "9F1A": { "name": "Terminal Country Code", "max_length": 2, "format": "N" },
-          "9F1E": { "name": "Interface Device Serial Number", "max_length": 16, "format": "ANS" },
-          "9F26": { "name": "Application Cryptogram", "max_length": 8, "format": "B" },
-          "9F27": { "name": "Cryptogram Information Data", "max_length": 1, "format": "B" },
-          "9F33": { "name": "Terminal Capabilities", "max_length": 3, "format": "B" },
-          "9F34": { "name": "Cardholder Verification Method Results", "max_length": 3, "format": "B" },
-          "9F35": { "name": "Terminal Type", "max_length": 1, "format": "N" },
-          "9F36": { "name": "Application Transaction Counter", "max_length": 2, "format": "N" },
-          "9F37": { "name": "Unpredictable Number", "max_length": 4, "format": "B" },
-          "9F53": { "name": "Transaction Category Code (MC)", "max_length": 1, "format": "N" },
-          "9F5B": { "name": "Issuer Script Results (VISA)", "max_length": 20, "format": "B" },
-          "9F60": { "name": "Authenticated Application Data", "max_length": 128, "format": "B" },
-          "9F6E": { "name": "Form Factor Indicator (Visa and Diners)", "max_length": 6, "format": "N" },
-          "DF31": { "name": "Issuer Script Results (UnionPay)", "max_length": 20, "format": "B" },
-          "DF3F": { "name": "Storage Data (Diners)", "max_length": 114, "format": "B" },
-          "5F2A": { "name": "Transaction Currency Code", "max_length": 2, "format": "N" }
-        }
-      },
-      "DE060": {
-        "name": "Reserved Private",
-        "max_length": 20,
-        "variable_length": true,
-        "format": "LLVAR",
-        "subfields": {
-          "1": { "name": "Advice Reason Code", "length": 4, "format": "N" },
-          "2": { "name": "Original Data Elements", "length": 42, "format": "N" },
-          "3": { "name": "Replacement Amounts", "max_length": 24, "variable_length": true, "format": "LLVAR" },
-          "4": { "name": "Authorization Profile", "length": 6, "format": "N" }
-        }
-      },
-      "DE061": {
-        "name": "Reserved Private",
-        "max_length": 999,
-        "variable_length": true,
-        "format": "LLLVAR",
-        "subfields": {
-          "1": { "name": "Billing Amount", "length": 12, "format": "N" },
-          "2": { "name": "Settlement Amount", "length": 12, "format": "N" },
-          "3": { "name": "Cashback Amount", "length": 12, "format": "N" },
-          "4": { "name": "Fee Amount", "max_length": 12, "variable_length": true, "format": "LLVAR" },
-          "5": { "name": "Account Type", "length": 2, "format": "N" },
-          "6": { "name": "Authorization Characteristics Indicator", "length": 3, "format": "AN" }
-        }
-      },
-      "DE062": { "name": "Reserved Private", "length": null }
-    },
-    "attributes": {
-    "formats": {
-      "A": "Alphabetic (A-Z only)",
-      "N": "Numeric (0-9 only)",
-      "S": "Special characters",
-      "AN": "Alphanumeric (A-Z, 0-9)",
-      "ANS": "Alphanumeric and Special (A-Z, 0-9, special characters)",
-      "B": "Binary data",
-      "Z": "Track data (Track1/Track2/Track3 - digits and special chars like '=' and '^')",
-      "^": "ASCII space character (padding character in some track formats)",
-      "H": "Hexadecimal (0-9, A-F)",
-      "LLVAR": "Variable length (up to 99), first 2 digits indicate length",
-      "LLLVAR": "Variable length (up to 999), first 3 digits indicate length"
-    },
-    "field_length_types": {
-      "fixed": "Fields with a pre-defined, constant length",
-      "llvar": "Variable length fields up to 99 characters (prefix with 2-digit length)",
-      "lllvar": "Variable length fields up to 999 characters (prefix with 3-digit length)"
-    },
-    "common_mti_values": {
-      "0100": "Authorization Request",
-      "0110": "Authorization Response",
-      "0200": "Financial Transaction Request",
-      "0210": "Financial Transaction Response",
-      "0400": "Reversal Request",
-      "0410": "Reversal Response",
-      "0800": "Network Management Request (e.g., sign-on, echo)",
-      "0810": "Network Management Response"
-    }
-    }
+  "common_mti_values": {
+    "0100": "Authorization Request",
+    "0110": "Authorization Response",
+    "0200": "Financial Transaction Request",
+    "0210": "Financial Transaction Response",
+    "0400": "Reversal Request",
+    "0410": "Reversal Response",
+    "0800": "Network Management Request (e.g., sign-on, echo)",
+    "0810": "Network Management Response"
   }
-  
+  }
+}
+}
