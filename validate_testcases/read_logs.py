@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s — %(levelname)s �
 ROUTE_TO_API_MAP = {
     "fromiso": "http://localhost:8000/splunkparser/parse/",
     "toiso": "http://localhost:8000/splunkparser/parse/",
-    "default": "http://localhost:8000/genericparser/parse_fallback/",
+    "default": "http://localhost:8000/splunkparser/parse/",
 }
 
 TIMESTAMP_PATTERN = re.compile(r'^\d{2}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}\.\d{3}')
@@ -156,12 +156,28 @@ def read_and_process_uploaded_log(log_file_path):
     responses = process_log_file(log_file_path)
     grouped = group_responses_by_rrn(responses)
 
-    # Save to media/validate_testcases/grouped_rrn_logs.json
     output_dir = os.path.join("media", "validate_testcases")
     os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, "grouped_rrn_logs.json")
 
+    # Save grouped RRN logs
+    output_path = os.path.join(output_dir, "grouped_rrn_logs.json")
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(grouped, f, indent=2, ensure_ascii=False)
 
-    return grouped  # still return grouped if needed for frontend/API
+    # Save raw full responses (including validation and result)
+    validation_output_path = os.path.join(output_dir, "validation_responses.json")
+    with open(validation_output_path, "w", encoding="utf-8") as f:
+        json.dump(responses, f, indent=2, ensure_ascii=False)
+
+    # ➡️ NEW: Extract only validation results and save
+    validation_only = {}
+    for res in responses:
+        block_idx = res.get('block_index')
+        validation = res.get('validation', {})
+        validation_only[f'Block_{block_idx}'] = validation
+
+    validation_summary_path = os.path.join(output_dir, "validation_summary.json")
+    with open(validation_summary_path, "w", encoding="utf-8") as f:
+        json.dump(validation_only, f, indent=2, ensure_ascii=False)
+
+    return grouped

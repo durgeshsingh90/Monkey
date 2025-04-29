@@ -197,25 +197,16 @@ def process_excel_and_log(excel_path, json_log_path, log_output_path):
     except Exception as e:
         print(f"❌ Error: {e}")
 
-# # ------------------ Usage ------------------ #
-# if __name__ == "__main__":
-#     excel_file = r"D:\Projects\VSCode\MangoData\VisaAFTTestcase.xlsx"
-#     log_json_file = r"D:\Projects\VSCode\MangoData\splunk_log_logs.json"
-#     log_output_file = r"D:\Projects\VSCode\MangoData\comparison_result.log"
-
-#     process_excel_and_log(excel_file, log_json_file, log_output_file)
-def compare_and_style(df, logs_json, result_log, sheet_name):
+def compare_and_style(df, logs_json, validation_json, result_log, sheet_name):
     result_log.append(f"\n📄 Sheet: {sheet_name}")
     styled_rows = []
 
-    # Helper to clean .0 and ensure 12-digit RRN
     def clean_rrn(val):
         val_str = str(val).strip()
         if '.' in val_str:
             val_str = val_str.split('.')[0]
         return val_str if re.fullmatch(r"\d{12}", val_str) else val_str
 
-    # Clean DE037/BM 37 values in the DataFrame itself
     for col in df.columns:
         if str(col).strip().upper() in ["BM 37", "BM37", "DE037"]:
             df[col] = df[col].apply(clean_rrn)
@@ -237,13 +228,25 @@ def compare_and_style(df, logs_json, result_log, sheet_name):
         matched_log = fromiso[0].get("result", {}).get("data_elements", {}) if fromiso else {}
         result_log.append(f"\n✅ Row {idx}: RRN {rrn} matched. Comparing DEs:")
 
+        validation_block = validation_json.get(f"Block_{idx+1}", {})
+        invalid_fields = set(validation_block.get("wrong_length", []) + validation_block.get("wrong_format", []))
+
         for col in df.columns:
             val = row[col]
             val_str = str(val).strip()
             de_key = normalize_column_name(col)
 
+            cell_match = True
             if not de_key or pd.isna(val) or val_str == "":
                 row_result.append({'match': True, 'value': val})
+                continue
+
+            failed_messages = [msg for msg in invalid_fields if msg.startswith(de_key)]
+            if failed_messages:
+                row_result.append({'match': False, 'value': val})
+                result_log.append(f"❌ {de_key} failed schema validation.")
+                for msg in failed_messages:
+                    result_log.append(f"❌ {msg}")
                 continue
 
             if val_str.lower() in ["client defined", "valid value"]:
@@ -265,6 +268,13 @@ def run_comparison_from_web(excel_path, json_log_path, output_log_path):
     with open(json_log_path, 'r', encoding='utf-8') as f:
         logs_json = json.load(f)
 
+    validation_path = json_log_path.replace("grouped_rrn_logs.json", "validation_summary.json")
+    if os.path.exists(validation_path):
+        with open(validation_path, 'r', encoding='utf-8') as vf:
+            validation_json = json.load(vf)
+    else:
+        validation_json = {}
+
     all_results = {}
     comparison_logs = []
     xls = pd.read_excel(excel_path, sheet_name=None, header=None)
@@ -272,7 +282,7 @@ def run_comparison_from_web(excel_path, json_log_path, output_log_path):
     for sheet, raw_df in xls.items():
         header_row = next((i for i, r in raw_df.iterrows() if any("DE" in str(c) or "BM" in str(c) for c in r)), 0)
         df = pd.read_excel(excel_path, sheet_name=sheet, header=header_row).fillna('')
-        styled_df = compare_and_style(df, logs_json, comparison_logs, sheet)
+        styled_df = compare_and_style(df, logs_json, validation_json, comparison_logs, sheet)
         all_results[sheet] = styled_df
 
     with open(output_log_path, 'w', encoding='utf-8') as f:
