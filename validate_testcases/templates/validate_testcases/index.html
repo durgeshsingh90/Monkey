@@ -86,8 +86,15 @@
   <!-- Comparison Result -->
   <div id="comparisonContainer" class="m-4 p-4 border border-gray-200 rounded bg-white shadow hidden">
     <h2 class="font-bold text-lg mb-2">🧾 Comparison Summary</h2>
-    <p id="comparisonPreview" class="text-sm text-gray-700">Processed! View highlights in table above.</p>
+
+    <!-- ✅ Filter toggle -->
+    <label class="block text-sm mb-2">
+      <input type="checkbox" id="toggleMissingRRN" checked class="mr-2">
+      Hide "RRN not found" messages
+    </label>
     <a id="logDownload" href="#" class="text-blue-600 underline mt-2 block">⬇ Download Log JSON</a>
+
+    <p id="comparisonPreview" class="text-base text-gray-800 whitespace-pre-wrap font-mono bg-gray-50 p-4 rounded border border-gray-300 max-h-[600px] overflow-auto shadow-inner"></p>
   </div>
 
   <!-- Go to Top Button -->
@@ -107,8 +114,10 @@
     const comparisonContainer = document.getElementById('comparisonContainer');
     const comparisonPreview = document.getElementById('comparisonPreview');
     const logDownload = document.getElementById('logDownload');
+    const toggleMissingRRN = document.getElementById('toggleMissingRRN');
 
     let excelFile = null, logFile = null;
+    let fullComparisonLog = "";  // Store full log content
 
     excelInput.addEventListener('change', (e) => {
       excelFile = e.target.files[0];
@@ -139,7 +148,8 @@
         if (data.status === 'success') {
           loadTabs(data.excel_preview);
           comparisonContainer.classList.remove('hidden');
-          comparisonPreview.innerText = data.comparison_preview;
+          fullComparisonLog = data.comparison_preview;
+          applySummaryFilter();
           logDownload.href = data.download_log;
           status.innerText = '✅ Comparison complete. See colored table above.';
         } else {
@@ -170,6 +180,17 @@
         }
       });
     }
+
+    function applySummaryFilter() {
+      if (!fullComparisonLog) return;
+      const lines = fullComparisonLog.split('\n');
+      const filtered = toggleMissingRRN.checked
+        ? lines.filter(line => !line.includes("RRN") || !line.includes("not found"))
+        : lines;
+      comparisonPreview.innerText = filtered.join('\n');
+    }
+
+    toggleMissingRRN.addEventListener('change', applySummaryFilter);
 
     // Go to Top Button Logic
     const goTopBtn = document.getElementById('goTopBtn');
