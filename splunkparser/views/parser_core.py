@@ -88,6 +88,8 @@ def parse_iso8583(log_data):
     data_elements = {}
     integer_fields = ['004', '049']
     pad_zero_fields = {
+        '003': 6,
+        '018': 4,
         '013': 4,
         '019': 3,
         '022': 3,
@@ -124,12 +126,8 @@ def parse_iso8583(log_data):
 
             logger.debug(f"Field {field_number} detected with value: {value}")
 
-            # Fix DE003 unconditionally (always 6-digit string)
-            if field_number == '003':
-                value = value.zfill(6) if value.strip() else "000000"
-                logger.debug(f"Adjusted DE003 to 6 digits: {value}")
-            # Fix DE004 unconditionally (always integer, remove prefix zeros)
-            elif field_number == '004':
+
+            if field_number == '004':
                 value = 0 if value.strip('0') == '' else int(value.lstrip('0'))
                 logger.debug(f"Converted DE004 to integer: {value}")
             
