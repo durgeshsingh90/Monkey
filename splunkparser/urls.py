@@ -12,7 +12,7 @@ urlpatterns = [
     path('save_output/', views.save_output_file, name='save_output_file'),
     path('set_default/', views.set_default_values, name='set_default_values'),
     path('validate_output/', views.validate_output, name='validate_output'),  # ✅
-
+    path('load_schema/', views.get_schema, name='load_schema'),   # 👈 New
+    path('save_schema/', views.save_schema, name='save_schema'),   # 👈 New
 ]
 
-    

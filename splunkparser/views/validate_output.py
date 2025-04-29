@@ -44,31 +44,27 @@ def validate_field(field_name, field_value, field_schema):
     wrong_length = []
     wrong_format = []
 
-    # Subfields (like DE055, DE060, etc)
+    # Handle subfields separately
     if isinstance(field_value, dict) and 'subfields' in field_schema:
         subfields_schema = field_schema.get('subfields', {})
-        for subfield, subvalue in field_value.items():
-            if subfield == "__errors__":
+        for subfield_key, subfield_value in field_value.items():
+            if subfield_key == "__errors__":
                 continue
-            sub_schema = subfields_schema.get(subfield)
+            sub_schema = subfields_schema.get(subfield_key)
+            full_subfield_name = f"{field_name}.{subfield_key}"
             if sub_schema:
-                s, wl, wf = validate_field(f"{field_name}.{subfield}", subvalue, sub_schema)
+                s, wl, wf = validate_field(full_subfield_name, subfield_value, sub_schema)
                 success.extend(s)
                 wrong_length.extend(wl)
                 wrong_format.extend(wf)
             else:
-                wrong_format.append(f"{field_name}.{subfield}: Unknown subfield")
+                wrong_format.append(f"{full_subfield_name}: Unknown subfield")
         return success, wrong_length, wrong_format
 
-    fmt = field_schema.get('format')
-    value_str = str(field_value)
-    
-    # Only strip spaces for numeric, binary, hex fields
-    if fmt in ['N', 'B', 'H']:
-        value_str = value_str.replace(' ', '')
-    
+    # For normal field (no subfields)
+    value_str = str(field_value).replace(' ', '')
 
-    # ✅ Ignore masked values (e.g., ****)
+    # Ignore fully masked values like '****'
     if value_str and set(value_str) == {'*'}:
         success.append(field_name)
         return success, wrong_length, wrong_format
@@ -76,24 +72,23 @@ def validate_field(field_name, field_value, field_schema):
     fmt = field_schema.get('format')
     variable = field_schema.get('variable', False)
 
+    # Length validation
     if variable:
         max_length = field_schema.get('max_length')
         if max_length and len(value_str) > max_length:
             wrong_length.append(f"{field_name}: Length {len(value_str)} exceeds max_length {max_length}")
         else:
-            logger.info(f"{field_name} length is valid (variable)")
+            success.append(field_name)  # ✅ Success here
     else:
         fixed_length = field_schema.get('length')
         if fixed_length and len(value_str) != fixed_length:
             wrong_length.append(f"{field_name}: Length {len(value_str)} (expected {fixed_length})")
         else:
-            logger.info(f"{field_name} length is valid (fixed)")
+            success.append(field_name)  # ✅ Success here
 
-    # Validate format
+    # Format validation
     if fmt and not is_valid_format(value_str, fmt):
         wrong_format.append(f"{field_name}: Format mismatch (expected {fmt})")
-    else:
-        success.append(field_name)
 
     return success, wrong_length, wrong_format
 

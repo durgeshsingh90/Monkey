@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger('splunkparser')
 
 settings_file_path = os.path.join(settings.MEDIA_ROOT, 'splunkparser', 'settings.json')
+schema_file_path = os.path.join(settings.MEDIA_ROOT, 'schemas', 'omnipay.json')
 
 def editor_page(request):
     logger.info("Rendering the main editor page.")
@@ -98,3 +99,28 @@ def save_settings(request):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
     return HttpResponseBadRequest('Only POST method is allowed')
+
+@csrf_exempt
+def get_schema(request):
+    if request.method == 'GET':
+        try:
+            with open(schema_file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return JsonResponse(data, safe=False)
+        except Exception as e:
+            return JsonResponse({'error': f'Failed to load schema: {str(e)}'}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def save_schema(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            with open(schema_file_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4)
+            return JsonResponse({'status': 'success', 'message': 'Schema saved successfully'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
