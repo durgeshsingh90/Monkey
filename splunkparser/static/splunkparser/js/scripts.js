@@ -149,34 +149,44 @@ async function saveOutputFile(content) {
     });
     if (!response.ok) {
       notify(`❌ Failed to save output.json`);
-    } else {
-      fetchValidationResult();  // ✅ Trigger validation after save
+      return;
     }
+
+    // ✅ After saving, call validate_output
+    await validateOutputAndShowMessage();
+
   } catch (error) {
     notify(`❌ Error saving output.json: ${error.message}`);
   }
 }
-
-async function fetchValidationResult() {
+async function validateOutputAndShowMessage() {
   try {
     const response = await fetch('/splunkparser/validate_output/', {
       method: 'POST',
-      headers: { 'X-CSRFToken': csrftoken }
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }
     });
-    if (!response.ok) throw new Error(`Validation request failed`);
+    if (!response.ok) {
+      notify(`❌ Validation failed`);
+      return;
+    }
+
     const data = await response.json();
     if (data.status === 'success') {
-      const validationJson = JSON.stringify(data.validation, null, 2);
+      notify(data.message);
+
+      // ✅ Now display full validation details
       const validationArea = document.getElementById('validationArea');
-      validationArea.textContent = validationJson;
+      validationArea.textContent = JSON.stringify(data.validation, null, 2);
       Prism.highlightElement(validationArea);
+      
     } else {
-      notify(`❌ Validation error: ${data.message}`);
+      notify(`⚠️ Validation warning: ${data.message}`);
     }
   } catch (error) {
-    notify(`❌ Error during validation: ${error.message}`);
+    notify(`❌ Error validating output: ${error.message}`);
   }
 }
+
 
 
 function copyOutput() {

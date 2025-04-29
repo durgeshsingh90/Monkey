@@ -6,13 +6,18 @@ import re
 import logging
 
 from .utils import extract_timestamp, extract_route, extract_message_id, get_field_definitions  # ✅ Import FIELD_DEFINITIONS directly
+from .utils import settings_file_path, output_file_path, field_definitions_path
 from .parser_helper import parse_emv_field_55, update_de55, parse_de090_fields
+from splunkparser.views.validate_output import validate_transaction, load_json
+# wherever you need
+from .utils import settings_file_path, output_file_path, field_definitions_path
 
 # Logger
 logger = logging.getLogger('splunkparser')
 
 # ✅ No need to call load_field_definitions()
 
+@csrf_exempt
 @csrf_exempt
 def parse_logs(request):
     if request.method == 'POST':
@@ -35,15 +40,21 @@ def parse_logs(request):
 
             parsed_output = parse_iso8583(log_data)
 
-            logger.info("Log data parsed successfully.")
+            # ✅ After parsing, validate
+            schema = load_json(field_definitions_path)   # Use the correct schema path
+            validation_result = validate_transaction(schema, parsed_output)
+
+            logger.info("Log data parsed and validated successfully.")
             logger.debug(f"Parsed output: {parsed_output}")
+            logger.debug(f"Validation result: {validation_result}")
 
             return JsonResponse({
                 'status': 'success',
                 'timestamp': extract_timestamp(log_data),
                 'route': extract_route(log_data),
                 'message_id': extract_message_id(log_data),
-                'result': parsed_output
+                'result': parsed_output,
+                'validation': validation_result   # ✅ include validation here
             })
 
         except json.JSONDecodeError as e:
