@@ -40,7 +40,6 @@ async function clearOutputFile() {
 }
 
 function initMonacoEditor() {
-  require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' } });
   require(['vs/editor/editor.main'], () => {
     editor = monaco.editor.create(document.getElementById('editor'), {
       value: defaultContent,
@@ -48,6 +47,7 @@ function initMonacoEditor() {
       theme: 'vs-dark',
       automaticLayout: true
     });
+
     const savedLogs = localStorage.getItem('splunkLogs');
     if (savedLogs) editor.setValue(savedLogs);
     editor.onDidChangeModelContent(() => localStorage.setItem('splunkLogs', editor.getValue()));
