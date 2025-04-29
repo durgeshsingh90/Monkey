@@ -10,6 +10,9 @@ urlpatterns = [
     path('parse/', views.parse_logs, name='parse_logs'),
     path('clear_output/', views.clear_output_file, name='clear_output_file'),
     path('save_output/', views.save_output_file, name='save_output_file'),
-    path('set_default/', views.set_default_values, name='set_default_values')
+    path('set_default/', views.set_default_values, name='set_default_values'),
+    path('validate_output/', views.validate_output, name='validate_output'),  # ✅
+
 ]
 
+    

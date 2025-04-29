@@ -81,11 +81,46 @@ async function parseLogsToJSON() {
     if (data.status === 'error' || !data.result) return notify(`❌ Error: ${data.message}`);
     const jsonOutput = JSON.stringify(data.result, null, 2);
     displayOutput(jsonOutput, 'language-json');
+    await saveOutputFileAndValidate(jsonOutput);  // ✅ New call after parsing
   } catch (error) {
     notify(`❌ Error: ${error.message}`);
   }
 }
+async function saveOutputFileAndValidate(content) {
+  try {
+    const saveResponse = await fetch('/splunkparser/save_output/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+      body: JSON.stringify({ output_data: content })
+    });
 
+    if (!saveResponse.ok) {
+      notify(`❌ Failed to save output.json`);
+      return;
+    }
+    // ✅ Now trigger validation automatically
+    const validateResponse = await fetch('/splunkparser/validate_output/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }
+    });
+
+    if (!validateResponse.ok) {
+      notify(`❌ Validation failed.`);
+      return;
+    }
+
+    const validationResult = await validateResponse.json();
+    if (validationResult.status === 'success') {
+      notify(`✅ Validation successful!`);
+      console.log(validationResult.summary);  // You can display it beautifully if you want.
+    } else {
+      notify(`⚠️ Validation completed with issues.`);
+      console.log(validationResult.summary);  // See which DEs failed
+    }
+  } catch (error) {
+    notify(`❌ Error during save/validate: ${error.message}`);
+  }
+}
 async function sendLogsToBackend(logData) {
   const response = await fetch('/splunkparser/parse/', {
     method: 'POST',
@@ -112,11 +147,37 @@ async function saveOutputFile(content) {
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
       body: JSON.stringify({ output_data: content })
     });
-    if (!response.ok) notify(`❌ Failed to save output.json`);
+    if (!response.ok) {
+      notify(`❌ Failed to save output.json`);
+    } else {
+      fetchValidationResult();  // ✅ Trigger validation after save
+    }
   } catch (error) {
     notify(`❌ Error saving output.json: ${error.message}`);
   }
 }
+
+async function fetchValidationResult() {
+  try {
+    const response = await fetch('/splunkparser/validate_output/', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken }
+    });
+    if (!response.ok) throw new Error(`Validation request failed`);
+    const data = await response.json();
+    if (data.status === 'success') {
+      const validationJson = JSON.stringify(data.validation, null, 2);
+      const validationArea = document.getElementById('validationArea');
+      validationArea.textContent = validationJson;
+      Prism.highlightElement(validationArea);
+    } else {
+      notify(`❌ Validation error: ${data.message}`);
+    }
+  } catch (error) {
+    notify(`❌ Error during validation: ${error.message}`);
+  }
+}
+
 
 function copyOutput() {
   const output = document.getElementById('outputArea').textContent;
