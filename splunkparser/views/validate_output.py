@@ -137,7 +137,27 @@ def validate_output(request):
         result = validate_transaction(schema, transaction)
         save_validation_result(result)
 
-        return JsonResponse({"status": "success", "validation": result})
+        total_wrong_length = len(result.get('wrong_length', []))
+        total_wrong_format = len(result.get('wrong_format', []))
+        total_errors = total_wrong_length + total_wrong_format
+        
+        if total_errors == 0:
+            message = "✅ All fields and subfields passed validation!"
+        else:
+            message = (
+                f"⚠️ Validation completed with {total_errors} issues "
+                f"(Wrong Length: {total_wrong_length}, Wrong Format: {total_wrong_format})"
+            )
+        
+        return JsonResponse({
+            "status": "success",
+            "message": message,
+            "validation": result
+        })
+
     except Exception as e:
         logger.error("Validation failed.", exc_info=True)
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({
+            "status": "error",
+            "message": str(e)
+        }, status=500)
