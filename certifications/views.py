@@ -4,9 +4,8 @@ from django.conf import settings
 import os
 import json
 
-# Import BASE_DIR from settings
 BASE_DIR = settings.BASE_DIR
-JSON_PATH = os.path.join(BASE_DIR, 'media','certifications', 'testcases.json')
+JSON_PATH = os.path.join(BASE_DIR, 'media', 'certifications', 'testcases.json')
 
 def certifications_index(request):
     return render(request, 'certifications/index.html')
@@ -14,17 +13,15 @@ def certifications_index(request):
 def get_structure(request):
     with open(JSON_PATH, 'r') as f:
         data = json.load(f)
-    return JsonResponse(data['protocol']['requests'])
+    return JsonResponse({"requests": data["requests"]})
 
 def get_testcase_data(request):
-    group = request.GET.get('group')
     user = request.GET.get('user')
     testcase = request.GET.get('testcase')
-
     try:
         with open(JSON_PATH, 'r') as f:
             data = json.load(f)
-        result = data['protocol']['requests'][group][user][testcase]['rq_msgs']
-        return JsonResponse(result)
+        rq_msgs = data['requests'][user][testcase].get('rq_msgs', [])
+        return JsonResponse({"rq_msgs": rq_msgs})
     except KeyError:
         return JsonResponse({'error': 'Test case not found'}, status=404)

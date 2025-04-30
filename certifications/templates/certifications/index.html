@@ -1,178 +1,40 @@
+{% load static%}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Certifications Viewer</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.full.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #fef8e6;
-      font-family: 'Poppins', sans-serif;
-    }
-    .left-pane {
-      border-right: 2px solid #ccc;
-      height: 100vh;
-      overflow-y: auto;
-      padding: 1rem;
-    }
-    .right-pane {
-      height: 100vh;
-      overflow-y: auto;
-      padding: 1rem;
-      background-color: #ffffff;
-    }
-    .tree ul {
-      list-style-type: none;
-      padding-left: 1rem;
-    }
-    .toggle-button {
-      margin-bottom: 1rem;
-    }
-    .testcase:hover {
-      color: #007bff;
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.full.min.css">
+  <link rel="stylesheet" href="{% static 'certifications/css/styles.css' %}">
 </head>
 <body>
 
 <div class="container-fluid">
   <div class="row">
     <div class="col-4 left-pane">
-      <h4>📁 Test Cases</h4>
+      <h4>
+        📁 Test Cases
+        <span id="collapse-toggle" style="cursor:pointer; font-size: 18px; margin-left: 10px;">➖</span>
+      </h4>
       <div id="tree-container"></div>
     </div>
     <div class="col-8 right-pane">
       <button id="toggle-view" class="btn btn-primary toggle-button">Switch to Grid View</button>
+      <div id="selected-tests"></div>
       <div id="json-editor" style="height: 80vh; border:1px solid #ccc;"></div>
       <div id="grid-view" style="display:none;"></div>
     </div>
   </div>
 </div>
-
+<!-- Load Monaco first -->
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.38.0/min/vs/loader.js"></script>
+
+<!-- ✅ Load Handsontable before your script -->
 <script src="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.full.min.js"></script>
-<script>
 
-let editor; 
-let currentJsonData = {};
-
-require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.38.0/min/vs' }});
-require(["vs/editor/editor.main"], function () {
-  editor = monaco.editor.create(document.getElementById('json-editor'), {
-    value: '',
-    language: 'json',
-    theme: 'vs-dark',
-    automaticLayout: true
-  });
-});
-
-fetch('/certifications/get_structure/')
-  .then(res => res.json())
-  .then(data => renderTree(data));
-
-function renderTree(data) {
-  const container = document.getElementById('tree-container');
-  container.innerHTML = '';
-  for (const group in data) {
-    const groupEl = createCollapsibleItem(group);
-    const userList = document.createElement('ul');
-
-    for (const user in data[group]) {
-      const userEl = createCollapsibleItem(user);
-      const tcList = document.createElement('ul');
-
-      for (const testcase in data[group][user]) {
-        const tcEl = document.createElement('li');
-        tcEl.innerHTML = `<span class="testcase">🧪 ${testcase}</span>`;
-        tcEl.querySelector('.testcase').addEventListener('click', () => {
-          fetch(`/certifications/get_testcase_data/?group=${encodeURIComponent(group)}&user=${encodeURIComponent(user)}&testcase=${encodeURIComponent(testcase)}`)
-            .then(res => res.json())
-            .then(tcData => {
-              currentJsonData = tcData;
-              editor.setValue(JSON.stringify(tcData, null, 2));
-              loadGrid(tcData);
-            });
-        });
-        tcList.appendChild(tcEl);
-      }
-
-      userEl.appendChild(tcList);
-      userList.appendChild(userEl);
-    }
-
-    groupEl.appendChild(userList);
-    container.appendChild(groupEl);
-  }
-}
-
-function createCollapsibleItem(title) {
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = `<span style="cursor:pointer;" onclick="toggleCollapse(this)">➕ ${title}</span>`;
-  const ul = document.createElement('ul');
-  ul.style.display = 'none';
-  wrapper.appendChild(ul);
-  return wrapper;
-}
-
-function toggleCollapse(el) {
-  const ul = el.parentElement.querySelector('ul');
-  if (ul.style.display === 'none') {
-    ul.style.display = 'block';
-    el.innerHTML = el.innerHTML.replace('➕', '➖');
-  } else {
-    ul.style.display = 'none';
-    el.innerHTML = el.innerHTML.replace('➖', '➕');
-  }
-}
-
-// Toggle JSON <-> Grid View
-document.getElementById('toggle-view').addEventListener('click', function() {
-  const grid = document.getElementById('grid-view');
-  const jsonEditor = document.getElementById('json-editor');
-  if (grid.style.display === 'none') {
-    grid.style.display = 'block';
-    jsonEditor.style.display = 'none';
-    this.innerText = 'Switch to JSON View';
-    loadGrid(JSON.parse(editor.getValue())); // Reload grid from current editor content
-  } else {
-    grid.style.display = 'none';
-    jsonEditor.style.display = 'block';
-    this.innerText = 'Switch to Grid View';
-    saveGridToJson();
-  }
-});
-
-// Handsontable grid
-let hot;
-function loadGrid(jsonData) {
-  const container = document.getElementById('grid-view');
-  if (hot) hot.destroy();
-  const rows = Object.entries(jsonData.data || {}).map(([key, value]) => ({ Field: key, Value: value }));
-
-  hot = new Handsontable(container, {
-    data: rows,
-    colHeaders: ['Field', 'Value'],
-    columns: [{ data: 'Field' }, { data: 'Value' }],
-    stretchH: 'all',
-    autoWrapRow: true,
-    rowHeaders: true,
-    height: '80vh',
-    licenseKey: 'non-commercial-and-evaluation'
-  });
-}
-
-function saveGridToJson() {
-  const newData = hot.getData().reduce((acc, [key, value]) => {
-    if (key) acc[key] = value;
-    return acc;
-  }, {});
-  currentJsonData.data = newData;
-  editor.setValue(JSON.stringify(currentJsonData, null, 2));
-}
-
-</script>
+<!-- Your custom JS must come after Handsontable is loaded -->
+<script src="{% static 'certifications/js/scripts.js' %}"></script>
 
 </body>
 </html>
