@@ -179,6 +179,7 @@ def parse_iso8583(log_data):
     return message
 
 
+
 def parse_bm6x(value):
     subfields, values, errors = [], [], []
     i = 0

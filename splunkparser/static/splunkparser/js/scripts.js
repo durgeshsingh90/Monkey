@@ -40,6 +40,7 @@ async function clearOutputFile() {
 }
 
 function initMonacoEditor() {
+<<<<<<< HEAD
   require(['vs/editor/editor.main'], () => {
     editor = monaco.editor.create(document.getElementById('editor'), {
       value: defaultContent,
@@ -53,7 +54,42 @@ function initMonacoEditor() {
     editor.onDidChangeModelContent(() => localStorage.setItem('splunkLogs', editor.getValue()));
     editor.onDidChangeCursorSelection(updateEditorSelection);
   });
+=======
+  if (typeof require === 'undefined') {
+    // Dynamically load loader.js first
+    const loaderScript = document.createElement('script');
+    loaderScript.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.js';
+    loaderScript.onload = () => {
+      configureAndLoadMonaco();
+    };
+    document.head.appendChild(loaderScript);
+  } else {
+    configureAndLoadMonaco();  // Already loaded
+  }
+
+  function configureAndLoadMonaco() {
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' } });
+    require(['vs/editor/editor.main'], () => {
+      editor = monaco.editor.create(document.getElementById('editor'), {
+        value: defaultContent,
+        language: 'plaintext',
+        theme: 'vs-dark',
+        automaticLayout: true
+      });
+
+      const savedLogs = localStorage.getItem('splunkLogs');
+      if (savedLogs) editor.setValue(savedLogs);
+
+      editor.onDidChangeModelContent(() => {
+        localStorage.setItem('splunkLogs', editor.getValue());
+      });
+
+      editor.onDidChangeCursorSelection(updateEditorSelection);
+    });
+  }
+>>>>>>> fix-splunk-parser
 }
+
 
 function updateEditorSelection() {
   if (!editor) return;
