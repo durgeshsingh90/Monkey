@@ -37,9 +37,16 @@
   
         <div class="top-controls">
           <!-- Add next to dropdown -->
-<button id="dbSessionBtn" onclick="startDbSession()" title="Connect to DB Session">
-  🔌
+<!-- Add near the DB dropdown inside .top-controls -->
+<button id="dbSessionBtn" onclick="toggleDbSession()" title="Connect to DB Session"
+  style="background: none; border: none; padding: 0; cursor: pointer;">
+  <img id="dbSessionIcon"
+       src="{% static 'runquery/images/unplugged.png' %}"
+       alt="DB Session"
+       style="height: 28px; vertical-align: middle;" />
 </button>
+<span id="sessionTimer" style="font-size: 13px; margin-left: 8px;"></span>
+
 <span id="sessionTimer" style="font-size: 13px; margin-left: 6px;"></span>
 
           <select id="dropdown1"></select>
