@@ -119,7 +119,8 @@ async function saveOutputFileAndValidate(content) {
       notify(`❌ Failed to save output.json`);
       return;
     }
-    // ✅ Now trigger validation automatically
+
+    // ✅ Trigger validation
     const validateResponse = await fetch('/splunkparser/validate_output/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }
@@ -131,25 +132,27 @@ async function saveOutputFileAndValidate(content) {
     }
 
     const validationResult = await validateResponse.json();
+
     if (validationResult.status === 'success') {
-      const hasErrors =
-        validationResult.validation.wrong_length.length > 0 ||
-        validationResult.validation.wrong_format.length > 0;
-    
-      if (hasErrors) {
-        notify(`⚠️ Validation completed with issues.`);
-        console.log(validationResult.validation);  // Show detailed issues
+      const wrongLength = validationResult.validation.wrong_length.length;
+      const wrongFormat = validationResult.validation.wrong_format.length;
+      const totalIssues = wrongLength + wrongFormat;
+
+      if (totalIssues > 0) {
+        notify(`⚠️ Validation completed with ${totalIssues} issues (Wrong Length: ${wrongLength}, Wrong Format: ${wrongFormat})`);
+        console.log(validationResult.validation);
       } else {
         notify(`✅ All fields and subfields passed validation!`);
       }
     } else {
       notify(`❌ Validation request failed.`);
     }
-    
+
   } catch (error) {
     notify(`❌ Error during save/validate: ${error.message}`);
   }
 }
+
 async function sendLogsToBackend(logData) {
   const response = await fetch('/splunkparser/parse/', {
     method: 'POST',
