@@ -82,10 +82,10 @@ localStorage.setItem("selectedDb", dropdown.value);
   document.getElementById("dropdown1").addEventListener("change", function () {
     const selectedDb = this.value;
     localStorage.setItem("selectedDb", selectedDb);
+    disconnectDbSession();  // 🔌 auto-disconnect
     fetchTableStructure(selectedDb);
     refreshScriptList(selectedDb);
     updatePageTitle(selectedDb);
-
   });
   
 
@@ -141,10 +141,12 @@ function execute() {
   fetch("/runquery/execute_oracle_queries/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    
     body: JSON.stringify({
       script_name: dbAlias,
       query_sets: [[queryText]],
       use_session: sessionTimeLeft > 0  // ✅ Only use session if timer is active
+      
     })
   })
     .then(res => res.json())
@@ -1013,8 +1015,7 @@ function playCleanAnimation() {
   }, 1200); // Adjust based on your GIF duration
 }
 
-let sessionTimerInterval;
-let sessionTimeLeft = 0;
+
 
 function startDbSession() {
   const dbKey = document.getElementById("dropdown1").value;
@@ -1055,3 +1056,75 @@ function updateSessionTimerText() {
   const secs = sessionTimeLeft % 60;
   document.getElementById("sessionTimer").textContent = `⏱ ${mins}:${secs.toString().padStart(2, '0')}`;
 }
+
+let sessionTimeLeft = 0;
+let sessionTimerInterval = null;
+let isSessionConnected = false;
+
+function toggleDbSession() {
+  if (isSessionConnected) {
+    disconnectDbSession(true);
+  } else {
+    startDbSession();
+  }
+}
+
+function startDbSession() {
+  const dbKey = document.getElementById("dropdown1").value;
+
+  fetch("/runquery/start_db_session/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ db_key: dbKey })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        sessionTimeLeft = data.remaining;
+        isSessionConnected = true;
+        updateDbSessionIcon();
+        startSessionCountdown();
+      } else {
+        alert("❌ " + data.error);
+      }
+    });
+}
+
+function disconnectDbSession(showMessage = false) {
+  clearInterval(sessionTimerInterval);
+  sessionTimeLeft = 0;
+  isSessionConnected = false;
+  updateDbSessionIcon();
+  document.getElementById("sessionTimer").textContent = "";
+  if (showMessage) alert("🔌 Disconnected from DB session.");
+}
+
+function startSessionCountdown() {
+  clearInterval(sessionTimerInterval);
+  updateSessionTimerText();
+
+  sessionTimerInterval = setInterval(() => {
+    sessionTimeLeft--;
+    updateSessionTimerText();
+    if (sessionTimeLeft <= 0) {
+      disconnectDbSession();
+    }
+  }, 1000);
+}
+
+function updateSessionTimerText() {
+  const mins = Math.floor(sessionTimeLeft / 60);
+  const secs = sessionTimeLeft % 60;
+  document.getElementById("sessionTimer").textContent = `⏱ ${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function updateDbSessionIcon() {
+  const icon = document.getElementById("dbSessionIcon");
+  icon.src = isSessionConnected
+    ? "/static/runquery/images/connected.png"
+    : "/static/runquery/images/unplugged.png";
+}
+
+window.addEventListener("beforeunload", () => {
+  disconnectDbSession();  // ⛔ auto disconnect on page refresh
+});
