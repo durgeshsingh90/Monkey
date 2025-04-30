@@ -17,4 +17,6 @@ path("list_scripts/", views.list_scripts, name="list_scripts"),
 path("delete_script/", views.delete_script),
 path("save_tab_content/", views.save_tab_content),
 path("load_tab_content/", views.load_tab_content),
+path("start_db_session/", views.start_db_session),
+
 ]

@@ -1,18 +1,11 @@
-document.addEventListener('DOMContentLoaded', function () {
-  waitForHandsontable(initApp);
-});
-
-function waitForHandsontable(callback) {
-  if (typeof Handsontable !== 'undefined') {
-    console.log("✅ Handsontable is loaded");
-    callback();
-  } else {
-    console.warn("⏳ Waiting for Handsontable...");
-    setTimeout(() => waitForHandsontable(callback), 100);
+window.addEventListener('load', () => {
+  if (typeof Handsontable === 'undefined') {
+    console.error("❌ Handsontable is not loaded.");
+    return;
   }
-}
 
-function initApp() {
+  console.log("✅ Handsontable is loaded.");
+
   let editor, hot;
   let currentRqMsgs = [];
 
@@ -85,7 +78,7 @@ function initApp() {
     }
   }
 
-  window.toggleCollapse = function (el, user) {
+  window.toggleCollapse = function(el, user) {
     const ul = el.parentElement.querySelector('ul');
     let openUsers = JSON.parse(localStorage.getItem('openUsers') || '[]');
 
@@ -207,6 +200,11 @@ function initApp() {
   }
 
   function loadGrid(rqMsgs) {
+    if (typeof Handsontable === 'undefined') {
+      alert("Handsontable is not loaded.");
+      return;
+    }
+
     const container = document.getElementById('grid-view');
     if (hot) hot.destroy();
 
@@ -230,4 +228,4 @@ function initApp() {
       licenseKey: 'non-commercial-and-evaluation'
     });
   }
-}
+});

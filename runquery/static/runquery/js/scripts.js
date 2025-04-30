@@ -141,7 +141,11 @@ function execute() {
   fetch("/runquery/execute_oracle_queries/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ script_name: dbAlias, query_sets: [[queryText]] })
+    body: JSON.stringify({
+      script_name: dbAlias,
+      query_sets: [[queryText]],
+      use_session: sessionTimeLeft > 0  // ✅ Only use session if timer is active
+    })
   })
     .then(res => res.json())
     .then(data => {
@@ -161,8 +165,7 @@ function execute() {
         query: queryText,
         result: results.map(r => r.result),
         error: results.map(r => r.error),
-        duration: totalSeconds  // ✅ Save duration
-
+        duration: totalSeconds
       };
 
       fetch("/runquery/save_history/", {
@@ -172,12 +175,12 @@ function execute() {
       });
     })
     .catch(err => {
+      clearInterval(queryTimerInterval);
       const columnContainer = document.getElementById("columnResult");
-    
       const rawMsg = err.message || "Query execution failed";
       const match = rawMsg.match(/ORA-\d{5}:.*$/);
       const cleanError = match ? match[0] : rawMsg;
-    
+
       columnContainer.innerHTML = `
         <div style="
           color: #b91c1c;
@@ -192,11 +195,11 @@ function execute() {
           ❌ ${cleanError}
         </div>
       `;
-    
-      document.getElementById("queryTimer").textContent = "❌ Query failed.";
+
+      timerDiv.textContent = "❌ Query failed.";
     });
-    
 }
+
 
 
 
@@ -1008,4 +1011,47 @@ function playCleanAnimation() {
   setTimeout(() => {
     icon.src = pngSrc;
   }, 1200); // Adjust based on your GIF duration
+}
+
+let sessionTimerInterval;
+let sessionTimeLeft = 0;
+
+function startDbSession() {
+  const dbKey = document.getElementById("dropdown1").value;
+
+  fetch("/runquery/start_db_session/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ db_key: dbKey })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        sessionTimeLeft = data.remaining;
+        startSessionCountdown();
+        alert(`🔌 DB session started for 10 minutes on ${dbKey}`);
+      } else {
+        alert(`❌ ${data.error}`);
+      }
+    });
+}
+
+function startSessionCountdown() {
+  clearInterval(sessionTimerInterval);
+  updateSessionTimerText();
+
+  sessionTimerInterval = setInterval(() => {
+    sessionTimeLeft -= 1;
+    updateSessionTimerText();
+    if (sessionTimeLeft <= 0) {
+      clearInterval(sessionTimerInterval);
+      document.getElementById("sessionTimer").textContent = "⏱ Expired";
+    }
+  }, 1000);
+}
+
+function updateSessionTimerText() {
+  const mins = Math.floor(sessionTimeLeft / 60);
+  const secs = sessionTimeLeft % 60;
+  document.getElementById("sessionTimer").textContent = `⏱ ${mins}:${secs.toString().padStart(2, '0')}`;
 }
