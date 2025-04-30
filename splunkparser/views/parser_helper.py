@@ -8,7 +8,7 @@ from .utils import FIELD_DEFINITIONS
 
 logger = logging.getLogger('splunkparser')
 
-def parse_emv_field_55(emv_data):
+def parse_emv_field_55(emv_data, field_definitions):
     parsed_tlvs = {}
     index = 3  # Skip the first 3 digits which represent the total length of DE 55
     total_bm55_value_length = 0  # Variable to accumulate the total length of DE55 values
@@ -17,7 +17,8 @@ def parse_emv_field_55(emv_data):
     exact_length_tags = ["9F1E", "9F13"]  # Add more tags if needed
     # Tags that follow the special logic
     special_tags = ["9F1A", "5F2A", "9C"]  # Add 9C to the list
-    de055_subfields = FIELD_DEFINITIONS.get("DE055", {}).get("subfields", {})
+    de055_subfields = field_definitions.get("055", {}).get("subfields", {})
+
     logger.debug(f"Parsing DE 55 data with available subfields: {de055_subfields.keys()}")
 
     while index < len(emv_data):

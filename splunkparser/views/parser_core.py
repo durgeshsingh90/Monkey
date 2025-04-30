@@ -18,7 +18,6 @@ logger = logging.getLogger('splunkparser')
 # ✅ No need to call load_field_definitions()
 
 @csrf_exempt
-@csrf_exempt
 def parse_logs(request):
     if request.method == 'POST':
         try:
@@ -66,8 +65,16 @@ def parse_logs(request):
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
+import logging
+import re
+from splunkparser.views.utils import get_field_definitions
+from splunkparser.views.parser_helper import parse_emv_field_55, update_de55, parse_de090_fields
+
+logger = logging.getLogger('splunkparser')
+
+
 def parse_iso8583(log_data):
-    FIELD_DEFINITIONS = get_field_definitions()  # ✅ Lazy load here
+    FIELD_DEFINITIONS = None  # Lazy-load only if DE055 is encountered
 
     message = {}
     de007_parts = []
@@ -80,21 +87,20 @@ def parse_iso8583(log_data):
     lines = log_data.split("\n")
     logger.debug(f"Number of lines received for parsing: {len(lines)}")
 
-    # Detect if log uses only one of "in[" or "out[" 
+    # Detect direction
     has_in = any("in[" in line for line in lines)
     has_out = any("out[" in line for line in lines)
 
     if has_in and has_out:
         logger.error("❌ Mixed input: both 'in[' and 'out[' detected.")
-        raise ValueError("Log input cannot contain both 'in[' and 'out[' lines. Use only one direction.")
+        raise ValueError("Log input cannot contain both 'in[' and 'out[' lines.")
 
     prefix = "in[" if has_in else "out[" if has_out else None
-
     if not prefix:
         logger.error("❌ No valid 'in[' or 'out[' prefix detected in input.")
         raise ValueError("Log input must contain either 'in[' or 'out[' lines.")
 
-    escaped_prefix = prefix.replace('[', r'\[').replace(']', r'\]')  # Escape for regex
+    escaped_prefix = prefix.replace('[', r'\[').replace(']', r'\]')  # For regex
 
     data_elements = {}
     integer_fields = ['004', '049']
@@ -109,7 +115,7 @@ def parse_iso8583(log_data):
     }
     first_bm53_skipped = False
 
-    # Search for MTI first
+    # Extract MTI
     for line in lines:
         logger.debug(f"Processing line: '{line.strip()}'")
         if not mti:
@@ -119,11 +125,10 @@ def parse_iso8583(log_data):
                 logger.info(f"MTI extracted: {mti}")
                 continue
 
-    # Parse DE fields
+    # Extract fields
     for line in lines:
         line = line.strip()
         if not line:
-            logger.debug("Skipping empty line.")
             continue
 
         if re.search(r'\[\s*129\s*:\s*\]|DE0129', line):
@@ -137,66 +142,58 @@ def parse_iso8583(log_data):
 
             logger.debug(f"Field {field_number} detected with value: {value}")
 
-
-            if field_number == '004':
-                value = 0 if value.strip('0') == '' else int(value.lstrip('0'))
-                logger.debug(f"Converted DE004 to integer: {value}")
-            
-            # Get field definition
-            field_def = FIELD_DEFINITIONS.get(field_number)
-            if field_def:
-                field_length = field_def.get('length')
-
-
-            # Special handling
-            if field_number in ['060', '061', '062', '065', '066']:
-                value = parse_bm6x(value)
-                logger.info(f"Parsed DE {field_number}: {value}")
-
-            # DE accumulation
             if field_number == '055':
+                if FIELD_DEFINITIONS is None:
+                    FIELD_DEFINITIONS = get_field_definitions()
+                field_def = FIELD_DEFINITIONS.get(field_number)
+                if not field_def:
+                    logger.warning(f"[WARN] FIELD_DEFINITIONS missing for DE{field_number}. Will still parse raw.")
                 de055_parts.append(value)
                 logger.debug(f"Accumulating DE055 parts: {de055_parts}")
                 continue
 
-            if field_number == '007':
-                de007_parts.append(value)
-                logger.debug(f"Accumulating DE007 parts: {de007_parts}")
+            if field_number == '060' or field_number == '061' or field_number == '062':
+                value = parse_bm6x(value)
+                data_elements[f"DE{field_number}"] = value
+                logger.info(f"Parsed DE{field_number} (BM6x format): {value}")
                 continue
 
-            if field_number == '090':
-                de090_parts.append(value)
-                logger.debug(f"Accumulating DE090 parts: {de090_parts}")
-                continue
+            if field_number == '004':
+                value = 0 if value.strip('0') == '' else int(value.lstrip('0'))
+                logger.debug(f"Converted DE004 to integer: {value}")
 
-            if field_number == '043':
-                bm43_parts.append(value)
-                logger.debug(f"Accumulating DE043 parts: {bm43_parts}")
-                continue
-
-            if field_number == '053':
-                if not first_bm53_skipped:
-                    first_bm53_skipped = True
-                    logger.debug(f"Skipping first DE053 part: {value}")
-                else:
-                    de053_parts.append(value.strip())
-                    logger.debug(f"Accumulating DE053 parts: {de053_parts}")
-                continue
-
-            # Convert some DEs to int
             if field_number in integer_fields and field_number != '004':
                 if value.strip():
                     value = int(value.lstrip('0'))
                     logger.debug(f"Converted field {field_number} to integer: {value}")
 
-            # Zero pad some fields
             if field_number in pad_zero_fields:
                 value = value.zfill(pad_zero_fields[field_number])
                 logger.debug(f"Padded field {field_number} with zeros: {value}")
 
+            if field_number == '007':
+                de007_parts.append(value)
+                continue
+
+            if field_number == '090':
+                de090_parts.append(value)
+                continue
+
+            if field_number == '043':
+                bm43_parts.append(value)
+                continue
+
+            if field_number == '053':
+                if not first_bm53_skipped:
+                    first_bm53_skipped = True
+                    continue
+                else:
+                    de053_parts.append(value.strip())
+                    continue
+
             data_elements[f"DE{field_number}"] = value
 
-    # Combine accumulated fields
+    # Combine DEs
     if de007_parts:
         combined_de007 = ''.join(de007_parts)
         data_elements["DE007"] = combined_de007.zfill(10)
@@ -218,16 +215,15 @@ def parse_iso8583(log_data):
 
     if de055_parts:
         combined_de055 = ''.join(de055_parts)
-        parsed_de055 = parse_emv_field_55(combined_de055)
+        parsed_de055 = parse_emv_field_55(combined_de055, FIELD_DEFINITIONS)
         update_de55(parsed_de055)
         data_elements["DE055"] = parsed_de055
         logger.info(f"Parsed DE055: {data_elements['DE055']}")
 
-    # Final output
+    # Finalize
     sorted_data_elements = dict(sorted(data_elements.items()))
     logger.info("Final data elements constructed successfully.")
 
-    # Try converting MTI to int
     try:
         mti = int(mti)
     except ValueError:
@@ -243,12 +239,12 @@ def parse_iso8583(log_data):
 
     return message
 
+
 def parse_bm6x(value):
     subfields = []
     values = []
     errors = []
     i = 0
-    offset = 0  # for better error logging
 
     while i < len(value):
         try:
@@ -281,7 +277,7 @@ def parse_bm6x(value):
             error_msg = f"Subfield at offset {i} failed: {e}"
             logger.warning(error_msg)
             errors.append(error_msg)
-            break  # Or optionally: i += 1 and continue to keep parsing
+            break
 
     parsed_fields = {subfields[idx]: values[idx] for idx in range(len(subfields))}
     if errors:
