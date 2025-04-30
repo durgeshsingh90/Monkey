@@ -132,12 +132,20 @@ async function saveOutputFileAndValidate(content) {
 
     const validationResult = await validateResponse.json();
     if (validationResult.status === 'success') {
-      notify(`✅ Validation successful!`);
-      console.log(validationResult.summary);  // You can display it beautifully if you want.
+      const hasErrors =
+        validationResult.validation.wrong_length.length > 0 ||
+        validationResult.validation.wrong_format.length > 0;
+    
+      if (hasErrors) {
+        notify(`⚠️ Validation completed with issues.`);
+        console.log(validationResult.validation);  // Show detailed issues
+      } else {
+        notify(`✅ All fields and subfields passed validation!`);
+      }
     } else {
-      notify(`⚠️ Validation completed with issues.`);
-      console.log(validationResult.summary);  // See which DEs failed
+      notify(`❌ Validation request failed.`);
     }
+    
   } catch (error) {
     notify(`❌ Error during save/validate: ${error.message}`);
   }
