@@ -14,12 +14,13 @@ import time
 # Logging setup
 logging.basicConfig(level=logging.INFO)
 
-import oracledb  # make sure this is already imported
+# Global session storage
+db_sessions = {}
+session_expiry = {}
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         try:
-            import oracledb
             if isinstance(obj, datetime):
                 return obj.isoformat()
             elif isinstance(obj, bytes):
@@ -55,9 +56,22 @@ def initialize_connection(db_key):
         logging.error(f"Database connection error: {e}")
         return None
 
-def execute_query(query, db_key="uat_ist"):
-    query_result = {"query": query, "db_key": db_key, "result": None, "error": None}
+def get_session_connection(db_key):
+    now = time.time()
+    expiry = session_expiry.get(db_key, 0)
+
+    if db_key in db_sessions and now < expiry:
+        return db_sessions[db_key]
+
     connection = initialize_connection(db_key)
+    if connection:
+        db_sessions[db_key] = connection
+        session_expiry[db_key] = now + 600  # 10 minutes
+    return connection
+
+def execute_query(query, db_key="uat_ist", use_session=False):
+    query_result = {"query": query, "db_key": db_key, "result": None, "error": None}
+    connection = get_session_connection(db_key) if use_session else initialize_connection(db_key)
     if connection is None:
         query_result["error"] = "Unable to establish database connection"
         log_query_execution(db_key, query, query_result, 0)
@@ -81,7 +95,8 @@ def execute_query(query, db_key="uat_ist"):
                 }
         finally:
             cursor.close()
-            connection.close()
+            if not use_session:
+                connection.close()
     except oracledb.DatabaseError as e:
         error = e.args[0]
         logging.error(f"DB error {error.code}: {error.message}")
@@ -91,7 +106,7 @@ def execute_query(query, db_key="uat_ist"):
         query_result["error"] = str(e)
 
     duration = time.time() - start_time
-    log_query_execution(db_key, query, query_result, duration)  # ✅ pass duration
+    log_query_execution(db_key, query, query_result, duration)
     return query_result
 
 def save_query_result_to_file(result, query, script_name="manual_script"):
@@ -102,11 +117,11 @@ def save_query_result_to_file(result, query, script_name="manual_script"):
     with open(output_filename, 'w') as f:
         json.dump(result, f, cls=CustomJSONEncoder, indent=4)
 
-def execute_queries_with_new_connection(queries, db_key="uat_ist", script_name="manual_script"):
+def execute_queries_with_new_connection(queries, db_key="uat_ist", script_name="manual_script", use_session=False):
     results = []
     with ThreadPoolExecutor(max_workers=10) as executor:
         future_to_query = {
-            executor.submit(execute_query, q, db_key): q for q in queries
+            executor.submit(execute_query, q, db_key, use_session): q for q in queries
         }
         for future in as_completed(future_to_query):
             query = future_to_query[future]
@@ -119,12 +134,11 @@ def execute_queries_with_new_connection(queries, db_key="uat_ist", script_name="
                 results.append({"query": query, "result": None, "error": str(e)})
     return results
 
-def execute_multiple_query_sets(query_sets_dict, script_name="manual_script"):
-    # query_sets_dict format: {"uat_ist": [query1, query2], "prod_ist": [query3]}
+def execute_multiple_query_sets(query_sets_dict, script_name="manual_script", use_session=False):
     all_results = []
     with ThreadPoolExecutor(max_workers=len(query_sets_dict)) as executor:
         future_to_dbkey = {
-            executor.submit(execute_queries_with_new_connection, qset, db_key, script_name): db_key
+            executor.submit(execute_queries_with_new_connection, qset, db_key, script_name, use_session): db_key
             for db_key, qset in query_sets_dict.items()
         }
         for future in as_completed(future_to_dbkey):
@@ -155,11 +169,9 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
     metadata = {}
     try:
         cursor = connection.cursor()
-        # Get config and use schema owner from settings (default to user)
         db_settings = settings.DATABASES.get(db_key, {})
         owner = db_settings.get("owner", db_settings.get("USER")).upper()
 
-        # Fetch table names from all_tables based on owner
         cursor.execute("""
             SELECT table_name 
             FROM all_tables 
@@ -200,7 +212,7 @@ def log_query_execution(db_key, query, result, duration):
         "timestamp": datetime.now().isoformat(),
         "db": db_key,
         "query": query.strip(),
-        "duration_sec": round(duration, 3),  # 👈 log duration
+        "duration_sec": round(duration, 3),
         "result": result.get("result") if result.get("error") is None else None,
         "error": result.get("error"),
     }

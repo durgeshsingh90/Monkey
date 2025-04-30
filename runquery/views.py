@@ -4,8 +4,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from pathlib import Path
 from django.utils.text import slugify
-from .db_connection import execute_multiple_query_sets, get_or_load_table_metadata, CustomJSONEncoder
+from .db_connection import (execute_multiple_query_sets, get_or_load_table_metadata, 
+                            CustomJSONEncoder,get_session_connection,session_expiry)
 import json
+import time
 
 # View to render the HTML page (index.html)
 def query_page(request):
@@ -27,46 +29,34 @@ def execute_oracle_queries(request):
             data = json.loads(request.body)
             query_sets = data.get("query_sets", [])
             script_name = data.get("script_name", "user_triggered_script")
+            use_session = data.get("use_session", False)  # ✅ NEW
 
             if not query_sets:
                 return JsonResponse({"error": "No queries provided"}, status=400)
 
-            # Build the expected format: {"db_key": [queries]}
-            query_sets_dict = {script_name: query_sets[0]}  # assuming only one db per request
-            # Convert list of queries to dict format expected by execute_multiple_query_sets
-            query_sets_dict = {script_name: query_sets[0]}  # assuming only 1 DB alias selected
-            results = execute_multiple_query_sets(query_sets_dict, script_name)
+            # Convert to expected format
+            query_sets_dict = {script_name: query_sets[0]}
+
+            # Execute queries
+            results = execute_multiple_query_sets(query_sets_dict, script_name, use_session=use_session)
             save_dir = Path(settings.MEDIA_ROOT) / "runquery" / script_name
             save_dir.mkdir(parents=True, exist_ok=True)
-
 
             for result in results:
                 query = result.get("query", "").lower()
                 if "from" in query:
                     try:
-                        # Extract table name
                         from_index = query.find("from") + 5
                         table_part = query[from_index:].split()[0]
                         table_base = table_part.split('.')[-1]
                         table_slug = slugify(table_base)
-
-                        # ✅ Correct location: Monkey/media/runquery/<db>/<table>.json
-                        print("Resolved save_dir =", save_dir.resolve())
-
-
-
                         save_path = save_dir / f"{table_slug}.json"
                         with open(save_path, "w", encoding="utf-8") as f:
                             json.dump(result, f, cls=CustomJSONEncoder, indent=2)
-
-
-                        print(f"✅ Saved: {save_path}")
-
                     except Exception as parse_err:
                         print("⚠️ Failed to extract table name:", parse_err)
 
             return JsonResponse(json.loads(json.dumps({"results": results}, cls=CustomJSONEncoder)), safe=False)
-
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
@@ -267,5 +257,20 @@ def load_tab_content(request):
             return JsonResponse({"success": True, "content": content})
         else:
             return JsonResponse({"success": True, "content": ""})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+@csrf_exempt
+def start_db_session(request):
+    try:
+        data = json.loads(request.body)
+        db_key = data.get("db_key")
+        from .db_connection import get_session_connection, session_expiry
+        conn = get_session_connection(db_key)
+        if not conn:
+            return JsonResponse({"success": False, "error": "Failed to connect"})
+
+        remaining = int(session_expiry[db_key] - time.time())
+        return JsonResponse({"success": True, "remaining": remaining})
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
