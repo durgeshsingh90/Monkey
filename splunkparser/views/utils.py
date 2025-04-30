@@ -61,47 +61,4 @@ def extract_route(log_data):
 
 def extract_message_id(log_data):
     match = re.search(r'MESSAGE ID\[(.*?)\]', log_data)
-<<<<<<< HEAD
     return match.group(1).strip() if match else None
-=======
-    return match.group(1).strip() if match else None
-
-
-import os
-import json
-import logging
-from django.conf import settings
-
-logger = logging.getLogger('splunkparser')
-
-# Initialize FIELD_DEFINITIONS as None
-FIELD_DEFINITIONS = None
-
-def get_field_definitions():
-    global FIELD_DEFINITIONS
-    if FIELD_DEFINITIONS is None:
-        try:
-            field_def_path = os.path.join(settings.MEDIA_ROOT, 'schemas', 'omnipay.json')
-            logger.info(f"Loading FIELD_DEFINITIONS from {field_def_path}")
-            with open(field_def_path, 'r') as f:
-                raw_definitions = json.load(f)
-            raw_fields = raw_definitions.get("fields", raw_definitions)
-
-            # Normalize field keys (strip "DE" if present)
-            FIELD_DEFINITIONS = {}
-            for key, value in raw_fields.items():
-                normalized_key = key.replace("DE", "") if key.startswith("DE") else key
-                FIELD_DEFINITIONS[normalized_key] = value
-
-            # Optional: alias DE055 if needed
-            if "055" not in FIELD_DEFINITIONS and "DE055" in raw_fields:
-                FIELD_DEFINITIONS["055"] = raw_fields["DE055"]
-
-            logger.info("FIELD_DEFINITIONS loaded and normalized successfully.")
-
-        except Exception as e:
-            logger.error(f"Failed to load field definitions: {e}")
-            FIELD_DEFINITIONS = {}
-
-    return FIELD_DEFINITIONS
->>>>>>> fix-splunk-parser
