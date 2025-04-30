@@ -67,13 +67,19 @@ def get_field_definitions():
             logger.info(f"Loading FIELD_DEFINITIONS from {field_def_path}")
             with open(field_def_path, 'r') as f:
                 raw_definitions = json.load(f)
-            FIELD_DEFINITIONS = raw_definitions.get("fields", raw_definitions)
+            raw_fields = raw_definitions.get("fields", raw_definitions)
 
-            # Normalize DE055 if needed
-            if "DE055" in FIELD_DEFINITIONS and "055" not in FIELD_DEFINITIONS:
-                FIELD_DEFINITIONS["055"] = FIELD_DEFINITIONS["DE055"]
+            # Normalize field keys (strip "DE" if present)
+            FIELD_DEFINITIONS = {}
+            for key, value in raw_fields.items():
+                normalized_key = key.replace("DE", "") if key.startswith("DE") else key
+                FIELD_DEFINITIONS[normalized_key] = value
 
-            logger.info("FIELD_DEFINITIONS loaded successfully.")
+            # Optional: alias DE055 if needed
+            if "055" not in FIELD_DEFINITIONS and "DE055" in raw_fields:
+                FIELD_DEFINITIONS["055"] = raw_fields["DE055"]
+
+            logger.info("FIELD_DEFINITIONS loaded and normalized successfully.")
 
         except Exception as e:
             logger.error(f"Failed to load field definitions: {e}")

@@ -14,9 +14,11 @@ SCHEMA_PATH = os.path.join(settings.BASE_DIR, 'media', 'schemas', 'omnipay.json'
 OUTPUT_PATH = os.path.join(settings.BASE_DIR, 'media', 'splunkparser', 'output.json')
 VALIDATION_RESULT_PATH = os.path.join(settings.BASE_DIR, 'media', 'splunkparser', 'validation_result.json')
 
+
 def load_json(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
         return json.load(f)
+
 
 def is_valid_format(value, fmt):
     value = str(value).replace(' ', '')
@@ -39,12 +41,13 @@ def is_valid_format(value, fmt):
     else:
         return True
 
+
 def validate_field(field_name, field_value, field_schema):
     success = []
     wrong_length = []
     wrong_format = []
 
-    # Handle subfields separately
+    # Handle subfields recursively
     if isinstance(field_value, dict) and 'subfields' in field_schema:
         subfields_schema = field_schema.get('subfields', {})
         for subfield_key, subfield_value in field_value.items():
@@ -61,36 +64,47 @@ def validate_field(field_name, field_value, field_schema):
                 wrong_format.append(f"{full_subfield_name}: Unknown subfield")
         return success, wrong_length, wrong_format
 
-    # For normal field (no subfields)
-    value_str = str(field_value).replace(' ', '')
-
-    # Ignore fully masked values like '****'
-    if value_str and set(value_str) == {'*'}:
-        success.append(field_name)
-        return success, wrong_length, wrong_format
-
+    # For standard fields
+    raw_value_str = str(field_value)
+    value_str_nospaces = raw_value_str.replace(' ', '')
     fmt = field_schema.get('format')
     variable = field_schema.get('variable', False)
 
-    # Length validation
+    # ✅ Skip DE004 length validation since it's intentionally converted to int
+    if field_name == "DE004":
+        if fmt and not is_valid_format(value_str_nospaces, fmt):
+            wrong_format.append(f"{field_name}: Format mismatch (expected {fmt})")
+        else:
+            success.append(field_name)
+        return success, wrong_length, wrong_format
+    
+    # Ignore masked values
+    if value_str_nospaces and re.fullmatch(r'[0-9]*\*+[0-9]*', value_str_nospaces):
+        logger.info(f"{field_name} appears masked and will be excluded from validation.")
+        success.append(field_name)
+        return success, wrong_length, wrong_format
+
+
+    # Length validation (spaces included)
     if variable:
         max_length = field_schema.get('max_length')
-        if max_length and len(value_str) > max_length:
-            wrong_length.append(f"{field_name}: Length {len(value_str)} exceeds max_length {max_length}")
+        if max_length and len(raw_value_str) > max_length:
+            wrong_length.append(f"{field_name}: Length {len(raw_value_str)} exceeds max_length {max_length}")
         else:
-            success.append(field_name)  # ✅ Success here
+            success.append(field_name)
     else:
         fixed_length = field_schema.get('length')
-        if fixed_length and len(value_str) != fixed_length:
-            wrong_length.append(f"{field_name}: Length {len(value_str)} (expected {fixed_length})")
+        if fixed_length and len(raw_value_str) != fixed_length:
+            wrong_length.append(f"{field_name}: Length {len(raw_value_str)} (expected {fixed_length})")
         else:
-            success.append(field_name)  # ✅ Success here
+            success.append(field_name)
 
-    # Format validation
-    if fmt and not is_valid_format(value_str, fmt):
+    # Format validation (spaces excluded)
+    if fmt and not is_valid_format(value_str_nospaces, fmt):
         wrong_format.append(f"{field_name}: Format mismatch (expected {fmt})")
 
     return success, wrong_length, wrong_format
+
 
 def validate_transaction(schema, transaction):
     success = []
@@ -117,11 +131,13 @@ def validate_transaction(schema, transaction):
         "wrong_format": wrong_format
     }
 
+
 def save_validation_result(validation_result):
     os.makedirs(os.path.dirname(VALIDATION_RESULT_PATH), exist_ok=True)
     with open(VALIDATION_RESULT_PATH, 'w', encoding='utf-8') as f:
         json.dump(validation_result, f, indent=2)
     logger.info(f"Validation result written to {VALIDATION_RESULT_PATH}")
+
 
 @csrf_exempt
 def validate_output(request):
@@ -135,15 +151,16 @@ def validate_output(request):
         total_wrong_length = len(result.get('wrong_length', []))
         total_wrong_format = len(result.get('wrong_format', []))
         total_errors = total_wrong_length + total_wrong_format
-        
-        if total_errors == 0:
+
+        if total_wrong_length == 0 and total_wrong_format == 0:
             message = "✅ All fields and subfields passed validation!"
         else:
             message = (
-                f"⚠️ Validation completed with {total_errors} issues "
+                f"⚠️ Validation completed with {total_wrong_length + total_wrong_format} issues "
                 f"(Wrong Length: {total_wrong_length}, Wrong Format: {total_wrong_format})"
             )
-        
+
+
         return JsonResponse({
             "status": "success",
             "message": message,
