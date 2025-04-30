@@ -158,7 +158,9 @@ function execute() {
       const results = data.results || data;
       lastExecutedResults = results;
 
-      jsonContainer.textContent = JSON.stringify(results, null, 2);
+      // jsonContainer.textContent = JSON.stringify(results, null, 2);
+      jsonContainer.textContent = ""; // Don't show query text
+
       renderResults(results);
 
       const historyEntry = {
@@ -1128,3 +1130,49 @@ function updateDbSessionIcon() {
 window.addEventListener("beforeunload", () => {
   disconnectDbSession();  // ⛔ auto disconnect on page refresh
 });
+
+function extractTablesFromQuery(queryText) {
+  const tableRegex = /from\s+([\w.]+)/gi;
+  const matches = [];
+  let match;
+  while ((match = tableRegex.exec(queryText)) !== null) {
+    const tableFull = match[1].trim(); // e.g., oasis77.shclog
+    const tableName = tableFull.split('.').pop(); // get 'shclog'
+    matches.push(tableName.toLowerCase());
+  }
+  return [...new Set(matches)]; // remove duplicates
+}
+
+function updateColumnSuggestions() {
+  const editor = getCurrentEditor();
+  const queryText = editor.getValue();
+  const dbKey = document.getElementById("dropdown1").value;
+  const tables = extractTablesFromQuery(queryText);
+
+  if (tables.length === 0) return;
+
+  fetch("/runquery/get_column_suggestions/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ db_key: dbKey, tables: tables })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) return;
+
+      const allSuggestions = Object.entries(data.columns).flatMap(([table, cols]) => 
+        cols.map(col => ({
+          label: col,
+          kind: monaco.languages.CompletionItemKind.Field,
+          insertText: col,
+          documentation: `${table.toUpperCase()} column`
+        }))
+      );
+
+      monaco.languages.registerCompletionItemProvider('sql', {
+        provideCompletionItems: () => {
+          return { suggestions: allSuggestions };
+        }
+      });
+    });
+}

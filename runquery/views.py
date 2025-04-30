@@ -274,3 +274,23 @@ def start_db_session(request):
         return JsonResponse({"success": True, "remaining": remaining})
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
+
+@csrf_exempt
+def get_column_suggestions(request):
+    try:
+        data = json.loads(request.body)
+        db_key = data.get("db_key")
+        tables = data.get("tables", [])  # e.g., ['shclog', 'transactions']
+
+        metadata = get_or_load_table_metadata(db_key)
+        table_data = metadata.get("tables", {})
+        suggestions = {}
+
+        for table in tables:
+            columns = table_data.get(table.upper())
+            if columns:
+                suggestions[table] = columns
+
+        return JsonResponse({"success": True, "columns": suggestions})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
