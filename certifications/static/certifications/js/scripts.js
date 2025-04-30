@@ -1,147 +1,233 @@
-let editor;
-let hot;
-let currentJsonData = {};
-
-// Initialize Monaco
-require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.38.0/min/vs' }});
-require(["vs/editor/editor.main"], function () {
-  editor = monaco.editor.create(document.getElementById('json-editor'), {
-    value: '',
-    language: 'json',
-    theme: 'vs-dark',
-    automaticLayout: true
-  });
+document.addEventListener('DOMContentLoaded', function () {
+  waitForHandsontable(initApp);
 });
 
-// Fetch and render tree
-fetch('/certifications/get_structure/')
-  .then(res => res.json())
-  .then(data => renderTree(data));
+function waitForHandsontable(callback) {
+  if (typeof Handsontable !== 'undefined') {
+    console.log("✅ Handsontable is loaded");
+    callback();
+  } else {
+    console.warn("⏳ Waiting for Handsontable...");
+    setTimeout(() => waitForHandsontable(callback), 100);
+  }
+}
 
-function renderTree(data) {
-  const container = document.getElementById('tree-container');
-  container.innerHTML = '';
+function initApp() {
+  let editor, hot;
+  let currentRqMsgs = [];
 
-  for (const group in data) {
-    const groupEl = createCollapsible(group);
+  require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.38.0/min/vs' }});
+  require(["vs/editor/editor.main"], function () {
+    editor = monaco.editor.create(document.getElementById('json-editor'), {
+      value: '',
+      language: 'json',
+      theme: 'vs-dark',
+      automaticLayout: true
+    });
 
-    for (const user in data[group]) {
-      const userEl = createCollapsible(user);
+    fetch('/certifications/get_structure/')
+      .then(res => res.json())
+      .then(data => renderTree(data));
+  });
 
-      for (const testcase in data[group][user]) {
+  function renderTree(data) {
+    const container = document.getElementById('tree-container');
+    container.innerHTML = '';
+    const requests = data.requests;
+    const openUsers = JSON.parse(localStorage.getItem('openUsers') || '[]');
+
+    for (const user in requests) {
+      const userWrapper = document.createElement('div');
+      const isOpen = openUsers.includes(user);
+      const toggleText = isOpen ? '➖' : '➕';
+      userWrapper.innerHTML = `<span style="cursor:pointer;" onclick="toggleCollapse(this, '${user}')">${toggleText} ${user}</span>`;
+      const tcList = document.createElement('ul');
+      tcList.style.display = isOpen ? 'block' : 'none';
+
+      for (const testcase in requests[user]) {
         const tcEl = document.createElement('li');
-        tcEl.innerHTML = `<span class="testcase">🧪 ${testcase}</span>`;
-        tcEl.querySelector('.testcase').addEventListener('click', () => {
-          fetch(`/certifications/get_testcase_data/?group=${encodeURIComponent(group)}&user=${encodeURIComponent(user)}&testcase=${encodeURIComponent(testcase)}`)
+        tcEl.innerHTML = `
+          <label style="cursor:pointer;">
+            <input type="checkbox" class="testcase-checkbox" data-user="${user}" data-testcase="${testcase}" onchange="updateSelectedData()">
+            🧪 <span class="testcase" data-user="${user}" data-testcase="${testcase}">${testcase}</span>
+          </label>
+        `;
+        tcEl.querySelector('.testcase').addEventListener('click', (e) => {
+          const user = e.target.dataset.user;
+          const testcase = e.target.dataset.testcase;
+          fetch(`/certifications/get_testcase_data/?user=${encodeURIComponent(user)}&testcase=${encodeURIComponent(testcase)}`)
             .then(res => res.json())
             .then(tcData => {
-              currentJsonData = tcData;
-              editor.setValue(JSON.stringify(tcData, null, 2));
-              loadGrid(tcData);
-              showJsonView(); // Always switch to JSON view when a test case is clicked
+              const rqMsgs = tcData.rq_msgs || [];
+              let content = '';
+
+              if (typeof rqMsgs[0] === 'string') {
+                content = rqMsgs.join('\n\n');
+                editor.updateOptions({ language: 'plaintext' });
+              } else {
+                content = JSON.stringify(rqMsgs, null, 2);
+                editor.updateOptions({ language: 'json' });
+              }
+
+              editor.setValue(content);
+              currentRqMsgs = rqMsgs;
+              document.getElementById('selected-tests').innerText = `Selected: ${testcase}`;
+              document.getElementById('grid-view').style.display = 'none';
+              document.getElementById('json-editor').style.display = 'block';
+              document.getElementById('toggle-view').innerText = 'Switch to Grid View';
             });
         });
-        userEl.querySelector('.nested').appendChild(tcEl);
+        tcList.appendChild(tcEl);
       }
 
-      groupEl.querySelector('.nested').appendChild(userEl);
+      userWrapper.appendChild(tcList);
+      container.appendChild(userWrapper);
     }
-
-    container.appendChild(groupEl);
-  }
-}
-
-function createCollapsible(name) {
-  const wrapper = document.createElement('li');
-  wrapper.classList.add('collapsible');
-  wrapper.innerHTML = `<span>➕ ${name}</span><ul class="nested"></ul>`;
-
-  wrapper.querySelector('span').addEventListener('click', function() {
-    this.parentElement.querySelector('.nested').classList.toggle('active');
-    this.textContent = this.textContent.startsWith('➕') ? '➖ ' + name : '➕ ' + name;
-  });
-
-  return wrapper;
-}
-
-// Handle toggle view
-document.getElementById('toggle-view').addEventListener('click', function() {
-  const grid = document.getElementById('grid-view');
-  const jsonEditor = document.getElementById('json-editor');
-
-  if (grid.style.display === 'none') {
-    saveGridToJson();
-    grid.style.display = 'block';
-    jsonEditor.style.display = 'none';
-    this.innerText = 'Switch to JSON View';
-    loadGrid(currentJsonData);
-  } else {
-    grid.style.display = 'none';
-    jsonEditor.style.display = 'block';
-    this.innerText = 'Switch to Grid View';
-    saveGridToJson();
-  }
-});
-
-function loadGrid(jsonData) {
-  const container = document.getElementById('grid-view');
-  if (hot) hot.destroy();
-
-  const rows = [];
-
-  if (jsonData.mti !== undefined) {
-    rows.push({ Field: 'MTI', Value: jsonData.mti });
   }
 
-  const de = jsonData.data_elements || {};
-  for (const [key, value] of Object.entries(de)) {
-    if (typeof value === 'object' && value !== null) {
-      for (const [nestedKey, nestedValue] of Object.entries(value)) {
-        rows.push({ Field: `${key}.${nestedKey}`, Value: nestedValue });
-      }
+  window.toggleCollapse = function (el, user) {
+    const ul = el.parentElement.querySelector('ul');
+    let openUsers = JSON.parse(localStorage.getItem('openUsers') || '[]');
+
+    if (ul.style.display === 'none') {
+      ul.style.display = 'block';
+      el.innerHTML = el.innerHTML.replace('➕', '➖');
+      if (!openUsers.includes(user)) openUsers.push(user);
     } else {
-      rows.push({ Field: key, Value: value });
+      ul.style.display = 'none';
+      el.innerHTML = el.innerHTML.replace('➖', '➕');
+      openUsers = openUsers.filter(u => u !== user);
     }
+
+    localStorage.setItem('openUsers', JSON.stringify(openUsers));
+  };
+
+  document.getElementById('collapse-toggle').addEventListener('click', () => {
+    const container = document.getElementById('tree-container');
+    const allToggles = container.querySelectorAll('span[onclick^="toggleCollapse"]');
+    const expanding = document.getElementById('collapse-toggle').innerText === '➕';
+    let openUsers = [];
+
+    allToggles.forEach(toggle => {
+      const ul = toggle.parentElement.querySelector('ul');
+      const user = toggle.textContent.trim().substring(2);
+      if (expanding) {
+        ul.style.display = 'block';
+        toggle.innerHTML = toggle.innerHTML.replace('➕', '➖');
+        openUsers.push(user);
+      } else {
+        ul.style.display = 'none';
+        toggle.innerHTML = toggle.innerHTML.replace('➖', '➕');
+      }
+    });
+
+    document.getElementById('collapse-toggle').innerText = expanding ? '➖' : '➕';
+    localStorage.setItem('openUsers', JSON.stringify(expanding ? openUsers : []));
+  });
+
+  window.updateSelectedData = async function () {
+    const checkboxes = document.querySelectorAll('.testcase-checkbox:checked');
+    const selected = Array.from(checkboxes).map(cb => ({
+      user: cb.dataset.user,
+      testcase: cb.dataset.testcase
+    }));
+
+    if (selected.length === 0) {
+      editor.setValue('');
+      document.getElementById('selected-tests').innerText = '';
+      currentRqMsgs = [];
+      return;
+    }
+
+    const selectedNames = selected.map(s => s.testcase).join(', ');
+    document.getElementById('selected-tests').innerText = `Selected: ${selectedNames}`;
+
+    let allRqMsgs = [];
+
+    for (const sel of selected) {
+      const res = await fetch(`/certifications/get_testcase_data/?user=${encodeURIComponent(sel.user)}&testcase=${encodeURIComponent(sel.testcase)}`);
+      const tcData = await res.json();
+      if (Array.isArray(tcData.rq_msgs)) {
+        allRqMsgs = allRqMsgs.concat(tcData.rq_msgs);
+      }
+    }
+
+    currentRqMsgs = allRqMsgs;
+
+    let content;
+    if (typeof allRqMsgs[0] === 'string') {
+      content = allRqMsgs.join('\n\n');
+      editor.updateOptions({ language: 'plaintext' });
+    } else {
+      content = JSON.stringify(allRqMsgs, null, 2);
+      editor.updateOptions({ language: 'json' });
+    }
+
+    editor.setValue(content);
+
+    if (document.getElementById('grid-view').style.display === 'block') {
+      loadGrid(allRqMsgs);
+    }
+  };
+
+  document.getElementById('toggle-view').addEventListener('click', function () {
+    const grid = document.getElementById('grid-view');
+    const jsonEditor = document.getElementById('json-editor');
+
+    if (grid.style.display === 'none') {
+      if (!Array.isArray(currentRqMsgs) || currentRqMsgs.length === 0) {
+        alert("No valid rq_msgs to display in grid.");
+        return;
+      }
+
+      grid.style.display = 'block';
+      jsonEditor.style.display = 'none';
+      this.innerText = 'Switch to JSON View';
+      loadGrid(currentRqMsgs);
+    } else {
+      grid.style.display = 'none';
+      jsonEditor.style.display = 'block';
+      this.innerText = 'Switch to Grid View';
+    }
+  });
+
+  function flattenDataElements(msg) {
+    const flat = { mti: msg.mti };
+    const de = msg.data_elements || {};
+    for (const key in de) {
+      if (typeof de[key] === 'object' && !Array.isArray(de[key])) {
+        for (const subKey in de[key]) {
+          flat[`${key}.${subKey}`] = de[key][subKey];
+        }
+      } else {
+        flat[key] = de[key];
+      }
+    }
+    return flat;
   }
 
-  hot = new Handsontable(container, {
-    data: rows,
-    colHeaders: ['Field', 'Value'],
-    columns: [{ data: 'Field' }, { data: 'Value' }],
-    stretchH: 'all',
-    autoWrapRow: true,
-    rowHeaders: true,
-    height: '80vh',
-    licenseKey: 'non-commercial-and-evaluation'
-  });
+  function loadGrid(rqMsgs) {
+    const container = document.getElementById('grid-view');
+    if (hot) hot.destroy();
+
+    const allHeaders = new Set();
+    const flattenedData = rqMsgs.map(msg => {
+      const flat = flattenDataElements(msg);
+      Object.keys(flat).forEach(k => allHeaders.add(k));
+      return flat;
+    });
+
+    const sortedHeaders = Array.from(allHeaders).sort();
+
+    hot = new Handsontable(container, {
+      data: flattenedData,
+      colHeaders: sortedHeaders,
+      columns: sortedHeaders.map(k => ({ data: k })),
+      stretchH: 'all',
+      autoWrapRow: true,
+      rowHeaders: true,
+      height: '80vh',
+      licenseKey: 'non-commercial-and-evaluation'
+    });
+  }
 }
-
-function saveGridToJson() {
-  const gridData = hot ? hot.getData() : [];
-  const newJson = { mti: null, data_elements: {} };
-
-  gridData.forEach(([field, value]) => {
-    if (!field) return;
-    if (field === 'MTI') {
-      newJson.mti = value;
-    } else if (field.includes('.')) {
-      const [mainKey, subKey] = field.split('.');
-      if (!newJson.data_elements[mainKey]) {
-        newJson.data_elements[mainKey] = {};
-      }
-      newJson.data_elements[mainKey][subKey] = value;
-    } else {
-      newJson.data_elements[field] = value;
-    }
-  });
-
-  currentJsonData = newJson;
-  editor.setValue(JSON.stringify(currentJsonData, null, 2));
-}
-
-function showJsonView() {
-  document.getElementById('grid-view').style.display = 'none';
-  document.getElementById('json-editor').style.display = 'block';
-  document.getElementById('toggle-view').innerText = 'Switch to Grid View';
-}
-
