@@ -189,7 +189,9 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
                 ORDER BY column_name ASC
             """, [table, owner])
             columns = [row[0] for row in cursor.fetchall()]
-            metadata[table] = columns
+            qualified_key = f"{owner}.{table}"
+            metadata[qualified_key] = columns
+
 
     except Exception as e:
         return {"error": str(e)}

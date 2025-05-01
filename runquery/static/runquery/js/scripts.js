@@ -249,28 +249,30 @@ sortedTables.forEach(table => {
 }
 function registerSchemaAutocomplete(tableData) {
   monaco.languages.registerCompletionItemProvider('sql', {
-    provideCompletionItems: () => {
-      const suggestions = [];
-
-      Object.entries(tableData).forEach(([table, columns]) => {
-        suggestions.push({
-          label: table,
-          kind: monaco.languages.CompletionItemKind.Class,
-          insertText: table
-        });
-
-        columns.forEach(col => {
-          suggestions.push({
-            label: `${table}.${col}`,
-            kind: monaco.languages.CompletionItemKind.Field,
-            insertText: `${table}.${col}`
-          });
-        });
-      });
-
+    provideCompletionItems: function(model, position) {
+      const value = model.getValue();
+      const beforeCursor = value.slice(0, model.getOffsetAt(position));
+  
+      // Match last FROM schema.table
+      const match = beforeCursor.match(/from\s+([\w]+)\.([\w]+)/i);
+      if (!match) return { suggestions: [] };
+  
+      const schema = match[1].toUpperCase();
+      const table = match[2].toUpperCase();
+      const fullKey = `${schema}.${table}`;
+  
+      const columns = tableMetadata[fullKey] || [];
+  
+      const suggestions = columns.map(col => ({
+        label: col,
+        kind: monaco.languages.CompletionItemKind.Field,
+        insertText: col,
+      }));
+  
       return { suggestions };
     }
   });
+  
 }
 
 function renderTable(sidebar, table) {
@@ -1131,48 +1133,43 @@ window.addEventListener("beforeunload", () => {
   disconnectDbSession();  // ⛔ auto disconnect on page refresh
 });
 
-function extractTablesFromQuery(queryText) {
-  const tableRegex = /from\s+([\w.]+)/gi;
-  const matches = [];
-  let match;
-  while ((match = tableRegex.exec(queryText)) !== null) {
-    const tableFull = match[1].trim(); // e.g., oasis77.shclog
-    const tableName = tableFull.split('.').pop(); // get 'shclog'
-    matches.push(tableName.toLowerCase());
-  }
-  return [...new Set(matches)]; // remove duplicates
-}
-
-function updateColumnSuggestions() {
-  const editor = getCurrentEditor();
-  const queryText = editor.getValue();
+editor.onDidChangeModelContent(debounce(async () => {
   const dbKey = document.getElementById("dropdown1").value;
-  const tables = extractTablesFromQuery(queryText);
+  const query = editor.getValue();
 
-  if (tables.length === 0) return;
+  const fromMatch = query.match(/from\s+([\w.]+)/i);
+  if (!fromMatch) return;
 
-  fetch("/runquery/get_column_suggestions/", {
+  const tableName = fromMatch[1].split('.').pop();
+
+  const response = await fetch("/runquery/get_metadata_columns/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ db_key: dbKey, tables: tables })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (!data.success) return;
+    body: JSON.stringify({ db_key: dbKey, query })
+  });
 
-      const allSuggestions = Object.entries(data.columns).flatMap(([table, cols]) => 
-        cols.map(col => ({
-          label: col,
-          kind: monaco.languages.CompletionItemKind.Field,
-          insertText: col,
-          documentation: `${table.toUpperCase()} column`
-        }))
-      );
+  const data = await response.json();
+  if (!data.columns) return;
 
-      monaco.languages.registerCompletionItemProvider('sql', {
-        provideCompletionItems: () => {
-          return { suggestions: allSuggestions };
-        }
-      });
-    });
+  monaco.languages.registerCompletionItemProvider("sql", {
+    provideCompletionItems: () => {
+      const suggestions = data.columns.map(col => ({
+        label: col,
+        kind: monaco.languages.CompletionItemKind.Field,
+        insertText: col
+      }));
+      return { suggestions };
+    }
+  });
+}, 800));
+
+function debounce(func, wait) {
+  let timeout;
+  return function () {
+    const context = this,
+      args = arguments;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
 }
+
