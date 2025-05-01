@@ -169,6 +169,8 @@ def save_history(request):
         return JsonResponse({"status": "saved", "count": len(history)})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+        
+        
 def view_history(request):
     return render(request, "runquery/history.html")
 
