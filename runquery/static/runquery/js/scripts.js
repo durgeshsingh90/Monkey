@@ -1083,6 +1083,7 @@ function playCleanAnimation() {
 
 function startDbSession() {
   const dbKey = document.getElementById("dropdown1").value;
+  updateDbSessionIcon("connecting");  // NEW
 
   fetch("/runquery/start_db_session/", {
     method: "POST",
@@ -1093,14 +1094,19 @@ function startDbSession() {
     .then(data => {
       if (data.success) {
         sessionTimeLeft = data.remaining;
+        isSessionConnected = true;
+        updateDbSessionIcon("connected");  // ✅ switch to connected icon
         startSessionCountdown();
-        alert(`🔌 DB session started for 10 minutes on ${dbKey}`);
       } else {
-        alert(`❌ ${data.error}`);
+        updateDbSessionIcon("disconnected");
+        alert("❌ " + data.error);
       }
+    })
+    .catch(() => {
+      updateDbSessionIcon("disconnected");
+      alert("❌ Failed to connect to database.");
     });
 }
-
 function startSessionCountdown() {
   clearInterval(sessionTimerInterval);
   updateSessionTimerText();
@@ -1182,11 +1188,14 @@ function updateSessionTimerText() {
   document.getElementById("sessionTimer").textContent = `⏱ ${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-function updateDbSessionIcon() {
+function updateDbSessionIcon(state = "disconnected") {
   const icon = document.getElementById("dbSessionIcon");
-  icon.src = isSessionConnected
-    ? "/static/runquery/images/connected.png"
-    : "/static/runquery/images/unplugged.png";
+  const srcMap = {
+    connected: "/static/runquery/images/connected.png",
+    disconnected: "/static/runquery/images/unplugged.png",
+    connecting: "/static/runquery/images/connecting.gif"
+  };
+  icon.src = srcMap[state];
 }
 
 window.addEventListener("beforeunload", () => {
