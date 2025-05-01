@@ -117,13 +117,17 @@ function execute() {
     timerDiv.textContent = `⏱ Running: ${elapsed}s`;
   }, 100);
 
+  // Reset DB session timer if connected
+  if (isSessionConnected) {
+    sessionTimeLeft = 600;
+    startSessionCountdown();
+  }
+
   const currentTab = getActiveTabIndex();
-  let queryText = getCurrentEditorContent(currentTab).trim();
-
-  if (queryText.endsWith(";")) queryText = queryText.slice(0, -1);
   const dbAlias = document.getElementById("dropdown1").value;
+  let rawText = getCurrentEditorContent(currentTab).trim();
 
-  if (!queryText) {
+  if (!rawText) {
     clearInterval(queryTimerInterval);
     timerDiv.textContent = "⚠️ No query provided.";
     alert("Please enter a SQL query.");
@@ -132,21 +136,31 @@ function execute() {
 
   const columnContainer = document.getElementById("columnResult");
   const jsonContainer = document.getElementById("jsonResult");
-
   columnContainer.innerHTML = '<div class="loading">Running query...</div>';
   jsonContainer.innerHTML = '';
   columnContainer.style.display = "block";
   jsonContainer.style.display = "none";
 
+  // --- Extract multiple sets if defined ---
+  const querySets = extractQuerySetsFromText(rawText);
+  let query_sets = [];
+
+  if (Object.keys(querySets).length > 0) {
+    query_sets = Object.values(querySets);  // Parallel sets
+  } else {
+    // Default: run all SELECTs one-by-one
+    const lines = rawText.split(";").map(l => l.trim()).filter(Boolean);
+    const selectQueries = lines.filter(line => /^select/i.test(line));
+    query_sets = [selectQueries];
+  }
+
   fetch("/runquery/execute_oracle_queries/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    
     body: JSON.stringify({
       script_name: dbAlias,
-      query_sets: [[queryText]],
-      use_session: sessionTimeLeft > 0  // ✅ Only use session if timer is active
-      
+      query_sets: query_sets,
+      use_session: sessionTimeLeft > 0
     })
   })
     .then(res => res.json())
@@ -158,15 +172,11 @@ function execute() {
       const results = data.results || data;
       lastExecutedResults = results;
 
-      // jsonContainer.textContent = JSON.stringify(results, null, 2);
-      jsonContainer.textContent = ""; // Don't show query text
-
       renderResults(results);
-
       const historyEntry = {
         timestamp: new Date().toISOString(),
         database: dbAlias,
-        query: queryText,
+        query: rawText,
         result: results.map(r => r.result),
         error: results.map(r => r.error),
         duration: totalSeconds
@@ -180,7 +190,6 @@ function execute() {
     })
     .catch(err => {
       clearInterval(queryTimerInterval);
-      const columnContainer = document.getElementById("columnResult");
       const rawMsg = err.message || "Query execution failed";
       const match = rawMsg.match(/ORA-\d{5}:.*$/);
       const cleanError = match ? match[0] : rawMsg;
@@ -199,9 +208,27 @@ function execute() {
           ❌ ${cleanError}
         </div>
       `;
-
       timerDiv.textContent = "❌ Query failed.";
     });
+}
+
+function extractQuerySetsFromText(text) {
+  const sets = {};
+  const lines = text.split("\n");
+
+  let currentSet = null;
+  for (let line of lines) {
+    line = line.trim();
+    if (/^query_set_\d+\s*=\s*\[?/i.test(line)) {
+      currentSet = line.split("=")[0].trim();
+      sets[currentSet] = [];
+    } else if (currentSet && line && !line.startsWith("//")) {
+      const query = line.replace(/^["'\[]+|["'\],;]+$/g, "").trim();
+      if (query) sets[currentSet].push(query);
+    }
+  }
+
+  return sets;
 }
 
 
