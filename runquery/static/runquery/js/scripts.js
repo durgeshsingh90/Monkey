@@ -117,15 +117,9 @@ function execute() {
     timerDiv.textContent = `⏱ Running: ${elapsed}s`;
   }, 100);
 
-  // Reset DB session timer if connected
-  if (isSessionConnected) {
-    sessionTimeLeft = 600;
-    startSessionCountdown();
-  }
-
   const currentTab = getActiveTabIndex();
   const dbAlias = document.getElementById("dropdown1").value;
-  let rawText = getCurrentEditorContent(currentTab).trim();
+  const rawText = getCurrentEditorContent(currentTab).trim();
 
   if (!rawText) {
     clearInterval(queryTimerInterval);
@@ -141,17 +135,43 @@ function execute() {
   columnContainer.style.display = "block";
   jsonContainer.style.display = "none";
 
-  // --- Extract multiple sets if defined ---
-  const querySets = extractQuerySetsFromText(rawText);
+  // --- Session: auto-connect if needed ---
+  if (!isSessionConnected) {
+    fetch("/runquery/start_db_session/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ db_key: dbAlias })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          sessionTimeLeft = data.remaining;
+          isSessionConnected = true;
+          updateDbSessionIcon();
+          startSessionCountdown();
+        }
+      });
+  } else {
+    sessionTimeLeft = 600;
+    startSessionCountdown();
+  }
+
+  // --- Parse query sets ---
+  const rawLines = rawText.split(/\r?\n/).map(l => l.trim());
+  const nonCommentedLines = rawLines.filter(line => !line.startsWith("--") && line !== "");
+  const cleanText = nonCommentedLines.join("\n");
+
+  const querySets = extractQuerySetsFromText(cleanText);
   let query_sets = [];
 
   if (Object.keys(querySets).length > 0) {
-    query_sets = Object.values(querySets);  // Parallel sets
+    query_sets = Object.values(querySets);  // Parallel groups
   } else {
-    // Default: run all SELECTs one-by-one
-    const lines = rawText.split(";").map(l => l.trim()).filter(Boolean);
-    const selectQueries = lines.filter(line => /^select/i.test(line));
-    query_sets = [selectQueries];
+    const selectQueries = cleanText
+      .split(";")
+      .map(q => q.trim())
+      .filter(q => q.toLowerCase().startsWith("select") && q.length > 0);
+    query_sets = [selectQueries];  // Sequential
   }
 
   fetch("/runquery/execute_oracle_queries/", {
@@ -171,8 +191,8 @@ function execute() {
 
       const results = data.results || data;
       lastExecutedResults = results;
-
       renderResults(results);
+
       const historyEntry = {
         timestamp: new Date().toISOString(),
         database: dbAlias,
@@ -437,55 +457,70 @@ toggleViewMode(toggle);  // will update icon too
 function countQuery() {
   const start = Date.now();
   const timerDiv = document.getElementById("queryTimer");
-  timerDiv.textContent = "⏱ Counting: 0.0s";
+  timerDiv.textContent = "⏱ Counting...";
 
-  clearInterval(queryTimerInterval); // clear any previous timer
-  queryTimerInterval = setInterval(() => {
-    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
-    timerDiv.textContent = `⏱ Counting: ${elapsed}s`;
-  }, 100);
+  const currentTab = getActiveTabIndex();
+  const dbAlias = document.getElementById("dropdown1").value;
+  const rawText = getCurrentEditorContent(currentTab).trim();
 
-  const tabIndex = getActiveTabIndex();
-  const sql = getCurrentEditorContent(tabIndex).trim();
-
-  if (!sql) {
-    clearInterval(queryTimerInterval);
-    timerDiv.textContent = "⚠️ No SQL provided.";
-    alert("Enter a SQL query to count.");
+  if (!rawText) {
+    timerDiv.textContent = "⚠️ No query provided.";
+    alert("Please enter a SQL query.");
     return;
   }
 
-  const countWrappedQuery = `SELECT COUNT(*) AS ROW_COUNT FROM (${sql})`;
-  const db = document.getElementById("dropdown1").value;
+  // Auto-connect if not already connected
+  if (!isSessionConnected) {
+    fetch("/runquery/start_db_session/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ db_key: dbAlias })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          sessionTimeLeft = data.remaining;
+          isSessionConnected = true;
+          updateDbSessionIcon();
+          startSessionCountdown();
+        }
+      });
+  } else {
+    sessionTimeLeft = 600;
+    startSessionCountdown();
+  }
+
+  const lines = rawText
+    .split(";")
+    .map(line => line.trim())
+    .filter(line => line && !line.startsWith("--"));
+
+  const wrappedQueries = lines.map(q => `SELECT COUNT(*) FROM (${q})`);
 
   fetch("/runquery/execute_oracle_queries/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      script_name: db,
-      query_sets: [[countWrappedQuery]]
+      script_name: dbAlias,
+      query_sets: [wrappedQueries],
+      use_session: sessionTimeLeft > 0
     })
   })
     .then(res => res.json())
     .then(data => {
-      clearInterval(queryTimerInterval);
       const totalSeconds = ((Date.now() - start) / 1000).toFixed(2);
       timerDiv.textContent = `✔ Count completed in ${totalSeconds}s`;
 
-      const result = data.results?.[0]?.result?.[0];
-      if (result && result.ROW_COUNT !== undefined) {
-        alert(`🧮 Count result: ${result.ROW_COUNT}`);
-      } else {
-        alert("Count query ran, but no rows returned.");
-      }
+      const results = data.results || data;
+      lastExecutedResults = results;
+      renderResults(results);
     })
     .catch(err => {
-      const columnContainer = document.getElementById("columnResult");
-    
-      const rawMsg = err.message || "Count query failed";
+      const rawMsg = err.message || "Query execution failed";
       const match = rawMsg.match(/ORA-\d{5}:.*$/);
       const cleanError = match ? match[0] : rawMsg;
-    
+
+      const columnContainer = document.getElementById("columnResult");
       columnContainer.innerHTML = `
         <div style="
           color: #b91c1c;
@@ -500,10 +535,8 @@ function countQuery() {
           ❌ ${cleanError}
         </div>
       `;
-    
-      document.getElementById("queryTimer").textContent = "❌ Count query failed.";
+      timerDiv.textContent = "❌ Count failed.";
     });
-    
 }
 
 
