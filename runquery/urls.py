@@ -18,6 +18,6 @@ path("delete_script/", views.delete_script),
 path("save_tab_content/", views.save_tab_content),
 path("load_tab_content/", views.load_tab_content),
 path("start_db_session/", views.start_db_session),
-path("get_column_suggestions/", views.get_column_suggestions),
+path("get_metadata_columns/", views.get_metadata_columns),
 
 ]

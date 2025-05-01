@@ -275,22 +275,42 @@ def start_db_session(request):
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
 
+from django.http import JsonResponse
+from .db_connection import get_or_load_table_metadata
+
+import re
+from pathlib import Path
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+
 @csrf_exempt
-def get_column_suggestions(request):
+def get_metadata_columns(request):
     try:
         data = json.loads(request.body)
         db_key = data.get("db_key")
-        tables = data.get("tables", [])  # e.g., ['shclog', 'transactions']
+        query = data.get("query", "")
 
-        metadata = get_or_load_table_metadata(db_key)
-        table_data = metadata.get("tables", {})
-        suggestions = {}
+        if db_key not in settings.DATABASES:
+            return JsonResponse({"error": f"Invalid DB: {db_key}"}, status=400)
 
-        for table in tables:
-            columns = table_data.get(table.upper())
-            if columns:
-                suggestions[table] = columns
+        # Extract the table name from FROM clause
+        match = re.search(r"from\s+([\w.]+)", query, re.IGNORECASE)
+        if not match:
+            return JsonResponse({"columns": []})
 
-        return JsonResponse({"success": True, "columns": suggestions})
+        table_full = match.group(1)
+        table_name = table_full.split('.')[-1].upper()
+
+        owner = settings.DATABASES[db_key].get("owner", settings.DATABASES[db_key]["USER"]).lower()
+        metadata_file = Path(settings.MEDIA_ROOT) / "runquery" / "metadata" / f"{db_key}.json"
+
+        if not metadata_file.exists():
+            return JsonResponse({"error": "Metadata not found"}, status=404)
+
+        with open(metadata_file, "r") as f:
+            metadata = json.load(f).get("tables", {})
+
+        columns = metadata.get(table_name, [])
+        return JsonResponse({"columns": columns})
     except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)})
+        return JsonResponse({"error": str(e)}, status=500)
