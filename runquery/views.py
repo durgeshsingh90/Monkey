@@ -139,22 +139,36 @@ from datetime import datetime
 def save_history(request):
     try:
         data = json.loads(request.body)
-        history_file = Path(settings.MEDIA_ROOT) / "runquery" / "history.json"
-        history_file.parent.mkdir(parents=True, exist_ok=True)
+        history_path = Path(settings.MEDIA_ROOT) / "runquery" / "history.json"
+        history_path.parent.mkdir(parents=True, exist_ok=True)
 
+        new_query = data.get("query", "").strip().lower()
+
+        # Load existing history
         history = []
-        if history_file.exists():
-            with open(history_file, "r") as f:
-                history = json.load(f)
+        if history_path.exists():
+            with open(history_path, "r", encoding="utf-8") as f:
+                try:
+                    history = json.load(f)
+                except json.JSONDecodeError:
+                    history = []
 
-        history.append(data)
-        with open(history_file, "w") as f:
+        # Filter out existing entry with same query (case-insensitive)
+        history = [entry for entry in history if entry.get("query", "").strip().lower() != new_query]
+
+        # Add new entry to the top
+        history.insert(0, data)
+
+        # Limit to last 10,000
+        history = history[:10000]
+
+        # Save back
+        with open(history_path, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=2)
 
-        return JsonResponse({"status": "saved"})
+        return JsonResponse({"status": "saved", "count": len(history)})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-
 def view_history(request):
     return render(request, "runquery/history.html")
 
