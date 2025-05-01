@@ -281,16 +281,25 @@ def start_db_session(request):
     try:
         data = json.loads(request.body)
         db_key = data.get("db_key")
-        from .db_connection import get_session_connection, session_expiry
+        force_new = data.get("force_new", False)
+
+        # Always get a new session if forced
+        if force_new and db_key in db_sessions:
+            try:
+                db_sessions[db_key].close()
+            except:
+                pass
+            db_sessions.pop(db_key, None)
+            session_expiry.pop(db_key, None)
+
         conn = get_session_connection(db_key)
         if not conn:
             return JsonResponse({"success": False, "error": "Failed to connect"})
 
-        remaining = int(session_expiry[db_key] - time.time())
-        return JsonResponse({"success": True, "remaining": remaining})
+        session_expiry[db_key] = time.time() + 600  # Reset timer always
+        return JsonResponse({"success": True, "remaining": 600})
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
-
 from django.http import JsonResponse
 from .db_connection import get_or_load_table_metadata
 
