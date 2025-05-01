@@ -1,0 +1,152 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #1e1e1e;
+    color: #fff;
+  }
+  .container {
+    display: flex;
+    height: calc(100vh - 30px);
+  }
+  .left, .middle, .right {
+    padding: 20px;
+    overflow: auto;
+  }
+  .left, .right {
+    width: 40%;
+    position: relative;
+  }
+  .middle {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 15px;
+    background-color: #2e2e2e;
+    border-left: 1px solid #444;
+    border-right: 1px solid #444;
+  }
+  .editor-container {
+    display: flex;
+    height: 100%;
+  }
+  .line-numbers {
+    background-color: #2c2c2c;
+    color: #aaa;
+    padding: 10px;
+    text-align: right;
+    user-select: none;
+    border-right: 1px solid #444;
+  }
+  textarea {
+    flex: 1;
+    background-color: #222;
+    color: #fff;
+    border: none;
+    outline: none;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 14px;
+    resize: none;
+    line-height: 1.4em;
+  }
+  .output {
+    background-color: #222;
+    color: #fff;
+    height: 90%;
+    border: 1px solid #555;
+    border-radius: 10px;
+    padding: 10px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 14px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+  }
+  button {
+    background-color: #ffb347;
+    border: none;
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+  }
+  button:hover {
+    background-color: #ffa500;
+  }
+  .copied {
+    background-color: #4caf50 !important;
+    color: #fff;
+  }
+  /* #copyBtn.copied {
+background-color: #4caf50;
+color: white;
+} */
+
+  .toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+  }
+  .toggle-switch input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+  .status-bar {
+    height: 30px;
+    background-color: #333;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 13px;
+    font-family: monospace;
+    justify-content: space-between;
+    border-top: 1px solid #444;
+  }
+  .section {
+    background-color: #1f1f1f;
+    border-radius: 12px;
+    padding: 12px;
+    width: 100%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .section h4 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    color: #ffc107;
+    border-bottom: 1px solid #444;
+    padding-bottom: 3px;
+  }
+  .section button,
+  .section select,
+  .section input[type="number"] {
+    width: 100%;
+    padding: 6px;
+    font-size: 13px;
+    border-radius: 6px;
+    border: none;
+  }
+  .section input[type="range"] {
+    width: 100%;
+  }
+  .section label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #ccc;
+  }
+  .section.toggle {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+  }

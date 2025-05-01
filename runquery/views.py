@@ -5,7 +5,7 @@ from django.conf import settings
 from pathlib import Path
 from django.utils.text import slugify
 from .db_connection import (execute_multiple_query_sets, get_or_load_table_metadata, 
-                            CustomJSONEncoder,get_session_connection,session_expiry)
+                            CustomJSONEncoder,get_session_connection,session_expiry,db_sessions)
 import json
 import time
 
