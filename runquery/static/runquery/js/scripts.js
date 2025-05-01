@@ -173,7 +173,82 @@ function execute() {
       alert("❌ Failed to connect to database.");
     });
 }
+function runQueryAfterConnect(dbAlias, rawText, start, timerDiv) {
+  const rawLines = rawText.split(/\r?\n/).map(l => l.trim());
+  const nonCommentedLines = rawLines.filter(line => !line.startsWith("--") && line !== "");
+  const cleanText = nonCommentedLines.join("\n");
 
+  const querySets = extractQuerySetsFromText(cleanText);
+  let query_sets = [];
+
+  if (Object.keys(querySets).length > 0) {
+    query_sets = Object.values(querySets);  // Parallel sets
+  } else {
+    const selectQueries = cleanText
+      .split(";")
+      .map(q => q.trim())
+      .filter(q => q.toLowerCase().startsWith("select") && q.length > 0);
+    query_sets = [selectQueries];  // Sequential
+  }
+
+  fetch("/runquery/execute_oracle_queries/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      script_name: dbAlias,
+      query_sets: query_sets,
+      use_session: sessionTimeLeft > 0
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      clearInterval(queryTimerInterval);
+      const totalSeconds = ((Date.now() - start) / 1000).toFixed(2);
+      timerDiv.textContent = `✔ Completed in ${totalSeconds}s`;
+
+      const results = data.results || data;
+      lastExecutedResults = results;
+      renderResults(results);
+
+      const historyEntry = {
+        timestamp: new Date().toISOString(),
+        database: dbAlias,
+        query: rawText,
+        result: results.map(r => r.result),
+        error: results.map(r => r.error),
+        duration: totalSeconds
+      };
+
+      fetch("/runquery/save_history/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(historyEntry)
+      });
+    })
+    .catch(err => {
+      clearInterval(queryTimerInterval);
+      const rawMsg = err.message || "Query execution failed";
+      const match = rawMsg.match(/ORA-\d{5}:.*$/);
+      const cleanError = match ? match[0] : rawMsg;
+
+      const columnContainer = document.getElementById("columnResult");
+      columnContainer.innerHTML = `
+        <div style="
+          color: #b91c1c;
+          background: #fee2e2;
+          padding: 14px 18px;
+          border-radius: 12px;
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          margin: 12px 0;
+          font-size: 15px;
+        ">
+          ❌ ${cleanError}
+        </div>
+      `;
+      timerDiv.textContent = "❌ Query failed.";
+    });
+}
 function extractQuerySetsFromText(text) {
   const sets = {};
   const lines = text.split("\n");
