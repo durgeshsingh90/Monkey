@@ -141,100 +141,36 @@ function execute() {
   columnContainer.style.display = "block";
   jsonContainer.style.display = "none";
 
-  // --- Session: auto-connect if needed ---
-  if (!isSessionConnected) {
-    fetch("/runquery/start_db_session/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ db_key: dbAlias })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          sessionTimeLeft = data.remaining;
-          isSessionConnected = true;
-          updateDbSessionIcon();
-          startSessionCountdown();
-        }
-      });
-  } else {
-    sessionTimeLeft = 600;
-    startSessionCountdown();
-  }
+  // Always attempt new connection with fresh 10-min session
+  updateDbSessionIcon("connecting");
 
-  // --- Parse query sets ---
-  const rawLines = rawText.split(/\r?\n/).map(l => l.trim());
-  const nonCommentedLines = rawLines.filter(line => !line.startsWith("--") && line !== "");
-  const cleanText = nonCommentedLines.join("\n");
-
-  const querySets = extractQuerySetsFromText(cleanText);
-
-
-  if (Object.keys(querySets).length > 0) {
-    query_sets = Object.values(querySets);  // Parallel groups
-  } else {
-    const selectQueries = cleanText
-      .split(";")
-      .map(q => q.trim())
-      .filter(q => q.toLowerCase().startsWith("select") && q.length > 0);
-    query_sets = [selectQueries];  // Sequential
-  }
-
-  fetch("/runquery/execute_oracle_queries/", {
+  fetch("/runquery/start_db_session/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      script_name: dbAlias,
-      query_sets: query_sets,
-      use_session: sessionTimeLeft > 0
-    })
+    body: JSON.stringify({ db_key: dbAlias, force_new: true })
   })
     .then(res => res.json())
     .then(data => {
-      clearInterval(queryTimerInterval);
-      const totalSeconds = ((Date.now() - start) / 1000).toFixed(2);
-      timerDiv.textContent = `✔ Completed in ${totalSeconds}s`;
+      if (data.success) {
+        sessionTimeLeft = 600;
+        isSessionConnected = true;
+        updateDbSessionIcon("connected");
+        startSessionCountdown();
 
-      const results = data.results || data;
-      lastExecutedResults = results;
-      renderResults(results);
-
-      const historyEntry = {
-        timestamp: new Date().toISOString(),
-        database: dbAlias,
-        query: rawText,
-        result: results.map(r => r.result),
-        error: results.map(r => r.error),
-        duration: totalSeconds
-      };
-
-      fetch("/runquery/save_history/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(historyEntry)
-      });
+        // Proceed with query execution after connection established
+        runQueryAfterConnect(dbAlias, rawText, start, timerDiv);
+      } else {
+        updateDbSessionIcon("disconnected");
+        clearInterval(queryTimerInterval);
+        timerDiv.textContent = "❌ Connection failed.";
+        alert("❌ " + data.error);
+      }
     })
-    .catch(err => {
+    .catch(() => {
+      updateDbSessionIcon("disconnected");
       clearInterval(queryTimerInterval);
-      const rawMsg = err.message || "Query execution failed";
-      const match = rawMsg.match(/ORA-\d{5}:.*$/);
-      const cleanError = match ? match[0] : rawMsg;
-
-      columnContainer.innerHTML = `
-        <div style="
-          color: #b91c1c;
-          background: #fee2e2;
-          padding: 14px 18px;
-          border-radius: 12px;
-          font-weight: 600;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-          margin: 12px 0;
-          font-size: 15px;
-        ">
-          ❌ ${cleanError}
-        </div>
-      `;
-      timerDiv.textContent = "❌ Query failed.";
+      timerDiv.textContent = "❌ Connection failed.";
+      alert("❌ Failed to connect to database.");
     });
 }
 
@@ -1089,19 +1025,19 @@ function playCleanAnimation() {
 
 function startDbSession() {
   const dbKey = document.getElementById("dropdown1").value;
-  updateDbSessionIcon("connecting");  // NEW
+  updateDbSessionIcon("connecting"); // Show connecting.gif
 
   fetch("/runquery/start_db_session/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ db_key: dbKey })
+    body: JSON.stringify({ db_key: dbKey, force_new: true }) // <-- force flag
   })
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        sessionTimeLeft = data.remaining;
+        sessionTimeLeft = 600;  // Always fresh timer
         isSessionConnected = true;
-        updateDbSessionIcon("connected");  // ✅ switch to connected icon
+        updateDbSessionIcon("connected");
         startSessionCountdown();
       } else {
         updateDbSessionIcon("disconnected");
@@ -1113,6 +1049,7 @@ function startDbSession() {
       alert("❌ Failed to connect to database.");
     });
 }
+
 function startSessionCountdown() {
   clearInterval(sessionTimerInterval);
   updateSessionTimerText();
