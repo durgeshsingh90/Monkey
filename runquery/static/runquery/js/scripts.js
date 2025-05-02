@@ -8,7 +8,7 @@ let tableData = {};
 let currentPage = 1;
 const rowsPerPage = 2000;
 let paginatedData = [];
-
+let resultWindow = null;
 
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabContents = document.querySelectorAll(".tab-content");
@@ -1286,6 +1286,11 @@ function updateDbSessionIcon(state = "disconnected") {
   icon.src = srcMap[state];
 }
 
+// Cleanup temp folders (on load)
+window.addEventListener("DOMContentLoaded", () => {
+  fetch("/runquery/clear_temp_folders/", { method: "POST" });
+});
+
 window.addEventListener("beforeunload", () => {
   disconnectDbSession();  // ⛔ auto disconnect on page refresh
 });
@@ -1353,7 +1358,7 @@ function copyJsonResult() {
   });
 }
 
-let resultWindow = null;
+
 
 function detachResultWindow() {
   if (resultWindow && !resultWindow.closed) {
