@@ -1,4 +1,4 @@
-let lastExecutedResults = [];  // Store last result data
+let lastExecutedResults = [];     // Store last result data
 let queryTimerInterval;
 let sessionTimeLeft = 0;
 let sessionTimerInterval = null;
@@ -9,6 +9,9 @@ let currentPage = 1;
 const rowsPerPage = 2000;
 let paginatedData = [];
 let resultWindow = null;
+let editors = {};                 // Global Monaco editor instances per tab
+let columnCache = {};            // Table → column cache for suggestions
+
 
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabContents = document.querySelectorAll(".tab-content");
@@ -956,44 +959,78 @@ document.getElementById("tableSearch").addEventListener("input", function () {
 // const db = this.value;
 // refreshScriptList(db);
 
-const editors = {};  // to store editor instances
 
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
 
-require(['vs/editor/editor.main'], function () {
-  for (let i = 0; i < 9; i++) {
-    editors[`editor-${i}`] = monaco.editor.create(document.getElementById(`editor-${i}`), {
-      value: `-- SQL for Tab ${i + 1}`,
-      language: "sql",
-      theme: "vs-dark",
-      automaticLayout: true,
-      minimap: { enabled: false }
-    });
-    setupAutoSave(i);
-    loadTabContent(i);
-  }
-// monaco.editor.defineTheme('fef8e6-theme', {
-//   base: 'vs-dark', // or 'vs' for light base
-//   inherit: true,
-//   rules: [],
-//   colors: {
-//     'editor.background': '#222222',
-//     'editor.foreground': '#000000',
-//     'editorLineNumber.foreground': '#888',
-//     'editorLineNumber.activeForeground': '#222',
-//     'editorCursor.foreground': '#333',
-//     'editorIndentGuide.background': '#e0dccc',
-//     'editorIndentGuide.activeBackground': '#d4cdb9'
+
+// require(['vs/editor/editor.main'], function () {
+//   for (let i = 0; i < 9; i++) {
+//     const editorId = `editor-${i}`;
+//     const container = document.getElementById(editorId);
+
+//     // Skip if already initialized or container is missing
+//     if (!container || editors[editorId]) continue;
+
+//     const editorInstance = monaco.editor.create(container, {
+//       value: `-- SQL for Tab ${i + 1}`,
+//       language: "sql",
+//       theme: "vs-dark",
+//       automaticLayout: true,
+//       minimap: { enabled: false }
+//     });
+
+//     editors[editorId] = editorInstance;
+
+//     // ✅ Attach change listener for metadata-based column suggestions
+//     editorInstance.onDidChangeModelContent(debounce(async () => {
+//       const dbKey = document.getElementById("dropdown1").value;
+//       const query = editorInstance.getValue();
+
+//       const fromMatch = query.match(/from\s+([\w.]+)/i);
+//       if (!fromMatch) return;
+
+//       const tableName = fromMatch[1].split('.').pop();
+//       const fullTable = fromMatch[1].toUpperCase();
+//       const cacheKey = `${dbKey}:${fullTable}`;
+
+//       if (columnCache[cacheKey]) return; // prevent repeat calls
+
+//       const response = await fetch("/runquery/get_metadata_columns/", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ db_key: dbKey, query })
+//       });
+
+//       const data = await response.json();
+//       if (!data.columns) return;
+
+//       columnCache[cacheKey] = data.columns;
+
+//       monaco.languages.registerCompletionItemProvider("sql", {
+//         provideCompletionItems: () => {
+//           const suggestions = data.columns.map(col => ({
+//             label: col,
+//             kind: monaco.languages.CompletionItemKind.Field,
+//             insertText: col
+//           }));
+//           return { suggestions };
+//         }
+//       });
+//     }, 800));
+
+//     setupAutoSave(i);
+//     loadTabContent(i);
 //   }
 // });
+function debounce(func, wait) {
+  let timeout;
+  return function () {
+    const context = this, args = arguments;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
 
-// monaco.editor.setTheme('fef8e6-theme');
-
-  // ✅ Now Monaco is guaranteed to be ready
-  if (Object.keys(tableData).length > 0) {
-    registerSchemaAutocomplete(tableData);
-  }
-});
 
 function setupAutoSave(tabIndex) {
   const editor = editors[`editor-${tabIndex}`];
@@ -1286,44 +1323,55 @@ function updateDbSessionIcon(state = "disconnected") {
   icon.src = srcMap[state];
 }
 
-// Cleanup temp folders (on load)
-window.addEventListener("DOMContentLoaded", () => {
-  fetch("/runquery/clear_temp_folders/", { method: "POST" });
+
+require(['vs/editor/editor.main'], function () {
+  for (let i = 0; i < 9; i++) {
+    const editor = monaco.editor.create(document.getElementById(`editor-${i}`), {
+      value: `-- SQL for Tab ${i + 1}`,
+      language: "sql",
+      theme: "vs-dark",
+      automaticLayout: true,
+      minimap: { enabled: false }
+    });
+
+    editors[`editor-${i}`] = editor;
+
+    // ✅ Attach content change listener for column suggestion
+    editor.onDidChangeModelContent(debounce(async () => {
+      const dbKey = document.getElementById("dropdown1").value;
+      const query = editor.getValue();
+
+      const fromMatch = query.match(/from\\s+([\\w.]+)/i);
+      if (!fromMatch) return;
+
+      const tableName = fromMatch[1].split('.').pop();
+
+      const response = await fetch("/runquery/get_metadata_columns/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ db_key: dbKey, query })
+      });
+
+      const data = await response.json();
+      if (!data.columns) return;
+
+      monaco.languages.registerCompletionItemProvider("sql", {
+        provideCompletionItems: () => {
+          const suggestions = data.columns.map(col => ({
+            label: col,
+            kind: monaco.languages.CompletionItemKind.Field,
+            insertText: col
+          }));
+          return { suggestions };
+        }
+      });
+    }, 800));
+
+    setupAutoSave(i);
+    loadTabContent(i);
+  }
 });
 
-window.addEventListener("beforeunload", () => {
-  disconnectDbSession();  // ⛔ auto disconnect on page refresh
-});
-
-editor.onDidChangeModelContent(debounce(async () => {
-  const dbKey = document.getElementById("dropdown1").value;
-  const query = editor.getValue();
-
-  const fromMatch = query.match(/from\s+([\w.]+)/i);
-  if (!fromMatch) return;
-
-  const tableName = fromMatch[1].split('.').pop();
-
-  const response = await fetch("/runquery/get_metadata_columns/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ db_key: dbKey, query })
-  });
-
-  const data = await response.json();
-  if (!data.columns) return;
-
-  monaco.languages.registerCompletionItemProvider("sql", {
-    provideCompletionItems: () => {
-      const suggestions = data.columns.map(col => ({
-        label: col,
-        kind: monaco.languages.CompletionItemKind.Field,
-        insertText: col
-      }));
-      return { suggestions };
-    }
-  });
-}, 800));
 
 function debounce(func, wait) {
   let timeout;
@@ -1442,3 +1490,13 @@ function detachResultWindow() {
     }
   }, 500);
 }
+
+// Cleanup temp folders (on load)
+window.addEventListener("DOMContentLoaded", () => {
+  fetch("/runquery/clear_temp_folders/", { method: "POST" });
+});
+
+window.addEventListener("beforeunload", () => {
+  disconnectDbSession();  // ⛔ auto disconnect on page refresh
+});
+
