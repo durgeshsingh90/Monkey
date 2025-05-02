@@ -9,6 +9,32 @@ from .db_connection import (execute_multiple_query_sets, get_or_load_table_metad
 import json
 import time
 
+HISTORY_PATH = Path(settings.MEDIA_ROOT) / "runquery" / "history.json"
+HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+
+import re
+
+def normalize_sql(query):
+    """
+    Simplifies SQL query by stripping constant values.
+    Keeps clause structure to identify uniqueness by pattern, not values.
+    """
+    # Remove string literals
+    query = re.sub(r"'[^']*'", "'?'", query)
+    query = re.sub(r'"[^"]*"', '"?"', query)
+
+    # Replace numbers
+    query = re.sub(r'\b\d+(\.\d+)?\b', '?', query)
+
+    # Optional: collapse IN (...) lists
+    query = re.sub(r"\bIN\s*\(([^)]+)\)", "IN (?)", query, flags=re.IGNORECASE)
+
+    # Remove excessive whitespace
+    query = re.sub(r'\s+', ' ', query).strip()
+
+    return query.lower()
+
 # View to render the HTML page (index.html)
 def query_page(request):
     return render(request, "runquery/index.html")  # Make sure this file exists at templates/runquery/index.html
@@ -133,43 +159,52 @@ from django.http import JsonResponse
 from django.conf import settings
 import json
 from pathlib import Path
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.conf import settings
+from pathlib import Path
+import json
+import re
 from datetime import datetime
 
 @csrf_exempt
 def save_history(request):
     try:
         data = json.loads(request.body)
-        history_path = Path(settings.MEDIA_ROOT) / "runquery" / "history.json"
-        history_path.parent.mkdir(parents=True, exist_ok=True)
+        raw_query = data.get("query", "").strip()
+        if not raw_query:
+            return JsonResponse({"error": "Query is empty"}, status=400)
 
-        new_query = data.get("query", "").strip().lower()
+        normalized = normalize_sql(raw_query)
+        data["normalized"] = normalized
+        data["timestamp"] = datetime.now().isoformat()
 
         # Load existing history
         history = []
-        if history_path.exists():
-            with open(history_path, "r", encoding="utf-8") as f:
+        if HISTORY_PATH.exists():
+            with open(HISTORY_PATH, "r", encoding="utf-8") as f:
                 try:
                     history = json.load(f)
                 except json.JSONDecodeError:
                     history = []
 
-        # Filter out existing entry with same query (case-insensitive)
-        history = [entry for entry in history if entry.get("query", "").strip().lower() != new_query]
+        # Filter out entries with same normalized structure
+        history = [entry for entry in history if entry.get("normalized") != normalized]
 
-        # Add new entry to the top
+        # Add to top
         history.insert(0, data)
 
         # Limit to last 10,000
         history = history[:10000]
 
-        # Save back
-        with open(history_path, "w", encoding="utf-8") as f:
+        # Save updated history
+        with open(HISTORY_PATH, "w", encoding="utf-8") as f:
             json.dump(history, f, indent=2)
 
         return JsonResponse({"status": "saved", "count": len(history)})
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-        
         
 def view_history(request):
     return render(request, "runquery/history.html")

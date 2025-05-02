@@ -313,31 +313,42 @@ sortedTables.forEach(table => {
 }
 function registerSchemaAutocomplete(tableData) {
   monaco.languages.registerCompletionItemProvider('sql', {
-    provideCompletionItems: function(model, position) {
-      const value = model.getValue();
-      const beforeCursor = value.slice(0, model.getOffsetAt(position));
-  
-      // Match last FROM schema.table
-      const match = beforeCursor.match(/from\s+([\w]+)\.([\w]+)/i);
+    triggerCharacters: [' ', '.', ','],
+    provideCompletionItems: function (model, position) {
+      const fullText = model.getValue();
+      const match = fullText.match(/from\s+([\w]+)\.([\w]+)/i);
+
       if (!match) return { suggestions: [] };
-  
+
       const schema = match[1].toUpperCase();
       const table = match[2].toUpperCase();
       const fullKey = `${schema}.${table}`;
-  
-      const columns = tableMetadata[fullKey] || [];
-  
+      const columns = tableData[fullKey] || [];
+
       const suggestions = columns.map(col => ({
         label: col,
         kind: monaco.languages.CompletionItemKind.Field,
         insertText: col,
+        documentation: `Column from ${fullKey}`
       }));
-  
+
       return { suggestions };
     }
   });
-  
 }
+async function fetchAndRegisterColumns(dbKey, tableFullName) {
+  const response = await fetch("/runquery/get_metadata_columns/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ db_key: dbKey, query: `FROM ${tableFullName}` })
+  });
+  const data = await response.json();
+  if (!data.columns) return [];
+
+  tableData[tableFullName.toUpperCase()] = data.columns;  // Cache it
+  return data.columns;
+}
+
 
 function renderTable(sidebar, table) {
   const box = document.createElement("details");
@@ -595,9 +606,13 @@ function renderResults(results) {
   const hideEmptyCols = document.getElementById("toggleEmptyCols")?.checked;
   if (!results || results.length === 0) {
     exportContainer.style.display = "none";
+    document.getElementById("copyJsonBtn").style.display = "none";
+
     return;
   } else {
     exportContainer.style.display = "inline-block";
+    document.getElementById("copyJsonBtn").style.display = "inline-block";
+
   }
   results.forEach((entry, idx) => {
     const query = entry.query || "";
@@ -1217,3 +1232,25 @@ function debounce(func, wait) {
   };
 }
 
+
+function copyJsonResult() {
+  const btn = document.getElementById("copyJsonBtn");
+
+  const resultData = lastExecutedResults[0]?.result || [];
+  if (!resultData || resultData.length === 0) {
+    alert("No result to copy.");
+    return;
+  }
+
+  const jsonText = JSON.stringify(resultData, null, 2);
+  navigator.clipboard.writeText(jsonText).then(() => {
+    btn.textContent = "✔ Copied JSON";
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = "📋 Copy";
+      btn.disabled = false;
+    }, 2000);
+  }).catch(err => {
+    alert("❌ Failed to copy JSON: " + err);
+  });
+}
