@@ -385,7 +385,7 @@ from django.conf import settings
 @csrf_exempt
 def clear_temp_runquery_folders(request):
     base_path = Path(settings.MEDIA_ROOT) / "runquery"
-    keep_dirs = {"metadata"}
+    keep_dirs = {"metadata","scripts","editor"}
     keep_files = {"history.json", "query_logs.json"}
 
     try:
