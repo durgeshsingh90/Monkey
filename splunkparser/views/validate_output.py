@@ -68,7 +68,7 @@ def validate_field(field_name, field_value, field_schema):
     raw_value_str = str(field_value)
     value_str_nospaces = raw_value_str.replace(' ', '')
     fmt = field_schema.get('format')
-    variable = field_schema.get('variable', False)
+    variable = field_schema.get('variable_length', False)
 
     # ✅ Skip DE004 length validation since it's intentionally converted to int
     if field_name == "DE004":
@@ -86,12 +86,14 @@ def validate_field(field_name, field_value, field_schema):
 
 
     # Length validation (spaces included)
+    # Length validation (spaces included)
     if variable:
         max_length = field_schema.get('max_length')
         if max_length and len(raw_value_str) > max_length:
             wrong_length.append(f"{field_name}: Length {len(raw_value_str)} exceeds max_length {max_length}")
         else:
-            success.append(field_name)
+            success.append(field_name)  
+
     else:
         fixed_length = field_schema.get('length')
         if fixed_length and len(raw_value_str) != fixed_length:
