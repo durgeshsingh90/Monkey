@@ -76,7 +76,7 @@ h4 {
 .home-title-btn {
   display: inline-block;
   background-color: #ffb347;
-  color: #333;
+  color: #8c1b13;
   font-family: 'Chewy', cursive;
   font-size: 1.5rem;
   padding: 10px 20px;
@@ -100,3 +100,32 @@ h4 {
   font-size: 1.1rem;
   color: #444;
 }
+
+.schema-btn {
+  background-color: #ffe07a;
+  color: #333;
+  border: 2px solid #ffb347;
+  border-radius: 12px;
+  padding: 8px 16px;
+  margin: 6px 6px 6px 0;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.schema-btn:hover {
+  background-color: #ffb347;
+  color: #000;
+  transform: scale(1.05);
+}
+
+.schema-btn.active {
+  background-color: #ffb347;
+  color: white;
+  border-color: #ff9800;
+  box-shadow: 0 0 8px rgba(255, 179, 71, 0.7);
+}
+
