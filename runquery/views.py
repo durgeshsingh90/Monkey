@@ -374,3 +374,24 @@ def get_metadata_columns(request):
         return JsonResponse({"columns": columns})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+import shutil
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from pathlib import Path
+
+@csrf_exempt
+def clear_temp_runquery_folders(request):
+    base_path = Path(settings.MEDIA_ROOT) / "runquery"
+    keep_files = {"history.json", "query_logs.json"}
+    keep_dirs = {"metadata"}
+
+    try:
+        for item in base_path.iterdir():
+            if item.is_dir() and item.name not in keep_dirs:
+                shutil.rmtree(item)
+            elif item.is_file() and item.name not in keep_files:
+                item.unlink()
+        return JsonResponse({"status": "cleared"})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

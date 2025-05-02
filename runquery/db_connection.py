@@ -109,13 +109,7 @@ def execute_query(query, db_key="uat_ist", use_session=False):
     log_query_execution(db_key, query, query_result, duration)
     return query_result
 
-def save_query_result_to_file(result, query, script_name="manual_script"):
-    table_name = query.split()[3].split('.')[-1]
-    output_dir = Path(settings.MEDIA_ROOT) / "runquery" / script_name
-    os.makedirs(output_dir, exist_ok=True)
-    output_filename = os.path.join(output_dir, f"{table_name}_output.json")
-    with open(output_filename, 'w') as f:
-        json.dump(result, f, cls=CustomJSONEncoder, indent=4)
+
 
 def execute_queries_with_new_connection(queries, db_key="uat_ist", script_name="manual_script", use_session=False):
     results = []
@@ -128,7 +122,6 @@ def execute_queries_with_new_connection(queries, db_key="uat_ist", script_name="
             try:
                 result = future.result()
                 results.append(result)
-                save_query_result_to_file(result, query, script_name)
             except Exception as e:
                 logging.error(f"Query failed: {query}, Exception: {e}")
                 results.append({"query": query, "result": None, "error": str(e)})
