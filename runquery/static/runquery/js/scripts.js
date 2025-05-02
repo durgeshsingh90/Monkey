@@ -213,6 +213,11 @@ function runQueryAfterConnect(dbAlias, rawText, start, timerDiv) {
       lastExecutedResults = results;
       renderResults(results);
 
+      // ✅ Send to detached window if open
+      if (resultWindow && !resultWindow.closed && results[0]?.result) {
+        resultWindow.postMessage(results[0].result, "*");
+      }
+
       const historyEntry = {
         timestamp: new Date().toISOString(),
         database: dbAlias,
@@ -252,6 +257,7 @@ function runQueryAfterConnect(dbAlias, rawText, start, timerDiv) {
       timerDiv.textContent = "❌ Query failed.";
     });
 }
+
 function extractQuerySetsFromText(text) {
   const sets = {};
   const lines = text.split("\n");
@@ -650,67 +656,130 @@ document.getElementById("toggleVertical").addEventListener("change", () => {
 function renderPage(pageNumber) {
   const columnContainer = document.getElementById("columnResult");
   const jsonContainer = document.getElementById("jsonResult");
-
   columnContainer.innerHTML = "";
   jsonContainer.innerHTML = "";
+
+  const isVertical = document.getElementById("toggleVertical").checked;
 
   const start = (pageNumber - 1) * rowsPerPage;
   const end = start + rowsPerPage;
   const pageRows = paginatedData.slice(start, end);
 
-  const card = document.createElement("div");
-  card.className = "table-box";
-
-  if (pageRows.length === 0) {
-    card.innerHTML = `<div>No rows to display.</div>`;
-    columnContainer.appendChild(card);
+  if (!pageRows || pageRows.length === 0) {
+    columnContainer.innerHTML = "<div>No rows to display.</div>";
     return;
   }
 
   const keys = Object.keys(pageRows[0]);
 
+  const card = document.createElement("div");
+  card.className = "table-box";
+
   const table = document.createElement("table");
   table.style.borderCollapse = "collapse";
-  table.style.width = "100%";
+  table.style.width = "max-content";
+  const scrollWrapper = document.createElement("div");
+  scrollWrapper.style.overflowX = "auto";
+  scrollWrapper.style.width = "100%";
+  scrollWrapper.appendChild(table);
 
-  const thead = document.createElement("thead");
-  const headerRow = document.createElement("tr");
-  keys.forEach(k => {
-    const th = document.createElement("th");
-    th.textContent = k;
-    th.style.padding = "8px";
-    th.style.background = "#f3f4f6";
-    th.style.border = "1px solid #ccc";
-    headerRow.appendChild(th);
-  });
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
+  if (isVertical) {
+    // Vertical orientation
+    keys.forEach(key => {
+      const tr = document.createElement("tr");
 
-  const tbody = document.createElement("tbody");
-  pageRows.forEach(row => {
-    const tr = document.createElement("tr");
-    keys.forEach(k => {
-      const td = document.createElement("td");
-      td.textContent = row[k];
-      td.style.padding = "6px";
-      td.style.border = "1px solid #ccc";
-      tr.appendChild(td);
+      const th = document.createElement("th");
+      th.textContent = key;
+      th.style.padding = "8px";
+      th.style.background = "#f3f4f6";
+      th.style.border = "1px solid #ccc";
+      th.style.textAlign = "left";
+      tr.appendChild(th);
+
+      pageRows.forEach(row => {
+        const td = document.createElement("td");
+        td.textContent = row[key];
+        td.style.padding = "8px";
+        td.style.border = "1px solid #ccc";
+        tr.appendChild(td);
+      });
+
+      table.appendChild(tr);
     });
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody);
-  card.appendChild(table);
+  } else {
+    // Horizontal orientation (row-wise)
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+
+    // Row number header
+    const rowNumTh = document.createElement("th");
+    rowNumTh.textContent = "#";
+    rowNumTh.style.padding = "8px";
+    rowNumTh.style.background = "#f3f4f6";
+    rowNumTh.style.border = "1px solid #ccc";
+    headerRow.appendChild(rowNumTh);
+
+    keys.forEach(k => {
+      const th = document.createElement("th");
+      th.textContent = k;
+      th.style.padding = "8px";
+      th.style.background = "#f3f4f6";
+      th.style.border = "1px solid #ccc";
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    pageRows.forEach((row, idx) => {
+      const tr = document.createElement("tr");
+
+      // Row number cell
+      const rowNumTd = document.createElement("td");
+      rowNumTd.textContent = start + idx + 1;
+      rowNumTd.style.padding = "6px";
+      rowNumTd.style.border = "1px solid #ccc";
+      rowNumTd.style.background = "#f9fafb";
+      tr.appendChild(rowNumTd);
+
+      keys.forEach(k => {
+        const td = document.createElement("td");
+        td.textContent = row[k];
+        td.style.padding = "6px";
+        td.style.border = "1px solid #ccc";
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+  }
+
+  card.appendChild(scrollWrapper);
   columnContainer.appendChild(card);
 
   // JSON view
   const jsonCard = document.createElement("pre");
   jsonCard.style.padding = "1rem";
-  jsonCard.style.background = "#f9f9f9";
+  jsonCard.style.borderRadius = "8px";
+  jsonCard.style.background = "#fafafa";
+  jsonCard.style.border = "1px solid #eee";
+  jsonCard.style.marginTop = "1rem";
   jsonCard.textContent = JSON.stringify(pageRows, null, 2);
   jsonContainer.appendChild(jsonCard);
 
+  // Show/hide based on toggle
+  const isColumnView = document.getElementById("toggleSwitch").checked;
+  columnContainer.style.display = isColumnView ? "block" : "none";
+  jsonContainer.style.display = isColumnView ? "none" : "block";
+
+  // Render pagination controls
   renderPaginationControls(pageNumber);
+
+  // Optional: sticky scroll sync
+  syncStickyScrollBar();
 }
+
 function renderPaginationControls(current) {
   const totalPages = Math.ceil(paginatedData.length / rowsPerPage);
   const container = document.getElementById("paginationControls") || document.createElement("div");
@@ -1282,4 +1351,89 @@ function copyJsonResult() {
   }).catch(err => {
     alert("❌ Failed to copy JSON: " + err);
   });
+}
+
+let resultWindow = null;
+
+function detachResultWindow() {
+  if (resultWindow && !resultWindow.closed) {
+    resultWindow.focus();
+    return;
+  }
+
+  resultWindow = window.open("", "DetachedResultWindow", "width=1200,height=800");
+  resultWindow.document.write(`
+    <html>
+    <head>
+      <title>Detached Result</title>
+      <style>
+        body { font-family: sans-serif; margin: 0; padding: 1rem; }
+        pre { white-space: pre-wrap; background: #f8f8f8; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { padding: 8px; border: 1px solid #ccc; }
+        thead { background: #f3f4f6; }
+      </style>
+    </head>
+    <body>
+      <h2>🔎 Result</h2>
+      <div id="detachedResultContainer">Waiting for data...</div>
+      <script>
+        window.addEventListener('message', function(e) {
+          const data = e.data;
+          if (!data || !Array.isArray(data)) return;
+
+          const container = document.getElementById("detachedResultContainer");
+          container.innerHTML = '';
+
+          if (data.length === 0) {
+            container.innerHTML = "<div>No rows returned.</div>";
+            return;
+          }
+
+          const keys = Object.keys(data[0]);
+          const table = document.createElement("table");
+
+          const thead = document.createElement("thead");
+          const trHead = document.createElement("tr");
+          const rowNumTh = document.createElement("th");
+          rowNumTh.textContent = "#";
+          trHead.appendChild(rowNumTh);
+          keys.forEach(k => {
+            const th = document.createElement("th");
+            th.textContent = k;
+            trHead.appendChild(th);
+          });
+          thead.appendChild(trHead);
+          table.appendChild(thead);
+
+          const tbody = document.createElement("tbody");
+          data.forEach((row, idx) => {
+            const tr = document.createElement("tr");
+            const rowNum = document.createElement("td");
+            rowNum.textContent = idx + 1;
+            tr.appendChild(rowNum);
+
+            keys.forEach(k => {
+              const td = document.createElement("td");
+              td.textContent = row[k];
+              tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+          });
+
+          table.appendChild(tbody);
+          container.appendChild(table);
+        });
+      </script>
+    </body>
+    </html>
+  `);
+
+  // Wait for the new window to fully load before sending data
+  setTimeout(() => {
+    if (resultWindow && lastExecutedResults[0]?.result) {
+      resultWindow.postMessage(lastExecutedResults[0].result, "*");
+    }
+  }, 500);
 }
