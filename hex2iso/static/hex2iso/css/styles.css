@@ -72,3 +72,31 @@ h4 {
   color: #777 !important;
   font-style: italic;
 }
+
+.home-title-btn {
+  display: inline-block;
+  background-color: #ffb347;
+  color: #333;
+  font-family: 'Chewy', cursive;
+  font-size: 1.5rem;
+  padding: 10px 20px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  text-decoration: none;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.home-title-btn:hover {
+  background-color: #ffe07a;
+  color: #000;
+  transform: scale(1.05);
+  text-decoration: none;
+}
+
+.schema-heading {
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  color: #444;
+}
