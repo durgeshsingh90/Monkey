@@ -47,6 +47,7 @@ urlpatterns = [
     path('yaml2json/', include('yaml2json.urls')),
     path('xlog_mastercard/', include('xlog_mastercard.urls')),
     path('certifications/', include('certifications.urls')),
+    path('hex2iso/', include('hex2iso.urls')),
 
 
 ]
