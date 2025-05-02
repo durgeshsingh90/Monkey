@@ -375,16 +375,18 @@ def get_metadata_columns(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-import shutil
-from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from pathlib import Path
+import shutil
+import os
+from django.conf import settings
 
 @csrf_exempt
 def clear_temp_runquery_folders(request):
     base_path = Path(settings.MEDIA_ROOT) / "runquery"
-    keep_files = {"history.json", "query_logs.json"}
     keep_dirs = {"metadata"}
+    keep_files = {"history.json", "query_logs.json"}
 
     try:
         for item in base_path.iterdir():
