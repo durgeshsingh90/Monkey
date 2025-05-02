@@ -226,7 +226,7 @@ def compare_and_style(df, logs_json, validation_json, result_log, sheet_name):
         log_blocks = logs_json[log_key]
         fromiso = [b for b in log_blocks if b.get("route", "").lower().startswith("fromiso")]
         matched_log = fromiso[0].get("result", {}).get("data_elements", {}) if fromiso else {}
-        result_log.append(f"\n✅ Row {idx}: RRN {rrn} matched. Comparing DEs:")
+        result_log.append(f"\n✅Row {idx}: RRN {rrn} matched. Comparing DEs:========================")
 
         validation_block = validation_json.get(f"Block_{idx+1}", {})
         invalid_fields = set(validation_block.get("wrong_length", []) + validation_block.get("wrong_format", []))
@@ -244,21 +244,33 @@ def compare_and_style(df, logs_json, validation_json, result_log, sheet_name):
             failed_messages = [msg for msg in invalid_fields if msg.startswith(de_key)]
             if failed_messages:
                 row_result.append({'match': False, 'value': val})
-                result_log.append(f"❌ {de_key} failed schema validation.")
+                result_log.append(f"  ❌ {de_key} failed schema validation.")
                 for msg in failed_messages:
-                    result_log.append(f"❌ {msg}")
+                    result_log.append(f"  ❌ {msg}")
                 continue
 
             if val_str.lower() in ["client defined", "valid value"]:
                 row_result.append({'match': True, 'value': val})
-                result_log.append(f"✅ {de_key}: Skipped ({val_str})")
+                result_log.append(f"  ✅ {de_key}: Skipped ({val_str})")
                 continue
 
             log_val = matched_log.get(de_key, "")
-            match = str(log_val).strip() == val_str
-            emoji = "✅" if match else "❌"
-            result_log.append(f"{emoji} {de_key}: expected '{val_str}' | found '{log_val}'")
+            log_val_str = str(log_val).strip()
+            
+            if val_str.endswith("x") and len(val_str) == 3 and val_str[:2].isdigit():
+                prefix = val_str[:2]
+                match = log_val_str.startswith(prefix) and len(log_val_str) == 3 and log_val_str.isdigit()
+                emoji = "✅" if match else "❌"
+                result_log.append(f"  {emoji} {de_key}: prefix match '{prefix}x' | found '{log_val_str}'")
+            elif log_val_str == val_str:
+                match = True
+                result_log.append(f"  ✅ {de_key}: expected '{val_str}' | found '{log_val_str}'")
+            else:
+                match = False
+                result_log.append(f"  ❌ {de_key}: expected '{val_str}' | found '{log_val_str}'")
+            
             row_result.append({'match': match, 'value': val})
+            
 
         styled_rows.append(row_result)
 

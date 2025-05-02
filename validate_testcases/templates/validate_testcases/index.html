@@ -1,4 +1,4 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,23 +13,28 @@
       background-color: #fef8e6;
       margin: 0;
       padding: 0;
+      color: #333;
     }
 
     table {
       border-collapse: collapse;
-      width: 100%;
       font-size: 14px;
+      width: max-content;
     }
 
     th, td {
       border: 1px solid #d1d5db;
       padding: 6px 8px;
       text-align: left;
+      white-space: nowrap;
     }
 
     th {
       background-color: #fef3c7;
       font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 2;
     }
 
     tr:nth-child(even) {
@@ -48,6 +53,19 @@
     .tab-button.active {
       background: white;
       border-bottom: 2px solid transparent;
+    }
+
+    #preview {
+      max-height: 600px;
+      overflow: auto;
+      position: relative;
+      background-color: white;
+      padding: 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      margin: 1rem;
+      overflow-x: auto;
     }
   </style>
 </head>
@@ -80,18 +98,26 @@
   <!-- Excel Sheet Tabs -->
   <div id="tabs" class="px-4 mt-6 flex flex-wrap gap-2 border-b border-gray-300"></div>
 
+  <!-- Filter Toggle -->
+  <div class="px-6 mt-4">
+    <label class="block text-sm mb-2">
+      <input type="checkbox" id="toggleRRNPresent" checked class="mr-2">
+      Show only rows where DE037 (RRN) is present
+    </label>
+  </div>
+
   <!-- Excel Table Preview -->
-  <div id="preview" class="bg-white text-sm max-h-[600px] overflow-auto m-4 p-4 border border-gray-300 shadow rounded"></div>
+  <div id="preview" class="text-sm max-h-[600px] overflow-auto m-4 p-4 border border-gray-300 shadow rounded bg-white"></div>
 
   <!-- Comparison Result -->
   <div id="comparisonContainer" class="m-4 p-4 border border-gray-200 rounded bg-white shadow hidden">
     <h2 class="font-bold text-lg mb-2">🧾 Comparison Summary</h2>
 
-    <!-- ✅ Filter toggle -->
     <label class="block text-sm mb-2">
       <input type="checkbox" id="toggleMissingRRN" checked class="mr-2">
       Hide "RRN not found" messages
     </label>
+
     <a id="logDownload" href="#" class="text-blue-600 underline mt-2 block">⬇ Download Log JSON</a>
 
     <p id="comparisonPreview" class="text-base text-gray-800 whitespace-pre-wrap font-mono bg-gray-50 p-4 rounded border border-gray-300 max-h-[600px] overflow-auto shadow-inner"></p>
@@ -115,9 +141,10 @@
     const comparisonPreview = document.getElementById('comparisonPreview');
     const logDownload = document.getElementById('logDownload');
     const toggleMissingRRN = document.getElementById('toggleMissingRRN');
+    const toggleRRNPresent = document.getElementById('toggleRRNPresent');
 
     let excelFile = null, logFile = null;
-    let fullComparisonLog = "";  // Store full log content
+    let fullComparisonLog = "";
 
     excelInput.addEventListener('change', (e) => {
       excelFile = e.target.files[0];
@@ -164,6 +191,7 @@
     function loadTabs(sheets) {
       tabs.innerHTML = '';
       preview.innerHTML = '';
+
       Object.entries(sheets).forEach(([sheet, html], index) => {
         const btn = document.createElement('button');
         btn.textContent = sheet;
@@ -172,29 +200,74 @@
           document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           preview.innerHTML = html;
+          applyRRNPresenceFilter();
         };
         tabs.appendChild(btn);
         if (index === 0) {
           btn.classList.add('active');
-          preview.innerHTML = html;
+          btn.click();
         }
       });
     }
 
     function applySummaryFilter() {
-      if (!fullComparisonLog) return;
-      const lines = fullComparisonLog.split('\n');
-      const filtered = toggleMissingRRN.checked
-        ? lines.filter(line => !line.includes("RRN") || !line.includes("not found"))
-        : lines;
-      comparisonPreview.innerText = filtered.join('\n');
+  if (!fullComparisonLog) return;
+
+  const lines = fullComparisonLog.split('\n');
+  const hideRRNNotFound = toggleMissingRRN.checked;
+
+  const filtered = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    // Check if this line is an RRN-not-found message
+    if (
+      hideRRNNotFound &&
+      /^❌ Row \d+: RRN .*not found in logs\.$/.test(line)
+    ) {
+      // Skip this line
+      // Also skip previous blank line if exists
+      if (filtered.length && filtered[filtered.length - 1].trim() === '') {
+        filtered.pop();
+      }
+
+      // Skip current line and next line if blank
+      if (i + 1 < lines.length && lines[i + 1].trim() === '') {
+        i++; // skip next blank line too
+      }
+
+      continue; // skip current line
+    }
+
+    filtered.push(lines[i]);
+  }
+
+  comparisonPreview.innerText = filtered.join('\n');
+}
+
+
+
+    function applyRRNPresenceFilter() {
+      const checkbox = document.getElementById('toggleRRNPresent');
+      const hideMissing = checkbox && checkbox.checked;
+      const table = preview.querySelector('table');
+      if (!table) return;
+
+      const tbody = table.querySelector('tbody');
+      if (!tbody) return;
+
+      Array.from(tbody.rows).forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const hasRRN = Array.from(cells).some(cell => /^\d{12}$/.test(cell.innerText.trim()));
+        row.style.display = (hideMissing && !hasRRN) ? 'none' : '';
+      });
     }
 
     toggleMissingRRN.addEventListener('change', applySummaryFilter);
+    toggleRRNPresent.addEventListener('change', applyRRNPresenceFilter);
 
     // Go to Top Button Logic
     const goTopBtn = document.getElementById('goTopBtn');
-
     window.addEventListener('scroll', () => {
       if (window.scrollY > window.innerHeight * 6) {
         goTopBtn.classList.remove('hidden');
