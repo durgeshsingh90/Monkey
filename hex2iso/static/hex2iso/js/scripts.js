@@ -1,5 +1,9 @@
-require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' }});
+require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' } });
 require(['vs/editor/editor.main'], function () {
+  let userHasEdited = false;
+  let currentSchema = '';
+  let isUpdating = false;
+
   const jsonEditor = monaco.editor.create(document.getElementById('json-editor'), {
     language: 'json',
     theme: 'vs-dark',
@@ -16,8 +20,16 @@ require(['vs/editor/editor.main'], function () {
     value: ''
   });
 
-  let currentSchema = '';
-  let isUpdating = false;
+  function setModelValueSafely(editor, value) {
+    isUpdating = true;
+    editor.setValue(value);
+    isUpdating = false;
+  }
+
+  const savedJson = localStorage.getItem('jsonEditorContent');
+  const savedHex = localStorage.getItem('hexEditorContent');
+  if (savedJson) setModelValueSafely(jsonEditor, savedJson);
+  if (savedHex) setModelValueSafely(hexEditor, savedHex);
 
   function getCookie(name) {
     let cookieValue = null;
@@ -50,114 +62,91 @@ require(['vs/editor/editor.main'], function () {
   async function fetchSchemas() {
     const res = await fetch('/hex2iso/list_schemas/');
     const schemas = await res.json();
-
     const schemaButtonsContainer = document.getElementById('schema-buttons');
 
     schemas.forEach(name => {
       const btn = document.createElement('button');
       btn.className = 'schema-btn';
-      btn.textContent = name.replace('_schema.json', '');
+      btn.textContent = name.replace('.json', '');
       btn.dataset.schema = name;
 
       btn.onclick = async () => {
         currentSchema = name;
+        localStorage.setItem('selectedSchema', name);
         document.querySelectorAll('.schema-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-
+      
         const jsonVal = jsonEditor.getValue().trim();
         const hexVal = hexEditor.getValue().trim();
-
-        if (jsonVal && !jsonVal.includes("Enter JSON data")) {
-          const result = await convert(jsonVal, 'json_to_hex');
-          hexEditor.setValue(result);
-        } else if (hexVal) {
-          const result = await convert(hexVal, 'hex_to_json');
-          jsonEditor.setValue(result);
+      
+        if (!userHasEdited || (!jsonVal && !hexVal)) return;
+      
+        try {
+          if (jsonVal.startsWith('{')) {
+            const result = await convert(jsonVal, 'json_to_hex');
+            setModelValueSafely(hexEditor, result);
+          } else if (/^[0-9A-Fa-f\s]+$/.test(hexVal)) {
+            const result = await convert(hexVal, 'hex_to_json');
+            setModelValueSafely(jsonEditor, JSON.stringify(JSON.parse(result), null, 2));
+          }
+        } catch (err) {
+          console.warn("Conversion failed:", err);
         }
       };
 
       schemaButtonsContainer.appendChild(btn);
     });
+
+    // just visually restore active button, don't click or convert
+    const savedSchema = localStorage.getItem('selectedSchema');
+    if (savedSchema) {
+      const savedButton = [...document.querySelectorAll('.schema-btn')]
+        .find(btn => btn.dataset.schema === savedSchema);
+      if (savedButton) {
+        savedButton.classList.add('active');
+        currentSchema = savedSchema;
+      }
+    }
   }
 
-  function setupSmartJsonPlaceholder(editor, placeholderJson) {
-    let placeholderActive = true;
-  
-    editor.setValue(placeholderJson);
-    editor.getModel().updateOptions({ tabSize: 2 });
-  
-    editor.onDidFocusEditorText(() => {
-      if (placeholderActive) {
-        placeholderActive = false;
-        editor.setValue(''); // Clears JSON immediately on click
-      }
-    });
-  
-    editor.onDidBlurEditorText(() => {
-      const value = editor.getValue().trim();
-      if (!value) {
-        placeholderActive = true;
-        editor.setValue(placeholderJson); // Resets placeholder if empty
-      }
-    });
-  }
-  
-
-  function setupSmartHexPlaceholder(editor, placeholderText) {
-    let placeholderActive = true;
-  
-    editor.setValue(placeholderText);
-    editor.getModel().updateOptions({ tabSize: 2 });
-  
-    editor.onDidFocusEditorText(() => {
-      if (placeholderActive) {
-        placeholderActive = false;
-        editor.setValue(''); // Clear on click
-      }
-    });
-  
-    editor.onDidBlurEditorText(() => {
-      const value = editor.getValue().trim();
-      if (!value) {
-        placeholderActive = true;
-        editor.setValue(placeholderText); // Restore if empty
-      }
-    });
-  }
-  
-  // Setup placeholder only for JSON editor
-  setupSmartJsonPlaceholder(
-    jsonEditor,
-    JSON.stringify({ message: "Enter JSON data..." }, null, 2)
-  );
-  setupSmartHexPlaceholder(
-    hexEditor,
-    'Place hex dump here...'
-  );
-  
-  // Real-time conversion
   jsonEditor.onDidChangeModelContent(async () => {
     if (!currentSchema || isUpdating) return;
+    userHasEdited = true;
 
-    const jsonVal = jsonEditor.getValue().trim();
-    if (jsonVal === '' || jsonVal.includes("Enter JSON data")) return;
+    const jsonVal = jsonEditor.getValue();
+    localStorage.setItem('jsonEditorContent', jsonVal);
 
-    isUpdating = true;
-    const result = await convert(jsonVal, 'json_to_hex');
-    hexEditor.setValue(result);
-    isUpdating = false;
+    if (!jsonVal.trim().startsWith('{')) return;
+
+    try {
+      isUpdating = true;
+      const result = await convert(jsonVal, 'json_to_hex');
+      hexEditor.setValue(result);
+    } catch (e) {
+      console.warn("JSON→HEX failed:", e);
+    } finally {
+      isUpdating = false;
+    }
   });
 
   hexEditor.onDidChangeModelContent(async () => {
     if (!currentSchema || isUpdating) return;
+    userHasEdited = true;
 
-    const hexVal = hexEditor.getValue().trim();
-    if (hexVal === '') return;
+    const hexVal = hexEditor.getValue();
+    localStorage.setItem('hexEditorContent', hexVal);
 
-    isUpdating = true;
-    const result = await convert(hexVal, 'hex_to_json');
-    jsonEditor.setValue(result);
-    isUpdating = false;
+    if (!/^[0-9A-Fa-f\s]+$/.test(hexVal)) return;
+
+    try {
+      isUpdating = true;
+      const result = await convert(hexVal, 'hex_to_json');
+      jsonEditor.setValue(JSON.stringify(JSON.parse(result), null, 2));
+    } catch (e) {
+      console.warn("HEX→JSON failed:", e);
+    } finally {
+      isUpdating = false;
+    }
   });
 
   function handleCopy(content, btnId) {
