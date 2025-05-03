@@ -1,0 +1,1099 @@
+{
+    "mti": {
+        "length": 4,
+        "format": "N",
+        "description": "Message Type Indicator (MTI)"
+    },
+    "bitmap": {
+        "length": 16,
+        "format": "H",
+        "description": "Bitmap (Hexadecimal representation of present data elements)"
+    },
+    "fields": {
+        "DE002": {
+            "name": "Primary Account Number",
+            "max_length": 19,
+            "format": "N",
+            "field_type": "LLVAR"
+        },
+        "DE003": {
+            "name": "Processing Code",
+            "length": 6,
+            "format": "N"
+        },
+        "DE004": {
+            "name": "Transaction Amount",
+            "length": 12,
+            "format": "N"
+        },
+        "DE007": {
+            "name": "Transmission Date and Time",
+            "length": 10,
+            "format": "N"
+        },
+        "DE011": {
+            "name": "Systems Trace Audit Number",
+            "length": 6,
+            "format": "N"
+        },
+        "DE012": {
+            "name": "Local Transaction Time",
+            "length": 6,
+            "format": "N"
+        },
+        "DE013": {
+            "name": "Local Transaction Date",
+            "length": 4,
+            "format": "N"
+        },
+        "DE014": {
+            "name": "Expiration Date",
+            "length": 4,
+            "format": "N"
+        },
+        "DE015": {
+            "name": "Settlement Date",
+            "length": 4,
+            "format": "N"
+        },
+        "DE018": {
+            "name": "Merchant Category Code",
+            "length": 4,
+            "format": "N"
+        },
+        "DE019": {
+            "name": "Acquiring Institution Country Code",
+            "length": 3,
+            "format": "N"
+        },
+        "DE022": {
+            "name": "Point of Service Entry Mode",
+            "length": 3,
+            "format": "N"
+        },
+        "DE023": {
+            "name": "Card Sequence Number",
+            "length": 3,
+            "format": "N"
+        },
+        "DE025": {
+            "name": "Point of Service Condition Code",
+            "length": 2,
+            "format": "N"
+        },
+        "DE026": {
+            "name": "POS pin capture code",
+            "length": 2,
+            "format": "N"
+        },
+        "DE032": {
+            "name": "Bin Number-Acquiring Institution Identification Code",
+            "max_length": 11,
+            "format": "N",
+            "field_type": "LLVAR"
+  
+        },
+        "DE035": {
+            "name": "Track 2 Data",
+            "max_length": 37,
+            "format": "Z",
+            "field_type": "LLVAR"
+  
+        },
+        "DE037": {
+            "name": "Retrieval Reference Number",
+            "length": 12,
+            "format": "AN"
+        },
+        "DE038": {
+            "name": "Authorization code",
+            "length": 6,
+            "format": "ANS"
+        },
+        "DE039": {
+            "name": "Response code",
+            "length": 2,
+            "format": "AN"
+        },
+        "DE041": {
+            "name": "Card Acceptor Terminal Identification",
+            "length": 8,
+            "format": "ANS"
+        },
+        "DE042": {
+            "name": "Merchant Number",
+            "length": 15,
+            "format": "N"
+        },
+        "DE043": {
+            "name": "Card Acceptor Name/Location",
+            "length": 40,
+            "format": "ANS"
+        },
+        "DE044": {
+            "name": "Card Acceptor Name/Location",
+            "max_length": 99,
+            "format": "ASCII",
+            "format_type":"LLVAR"
+        },
+        "DE045": {
+            "name": "Track 1 Data",
+            "max_length": 76,
+            "format": "z",
+            "format_type":"LLVAR"
+        },
+        "DE048": {
+          "name": "CVC2/CVV2 Data",
+          "max_length": 999,
+          "format": "AN",
+          "field_type": "LLLVAR"
+      },
+        "DE049": {
+            "name": "Transaction Currency Code",
+            "length": 3,
+            "format": "N"
+        },
+        "DE052": {
+            "name": "Pin Data",
+            "length": 16,
+            "format": "H"
+        },
+        "DE053": {
+          "name": "Security Related Control Information",
+          "max_length": 76,
+          "format": "H",
+          "field_type": "LLVAR"
+  
+      },
+      "DE054": {
+          "name": "Additional Amount",
+          "max_length": 999,
+          "format": "AN",
+          "field_type": "LLLVAR"
+  
+      },
+        "DE055": {
+          "name": "Chip ICC Data",
+          "max_length": 999,
+          "format": "H",
+          "field_type": "LLLVAR",
+            "subfields": {
+                "format_type": "LLVAR",
+                "71": {
+                    "name": "Issuer script template 1",
+                    "max_length": 255,
+                    "format": "B"
+                },
+                "72": {
+                    "name": "Issuer script template 2",
+                    "max_length": 255,
+                    "format": "B"
+                },
+                "82": {
+                    "name": "Application Interchange Profile",
+                    "max_length": 2,
+                    "format": "B"
+                },
+                "84": {
+                    "name": "Dedicated File Name",
+                    "max_length": 16,
+                    "format": "B"
+                },
+                "91": {
+                    "name": "Issuer Authentication Data",
+                    "max_length": 16,
+                    "format": "B"
+                },
+                "95": {
+                    "name": "Terminal Verification Results",
+                    "max_length": 5,
+                    "format": "B"
+                },
+                "96": {
+                    "name": "Kernel Identifier",
+                    "max_length": 8,
+                    "format": "B"
+                },
+                "8A": {
+                    "name": "Authorization Response Code",
+                    "max_length": 2,
+                    "format": "AN"
+                },
+                "9A": {
+                    "name": "Transaction Date (YYMMDD)",
+                    "max_length": 3,
+                    "format": "N"
+                },
+                "9C": {
+                    "name": "Transaction Type",
+                    "max_length": 1,
+                    "format": "N"
+                },
+                "9F02": {
+                    "name": "Amount Authorized",
+                    "max_length": 6,
+                    "format": "N"
+                },
+                "9F03": {
+                    "name": "Amount Other",
+                    "max_length": 6,
+                    "format": "N"
+                },
+                "9F09": {
+                    "name": "Terminal Application Version Number",
+                    "max_length": 2,
+                    "format": "N"
+                },
+                "9F10": {
+                    "name": "Issuer Application Data",
+                    "max_length": 32,
+                    "format": "B"
+                },
+                "9F1A": {
+                    "name": "Terminal Country Code",
+                    "max_length": 2,
+                    "format": "N"
+                },
+                "9F1E": {
+                    "name": "Interface Device Serial Number",
+                    "max_length": 16,
+                    "format": "ANS"
+                },
+                "9F26": {
+                    "name": "Application Cryptogram",
+                    "max_length": 8,
+                    "format": "B"
+                },
+                "9F27": {
+                    "name": "Cryptogram Information Data",
+                    "max_length": 1,
+                    "format": "B"
+                },
+                "9F33": {
+                    "name": "Terminal Capabilities",
+                    "max_length": 3,
+                    "format": "B"
+                },
+                "9F34": {
+                    "name": "Cardholder Verification Method Results",
+                    "max_length": 3,
+                    "format": "B"
+                },
+                "9F35": {
+                    "name": "Terminal Type",
+                    "max_length": 1,
+                    "format": "N"
+                },
+                "9F36": {
+                    "name": "Application Transaction Counter",
+                    "max_length": 2,
+                    "format": "N"
+                },
+                "9F37": {
+                    "name": "Unpredictable Number",
+                    "max_length": 4,
+                    "format": "B"
+                },
+                "9F53": {
+                    "name": "Transaction Category Code (MC)",
+                    "max_length": 1,
+                    "format": "N"
+                },
+                "9F5B": {
+                    "name": "Issuer Script Results (VISA)",
+                    "max_length": 20,
+                    "format": "B"
+                },
+                "9F60": {
+                    "name": "Authenticated Application Data",
+                    "max_length": 128,
+                    "format": "B"
+                },
+                "9F6E": {
+                    "name": "Form Factor Indicator (Visa and Diners)",
+                    "max_length": 6,
+                    "format": "N"
+                },
+                "DF31": {
+                    "name": "Issuer Script Results (UnionPay)",
+                    "max_length": 20,
+                    "format": "B"
+                },
+                "DF3F": {
+                    "name": "Storage Data (Diners)",
+                    "max_length": 114,
+                    "format": "B"
+                },
+                "5F2A": {
+                    "name": "Transaction Currency Code",
+                    "max_length": 2,
+                    "format": "N"
+                }
+            }
+        },
+        "DE056": {
+            "name": "Payment Account Reference",
+            "max_length": 999,
+            "format": "ANS",
+            "field_type": "LLLVAR"
+    
+        },
+        "DE060": {
+            "name": "Additional Data",
+            "max_length": 999,
+            "format": "ANS",
+            "field_type": "LLLVAR",
+            "subfields": {
+                "30": {
+                    "name": "CVV2 Presence Indicator (Visa CNP Only)",
+                    "length": 1,
+                    "format": "N"
+                },
+                "31": {
+                    "name": "Address Verification Data, request",
+                    "max_length": 49,
+                    "format": "ANS"
+                },
+                "32": {
+                    "name": "Address Verification Data, response",
+                    "length": 2,
+                    "format": "ANS"
+                },
+                "34": {
+                    "name": "Merchant State or Province Code",
+                    "length": 3,
+                    "format": "AN"
+                },
+                "35": {
+                    "name": "Merchant Post Code",
+                    "length": 10,
+                    "format": "ANS"
+                },
+                "37": {
+                    "name": "Dynamic Currency Conversion (DCC) Data",
+                    "length": 29,
+                    "format": "N"
+                },
+                "40": {
+                    "name": "Electronic Commerce Indicator (ECI)",
+                    "length": 2,
+                    "format": "AN"
+                },
+                "46": {
+                    "name": "Scheme Destination",
+                    "length": 2,
+                    "format": "ANS"
+                },
+                "47": {
+                    "name": "MPOS Terminal Type",
+                    "length": 1,
+                    "format": "AN"
+                },
+                "49": {
+                    "name": "COF Originator Indicator",
+                    "length": 1,
+                    "format": "N"
+                },
+                "50": {
+                    "name": "Merchant Initiated transaction indicator",
+                    "length": 2,
+                    "format": "N"
+                },
+                "51": {
+                    "name": "Recurring/instalment/Credential on File Indicator",
+                    "length": 1,
+                    "format": "N"
+                },
+                "52": {
+                    "name": "Additional response Reason Code",
+                    "length": 2,
+                    "format": "N"
+                },
+                "53": {
+                    "name": "Terminal Capabilities",
+                    "length": 3,
+                    "format": "ANS"
+                },
+                "54": {
+                    "name": "Batch Information",
+                    "length": 99,
+                    "format": "ANS"
+                },
+                "55": {
+                    "name": "Additional Authorization Data",
+                    "length": 30,
+                    "format": "ANS"
+                },
+                "58": {
+                    "name": "MasterCard TTI",
+                    "length": 3,
+                    "format": "AN"
+                },
+                "61": {
+                    "name": "XID/BEPAF/VCODE",
+                    "length": 40,
+                    "format": "ANS"
+                },
+                "62": {
+                    "name": "CAVV",
+                    "length": 40,
+                    "format": "ANS"
+                },
+                "63": {
+                    "name": "UCAF",
+                    "length": 35,
+                    "format": "ANS"
+                },
+                "64": {
+                    "name": "MasterCard Assigned ID",
+                    "length": 6,
+                    "format": "AN"
+                },
+                "65": {
+                    "name": "eWallet Data",
+                    "length": 14,
+                    "format": "AN"
+                },
+                "66": {
+                    "name": "Secure Program Protocol",
+                    "length": 1,
+                    "format": "N"
+                },
+                "67": {
+                    "name": "Directory Server Transaction ID",
+                    "length": 36,
+                    "format": "ANS"
+                },
+                "68": {
+                    "name": "Scheme Response Code",
+                    "length": 3,
+                    "format": "ANS"
+                },
+                "71": {
+                    "name": "Cryptocurrency/High risk securities indicator / Type of digital currency",
+                    "length": 1,
+                    "format": "AN"
+                },
+                "72": {
+                    "name": "Strong Customer authentication exemption indicator (SCA)",
+                    "length": 8,
+                    "format": "AN"
+                },
+                "73": {
+                    "name": "Mass transit program indicator",
+                    "length": 3,
+                    "format": "AN"
+                },
+                "74": {
+                    "name": "Single tap indicator",
+                    "length": 2,
+                    "format": "AN"
+                },
+                "75": {
+                    "name": "Single tap indicator response",
+                    "length": 1,
+                    "format": "N"
+                },
+                "76": {
+                    "name": "UPI AV Value",
+                    "length": 99,
+                    "format": "ANS"
+                },
+                "77": {
+                    "name": "Authentication ID",
+                    "length": 40,
+                    "format": "ANS"
+                },
+                "78": {
+                    "name": "MasterCard Merchant Payment Gateway ID",
+                    "length": 11,
+                    "format": "N"
+                },
+                "79": {
+                    "name": "UPI transaction initiation mode",
+                    "length": 1,
+                    "format": "AN"
+                },
+                "80": {
+                    "name": "BCMC Card Holder Authentication Method",
+                    "length": 1,
+                    "format": "AN"
+                },
+                "81": {
+                    "name": "Plan Registration system Identifier",
+                    "length": 35,
+                    "format": "AN"
+                }
+            }
+        },
+        "DE061": {
+            "name": "Custom Data",
+            "max_length": 999,
+            "format": "ANS",
+            "field_type": "LLLVAR",
+            "subfields": {
+                "10": {
+                    "name": "Sender Reference Number",
+                    "length": 19,
+                    "format": "AN"
+                },
+                "11": {
+                    "name": "Sender Account Number",
+                    "length": 34,
+                    "format": "AN"
+                },
+                "12": {
+                    "name": "Sender Name",
+                    "length": 30,
+                    "format": "AN"
+                },
+                "13": {
+                    "name": "Sender Address",
+                    "max_length": 35,
+                    "format": "AN"
+                },
+                "14": {
+                    "name": "Sender City",
+                    "length": 25,
+                    "format": "AN"
+                },
+                "15": {
+                    "name": "Sender State",
+                    "length": 2,
+                    "format": "AN"
+                },
+                "16": {
+                    "name": "Sender Country",
+                    "length": 3,
+                    "format": "AN"
+                },
+                "17": {
+                    "name": "Source of funds",
+                    "length": 2,
+                    "format": "AN"
+                },
+                "18": {
+                    "name": "Related Transaction Data",
+                    "length": 2,
+                    "format": "AN"
+                },
+                "19": {
+                    "name": "Merchant ID Aggregator",
+                    "length": 15,
+                    "format": "AN"
+                },
+                "20": {
+                    "name": "Recipient Name",
+                    "length": 30,
+                    "format": "AN"
+                },
+                "21": {
+                    "name": "Sender date of birth",
+                    "length": 8,
+                    "format": "N"
+                },
+                "22": {
+                    "name": "Recipient Addres Line 1",
+                    "length": 99,
+                    "format": "ANS"
+                },
+                "23": {
+                    "name": "Recipient State or Province",
+                    "length": 3,
+                    "format": "ANS"
+                },
+                "24": {
+                    "name": "Recipient Country Code",
+                    "length": 3,
+                    "format": "A"
+                },
+                "25": {
+                    "name": "Original PAN",
+                    "length": 19,
+                    "format": "N"
+                },
+                "28": {
+                    "name": "Recipient City Code",
+                    "length": 25,
+                    "format": "ANS"
+                },
+                "29": {
+                    "name": "Sender Account Number Type",
+                    "length": 2,
+                    "format": "AN"
+                },
+                "30": {
+                    "name": "Recipient Account number type",
+                    "length": 2,
+                    "format": "AN"
+                },
+                "31": {
+                    "name": "Account Number Indicator",
+                    "length": 1,
+                    "format": "AN"
+                },
+                "32": {
+                    "name": "PAN Mapping Acct Number",
+                    "length": 19,
+                    "format": "N"
+                },
+                "33": {
+                    "name": "PAN Mapping Expiry date",
+                    "length": 4,
+                    "format": "N"
+                },
+                "34": {
+                    "name": "Funding PAN",
+                    "length": 19,
+                    "format": "N"
+                },
+                "35": {
+                    "name": "Transaction Integrity Class",
+                    "length": 2,
+                    "format": "AN"
+                },
+                "36": {
+                    "name": "Merchnat Country of origin",
+                    "length": 3,
+                    "format": "AN"
+                },
+                "37": {
+                    "name": "Recipient Account number",
+                    "length": 50,
+                    "format": "ANS"
+                },
+                "38": {
+                    "name": "Purpose of payment",
+                    "length": 12,
+                    "format": "AN"
+                },
+                "39": {
+                    "name": "Bancontact WIP Wallet ID",
+                    "length": 11,
+                    "format": "N"
+                },
+                "40": {
+                    "name": "Platform ID and GUID",
+                    "length": 46,
+                    "format": "ANS"
+                },
+                "41": {
+                    "name": "BCMC Merchnat Transaction reference",
+                    "length": 60,
+                    "format": "AN"
+                },
+                "43": {
+                    "name": "BCMC Account Info",
+                    "length": 48,
+                    "format": "AN"
+                },
+                "44": {
+                    "name": "BCMC Chip Data",
+                    "length": 128,
+                    "format": "H"
+                },
+                "45": {
+                    "name": "BCMC Issuer Customer reference",
+                    "length": 254,
+                    "format": "ANS"
+                },
+                "46": {
+                    "name": "deffered Authrization repetition Counter",
+                    "length": 1,
+                    "format": "N"
+                },
+                "47": {
+                    "name": "PSP Transaction reffference",
+                    "length": 254,
+                    "format": "ANS"
+                },
+                "48": {
+                    "name": "Session ID",
+                    "length": 32,
+                    "format": "AN"
+                },
+                "49": {
+                    "name": "TRA Score",
+                    "length": 2,
+                    "format": "N"
+                },
+                "50": {
+                    "name": "Reason for not honouring exemptions",
+                    "length": 4,
+                    "format": "ANS"
+                },
+                "51": {
+                    "name": "Estimated amount",
+                    "length": 12,
+                    "format": "N"
+                },
+                "52": {
+                    "name": "Remote Commerce acceptor Identifier",
+                    "length": 150,
+                    "format": "ANS"
+                },
+                "53": {
+                    "name": "Sender First, middle, last name",
+                    "length": 115,
+                    "format": "AN"
+                },
+                "54": {
+                    "name": "Recipient First, middle, last name",
+                    "length": 115,
+                    "format": "AN"
+                },
+                "59": {
+                    "name": "DSRP Cryptogram",
+                    "length": 28,
+                    "format": "ANS"
+                },
+                "60": {
+                    "name": "Visa Merchant Identifier",
+                    "length": 8,
+                    "format": "ANS"
+                },
+                "61": {
+                    "name": "Payment Facilitator/ marketplace ID",
+                    "length": 11,
+                    "format": "N"
+                },
+                "62": {
+                    "name": "Independent Sales Organization ID",
+                    "length": 11,
+                    "format": "N"
+                },
+                "63": {
+                    "name": "Sub-Merchant ID",
+                    "length": 15,
+                    "format": "ANS"
+                },
+                "64": {
+                    "name": "VAU replacement PAN",
+                    "length": 19,
+                    "format": "N"
+                },
+                "65": {
+                    "name": "VAU replacement exp date",
+                    "length": 4,
+                    "format": "N"
+                },
+                "66": {
+                    "name": "VAU Account status",
+                    "length": 1,
+                    "format": "N"
+                },
+                "67": {
+                    "name": "Account updated indicator",
+                    "length": 1,
+                    "format": "AN"
+                },
+                "68": {
+                    "name": "Error reason code",
+                    "length": 6,
+                    "format": "AN"
+                },
+                "70": {
+                    "name": "Cardholder authentication indicator for poland",
+                    "length": 2,
+                    "format": "N"
+                },
+                "71": {
+                    "name": "Debt repayment indicator",
+                    "length": 1,
+                    "format": "N"
+                },
+                "72": {
+                    "name": "Reserved for MRT usage",
+                    "length": 4,
+                    "format": "ANS"
+                },
+                "73": {
+                    "name": "Foreign retailer Indicator",
+                    "length": 1,
+                    "format": "N"
+                },
+                "75": {
+                    "name": "Deffered authorization transaction ID",
+                    "length": 12,
+                    "format": "AN"
+                },
+                "76": {
+                    "name": "Transfer Service Provider name",
+                    "length": 25,
+                    "format": "AN"
+                },
+                "77": {
+                    "name": "Payment Facilitator name",
+                    "length": 25,
+                    "format": "AN"
+                },
+                "78": {
+                    "name": "Customer reference Number",
+                    "length": 2,
+                    "format": "N"
+                },
+                "79": {
+                    "name": "Identification Type code",
+                    "length": 4,
+                    "format": "A"
+                },
+                "80": {
+                    "name": "Identification Subtype",
+                    "length": 2,
+                    "format": "AN"
+                },
+                "81": {
+                    "name": "Identification Value",
+                    "length": 35,
+                    "format": "AN"
+                },
+                "82": {
+                    "name": "Identification Issuing Country",
+                    "length": 3,
+                    "format": "A"
+                },
+                "83": {
+                    "name": "Bancontact payment Collector ID",
+                    "length": 6,
+                    "format": "N"
+                },
+                "84": {
+                    "name": "Recurring data for India issued cards",
+                    "length": 54,
+                    "format": "ANS"
+                },
+                "85": {
+                    "name": "SCA Exemption result",
+                    "length": 2,
+                    "format": "N"
+                },
+                "86": {
+                    "name": "Merrchant legal business name",
+                    "length": 25,
+                    "format": "ANS"
+                },
+                "87": {
+                    "name": "Merchnat street address",
+                    "length": 99,
+                    "format": "ANS"
+                },
+                "88": {
+                    "name": "Data Verification Type",
+                    "length": 2,
+                    "format": "N"
+                },
+                "89": {
+                    "name": "Receiver /Recipient Service response",
+                    "length": 1,
+                    "format": "A"
+                },
+                "90": {
+                    "name": "Sender service response",
+                    "length": 1,
+                    "format": "A"
+                },
+                "91": {
+                    "name": "Merchnat Volume Indicator",
+                    "length": 2,
+                    "format": "N"
+                },
+                "92": {
+                    "name": "Full name Account Match Decision",
+                    "length": 2,
+                    "format": "N"
+                },
+                "93": {
+                    "name": "Last Name Account match Decision",
+                    "length": 2,
+                    "format": "N"
+                },
+                "94": {
+                    "name": "Middle Name Account match Decision",
+                    "length": 2,
+                    "format": "N"
+                },
+                "95": {
+                    "name": "Fisrt Name Account Match Decision",
+                    "length": 2,
+                    "format": "N"
+                },
+                "96": {
+                    "name": "Account Owner type",
+                    "length": 2,
+                    "format": "N"
+                },
+                "97": {
+                    "name": "Account owner given name",
+                    "length": 35,
+                    "format": "ANS"
+                },
+                "98": {
+                    "name": "Account Owner Middle Name",
+                    "length": 35,
+                    "format": "ANS"
+                },
+                "99": {
+                    "name": "Account Owner last Name",
+                    "length": 35,
+                    "format": "ANS"
+                }
+            }
+        },
+        "DE062": {
+            "name": "Reserved Private",
+            "max_length": 999,
+            "format": "ANS",
+            "field_type": "LLLVAR",
+            "subfields": {
+                "1": {
+                    "name": "Billing Amount",
+                    "length": 12,
+                    "format": "N"
+                },
+                "3": {
+                    "name": "Cashback Amount",
+                    "length": 12,
+                    "format": "N"
+                },
+                "4": {
+                    "name": "Fee Amount",
+                    "max_length": 12,
+                    "format": "N"
+                },
+                "5": {
+                    "name": "Account Type",
+                    "length": 2,
+                    "format": "N"
+                },
+                "6": {
+                    "name": "Authorization Characteristics Indicator",
+                    "length": 3,
+                    "format": "AN"
+                },
+                "02": {
+                    "name": "Settlement Amount",
+                    "length": 15,
+                    "format": "N"
+                }
+            }
+        },
+        "DE063": {
+            "name": "Reversal Reason Code",
+            "length": 3,
+            "format": "N",
+            "field_type": "LLLVAR"
+    
+        },
+        "DE064": {
+            "name": "Message Authentication Code",
+            "length": 16,
+            "format": "H"    
+        },
+        "DE065": {
+            "name": "Additional Service Data",
+            "max_length": 999,
+            "format": "ANS",
+            "field_type": "LLLVAR",
+            "subfields": {
+                "10": {
+                    "name": "Sender Reference Number",
+                    "length": 19,
+                    "format": "AN"
+                }
+            }
+        },
+        "DE066": {
+            "name": "Location Specific data",
+            "max_length": 999,
+            "format": "ANS",
+            "field_type": "LLLVAR",
+            "subfields": {
+                "10": {
+                    "name": "Sender Reference Number",
+                    "length": 19,
+                    "format": "AN"
+                }
+            }
+        },
+        "DE070": {
+            "name": "Network Management Code",
+            "length": 3,
+            "format": "N"    
+        },
+        "DE090": {
+            "name": "Location Specific data",
+            "length": 42,
+            "format": "N",
+            "subfields": {
+                "MTID": {
+                    "name": "0100 or 0200 MTI from 0100 original",
+                    "length": 4,
+                    "format": "N"
+                },
+                "STAN": {
+                    "name": "From BM11 in original message",
+                    "length": 6,
+                    "format": "N"
+                },
+                "Date/Time": {
+                    "name": "From BM07 in original message",
+                    "length": 10,
+                    "format": "N"
+                },
+                "aid": {
+                    "name": "From BM32 in original message",
+                    "length": 11,
+                    "format": "N"
+                },
+                "inst_code": {
+                    "name": "From BM32 in original message 0100 or 0200 message",
+                    "length": 11,
+                    "format": "N"
+                }
+            }
+        },
+        "DE095": {
+            "name": "Replacement Amount",
+            "length": 12,
+            "format": "N"    
+        },
+        "DE0102": {
+            "name": "From Account Number",
+            "max_length": 28,
+            "format": "LLVAR"    
+        },
+        "DE0128": {
+            "name": "Message Authentication Code",
+            "length": 16,
+            "format": "H"    
+        },
+        "attributes": {
+            "formats": {
+                "A": "Alphabetic (A-Z only)",
+                "N": "Numeric (0-9 only)",
+                "S": "Special characters",
+                "AN": "Alphanumeric (A-Z, 0-9)",
+                "ANS": "Alphanumeric and Special (A-Z, 0-9, special characters)",
+                "B": "Binary data",
+                "Z": "Track data (Track1/Track2/Track3 - digits and special chars like '=' and '^')",
+                "^": "ASCII space character (padding character in some track formats)",
+                "H": "Hexadecimal (0-9, A-F)",
+                "ASCII": "ASCII format"
+            },
+            "field_length_types": {
+                "LLVAR": "Variable length fields up to 99 characters (prefix with 2-digit length)",
+                "LLLVAR": "Variable length fields up to 999 characters (prefix with 3-digit length)"
+            },
+            "common_mti_values": {
+                "0100": "Authorization Request",
+                "0110": "Authorization Response",
+                "0200": "Financial Transaction Request",
+                "0210": "Financial Transaction Response",
+                "0400": "Reversal Request",
+                "0410": "Reversal Response",
+                "0800": "Network Management Request (e.g., sign-on, echo)",
+                "0810": "Network Management Response"
+            }
+        }
+    }
+  }

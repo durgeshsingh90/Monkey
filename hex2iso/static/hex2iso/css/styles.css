@@ -129,3 +129,33 @@ h4 {
   box-shadow: 0 0 8px rgba(255, 179, 71, 0.7);
 }
 
+
+.editor-ribbon {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff9dc; /* light yellow ribbon */
+  padding: 8px 12px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.editor-label {
+  font-weight: bold;
+  color: #333;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #333;
+}
+.editor-container {
+  flex-grow: 1;
+  margin-top: 0;
+}
