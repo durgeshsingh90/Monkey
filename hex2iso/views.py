@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from .hex2iso import parse_iso8583
+from .iso2hex import json_to_hex
 
 def index(request):
     return render(request, 'hex2iso/index.html')
@@ -58,7 +59,7 @@ def convert_view(request):
                 return JsonResponse(result, safe=False)
 
             elif direction == 'json_to_hex':
-                # 🔴 Not yet implemented — return nothing
+                result = json_to_hex(input_str, schema_path)
                 return JsonResponse({}, safe=False)  # Send empty result instead of error
 
 
