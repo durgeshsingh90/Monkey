@@ -1,7 +1,7 @@
 require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' } });
 
 let inputEditor, outputEditor;
-let currentTheme = localStorage.getItem('monacoTheme') || 'vs-dark'; // ✅ Get theme from localStorage or use dark as default
+let currentTheme = localStorage.getItem('monacoTheme') || 'vs-dark'; // Get theme from localStorage or use dark as default
 
 require(['vs/editor/editor.main'], function () {
   initEditors();
@@ -18,14 +18,18 @@ function initEditors() {
   });
 
   // Output Editor (Read-only)
-  outputEditor = monaco.editor.create(document.getElementById('output-editor'), {
-    value: '',
-    language: 'json',
-    theme: currentTheme,
-    readOnly: true,
-    automaticLayout: true,
-    minimap: { enabled: false }
-  });
+  try {
+    outputEditor = monaco.editor.create(document.getElementById('output-editor'), {
+      value: '',
+      language: 'json',
+      theme: currentTheme,
+      readOnly: true,
+      automaticLayout: true,
+      minimap: { enabled: false }
+    });
+  } catch (error) {
+    console.error('Error initializing output editor:', error);
+  }
 
   updateThemeButtonIcon();
 
@@ -47,7 +51,7 @@ function initEditors() {
 function toggleTheme() {
   currentTheme = currentTheme === 'vs-light' ? 'vs-dark' : 'vs-light';
   monaco.editor.setTheme(currentTheme);
-  localStorage.setItem('monacoTheme', currentTheme); // ✅ Save preference
+  localStorage.setItem('monacoTheme', currentTheme); // Save preference
   updateThemeButtonIcon();
 }
 
@@ -92,125 +96,171 @@ function updateJsonStatus(text) {
 }
 
 function cleanData() {
-const rawText = inputEditor.getValue();
-const cleanedJsonBlocks = extractJsonBlocks(rawText);
+  const rawText = inputEditor.getValue();
+  const cleanedJsonBlocks = extractJsonBlocks(rawText);
 
-if (cleanedJsonBlocks.length === 0) {
-alert("❌ No JSON blocks found.");
-inputEditor.setValue("");
-updateJsonStatus("");
-return;
-}
+  if (cleanedJsonBlocks.length === 0) {
+    alert("❌ No JSON blocks found.");
+    inputEditor.setValue("");
+    updateJsonStatus("");
+    return;
+  }
 
-const jsonObjects = cleanedJsonBlocks.map(jsonStr => {
-try {
-  return JSON.parse(jsonStr);
-} catch (e) {
-  console.warn("Skipped invalid JSON block during parsing:", jsonStr);
-  return null;
-}
-}).filter(obj => obj !== null);
+  const jsonObjects = cleanedJsonBlocks.map(jsonStr => {
+    try {
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      console.warn("Skipped invalid JSON block during parsing:", jsonStr);
+      return null;
+    }
+  }).filter(obj => obj !== null);
 
-const requests100 = [];
-const responses110 = [];
+  const requests100 = [];
+  const responses110 = [];
 
-jsonObjects.forEach(obj => {
-const mti = obj.mti;
-const de037 = obj?.data_elements?.DE037 || obj?.data_elements?.DE037?.trim();
+  jsonObjects.forEach(obj => {
+    const mti = obj.mti;
+    const de037 = obj?.data_elements?.DE037 || obj?.data_elements?.DE037?.trim();
 
-if (!de037) {
-  console.warn("Skipped message without DE037:", obj);
-  return;
-}
+    if (!de037) {
+      console.warn("Skipped message without DE037:", obj);
+      return;
+    }
 
-if (mti === 100 || mti === "100") {
-  requests100.push({ rrn: de037, message: obj });
-} else if (mti === 110 || mti === "110") {
-  responses110.push({ rrn: de037, message: obj });
-}
-});
+    if (mti === 100 || mti === "100") {
+      requests100.push({ rrn: de037, message: obj });
+    } else if (mti === 110 || mti === "110") {
+      responses110.push({ rrn: de037, message: obj });
+    }
+  });
 
-const groupedMessages = [];
+  const groupedMessages = [];
 
-requests100.forEach((request) => {
-const rrn = request.rrn;
-const matchingResponse = responses110.find(response => response.rrn === rrn);
+  requests100.forEach((request) => {
+    const rrn = request.rrn;
+    const matchingResponse = responses110.find(response => response.rrn === rrn);
 
-const group = [];
+    const group = [];
 
-// Push request
-group.push(request.message);
+    // Push request
+    group.push(request.message);
 
-// Push response if exists
-if (matchingResponse) {
-  group.push(matchingResponse.message);
-}
+    // Push response if exists
+    if (matchingResponse) {
+      group.push(matchingResponse.message);
+    }
 
-groupedMessages.push(group);
-});
+    groupedMessages.push(group);
+  });
 
-const finalJsonString = JSON.stringify(groupedMessages, null, 4);
+  const finalJsonString = JSON.stringify(groupedMessages, null, 4);
 
-inputEditor.setValue(finalJsonString);
-updateJsonStatus(finalJsonString);
+  inputEditor.setValue(finalJsonString);
+  updateJsonStatus(finalJsonString);
 }
 
 function copyOutput() {
   const copyBtn = document.getElementById('copyBtn');
+
+  if (!outputEditor) {
+    console.error('outputEditor is not initialized.');
+    return;
+  }
+
   const outputText = outputEditor.getValue();
+
+  if (!navigator.clipboard) {
+    fallbackCopyTextToClipboard(outputText);
+    return;
+  }
 
   navigator.clipboard.writeText(outputText)
     .then(() => {
       copyBtn.innerText = "Copied!";
+      copyBtn.style.color = "green";
       copyBtn.classList.add("copied");
 
       setTimeout(() => {
         copyBtn.innerText = "Copy Output";
+        copyBtn.style.color = "";
         copyBtn.classList.remove("copied");
       }, 1000);
     })
     .catch(err => {
       console.error('❌ Failed to copy:', err);
+      fallbackCopyTextToClipboard(outputText);  // Use fallback method if clipboard API fails
     });
 }
 
+function fallbackCopyTextToClipboard(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      const copyBtn = document.getElementById('copyBtn');
+      copyBtn.innerText = "Copied!";
+      copyBtn.style.color = "green";
+      copyBtn.classList.add("copied");
+
+      setTimeout(() => {
+        copyBtn.innerText = "Copy Output";
+        copyBtn.style.color = "";
+        copyBtn.classList.remove("copied");
+      }, 1000);
+    } else {
+      console.error('Failed to copy to clipboard using fallback method.');
+    }
+  } catch (err) {
+    console.error('Fallback: Oops, unable to copy', err);
+  }
+
+  document.body.removeChild(textArea);
+}
+
+
 async function handleAction(actionName) {
-console.log(`${actionName} button clicked!`);
+  console.log(`${actionName} button clicked!`);
 
-const inputJson = inputEditor.getValue();
+  const inputJson = inputEditor.getValue();
 
-let parsedData;
-try {
-parsedData = JSON.parse(inputJson);
-} catch (error) {
-alert("❌ Invalid JSON in the input box!");
-return;
-}
+  let parsedData;
+  try {
+    parsedData = JSON.parse(inputJson);
+  } catch (error) {
+    alert("❌ Invalid JSON in the input box!");
+    return;
+  }
 
-try {
-const response = await fetch(`/gen_reversals/generate-reversal/${encodeURIComponent(actionName)}/`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(parsedData)
-});
+  try {
+    const response = await fetch(`/gen_reversals/generate-reversal/${encodeURIComponent(actionName)}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken()  // Add CSRF token to headers if necessary
+      },
+      body: JSON.stringify(parsedData)
+    });
 
-if (!response.ok) {
-  const errorData = await response.json();
-  console.error("Server responded with error:", errorData);
-  alert(`❌ Error from server: ${errorData.error || response.status}`);
-  return;
-}
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Server responded with error:", errorData);
+      alert(`❌ Error from server: ${errorData.error || response.status}`);
+      return;
+    }
 
-const reversalMessages = await response.json();
-const formattedJson = JSON.stringify(reversalMessages, null, 4);
-outputEditor.setValue(formattedJson);
+    const reversalMessages = await response.json();
+    const formattedJson = JSON.stringify(reversalMessages, null, 4);
+    outputEditor.setValue(formattedJson);
 
-} catch (error) {
-console.error("❌ Failed to send data to the server:", error);
-alert("❌ Failed to send data to the server.");
-}
+  } catch (error) {
+    console.error("❌ Failed to send data to the server:", error);
+    alert("❌ Failed to send data to the server.");
+  }
 }
 
 function extractJsonBlocks(text) {
@@ -243,8 +293,8 @@ function extractJsonBlocks(text) {
 
   return blocks;
 }
-function getCSRFToken() {
-const cookieValue = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')?.pop() || '';
-return cookieValue;
-}
 
+function getCSRFToken() {
+  const cookieValue = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')?.pop() || '';
+  return cookieValue;
+}

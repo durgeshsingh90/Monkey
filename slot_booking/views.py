@@ -4,6 +4,13 @@ from django.conf import settings
 import json
 import os
 from django.views.decorators.csrf import csrf_exempt
+from datetime import datetime
+
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 BASE_DIR = settings.BASE_DIR
 CONFIG_PATH = os.path.join(BASE_DIR, 'media', 'slot_booking', 'config.json')
@@ -51,8 +58,7 @@ def admin(request):
 
 @csrf_exempt
 def config(request):
-    ensure_files_exist()  # ✅ Ensure all files exist including config.json
-
+    ensure_files_exist()  
     if request.method == 'GET':
         try:
             with open(CONFIG_PATH, 'r') as file:
@@ -80,14 +86,14 @@ def submissions(request):
                 submissions_data = json.load(file)
                 return JsonResponse(submissions_data, safe=False)
         except FileNotFoundError:
-            return HttpResponse("submissions file not found", status=404)
+            return HttpResponse("Submissions file not found", status=404)
 
     elif request.method == 'POST':
         try:
             data = json.loads(request.body)
             with open(SUBMISSIONS_FILE, 'w') as file:
                 json.dump(data, file, indent=4)
-            return HttpResponse("submissions saved successfully", status=200)
+            return HttpResponse("Submissions saved successfully", status=200)
         except Exception as e:
             return HttpResponse(f"Failed to save submissions: {str(e)}", status=500)
 
@@ -95,11 +101,16 @@ def submissions(request):
 
 
 def is_date_range_overlap(start1, end1, start2, end2):
-    from datetime import datetime
-    start1 = datetime.strptime(start1, "%d/%m/%Y")
-    end1 = datetime.strptime(end1, "%d/%m/%Y")
-    start2 = datetime.strptime(start2, "%d/%m/%Y")
-    end2 = datetime.strptime(end2, "%d/%m/%Y")
+    def parse_date(date_str):
+        if not date_str:
+            raise ValueError("Date string cannot be empty")
+        return datetime.strptime(date_str, "%d/%m/%Y")
+
+    start1 = parse_date(start1)
+    end1 = parse_date(end1)
+    start2 = parse_date(start2)
+    end2 = parse_date(end2)
+
     return max(start1, start2) <= min(end1, end2)
 
 def is_duplicate_submission(data):
@@ -108,17 +119,22 @@ def is_duplicate_submission(data):
         for submission in submissions_data:
             if submission.get("status") == "Cancelled":
                 continue  # Skip canceled bookings
-            if (submission["server"] == data["server"] and
-                any(scheme in submission["schemeType"] for scheme in data["schemeType"]) and
-                bool(set(submission["timeSlot"]).intersection(set(data["timeSlot"]))) and
-                is_date_range_overlap(
-                    submission["dateRange"]["start"],
-                    submission["dateRange"]["end"],
-                    data["dateRange"]["start"],
-                    data["dateRange"]["end"]
-                ) and
-                submission.get("openSlot") == data.get("openSlot")): 
-                return True, submission["bookingID"]
+            
+            try:
+                if (submission["server"] == data["server"] and
+                    any(scheme in submission["schemeType"] for scheme in data["schemeType"]) and
+                    bool(set(submission["timeSlot"]).intersection(set(data["timeSlot"]))) and
+                    is_date_range_overlap(
+                        submission["dateRange"]["start"],
+                        submission["dateRange"]["end"],
+                        data["dateRange"]["start"],
+                        data["dateRange"]["end"]
+                    ) and
+                    submission.get("openSlot") == data.get("openSlot")): 
+                    return True, submission["bookingID"]
+            except ValueError as e:
+                logger.error("ValueError in is_duplicate_submission: %s", str(e))
+
     return False, None
 
 def is_open_slot_duplicate(data):
@@ -129,19 +145,21 @@ def is_open_slot_duplicate(data):
         for submission in submissions_data:
             if submission.get("status") == "Cancelled":
                 continue  # Skip canceled bookings
-            if (submission.get("openSlot") and
-                is_date_range_overlap(
-                    submission["dateRange"]["start"],
-                    submission["dateRange"]["end"],
-                    data["dateRange"]["start"],
-                    data["dateRange"]["end"]
-                )):
-                return True, submission["bookingID"]
+            
+            try:
+                if (submission.get("openSlot") and
+                    is_date_range_overlap(
+                        submission["dateRange"]["start"],
+                        submission["dateRange"]["end"],
+                        data["dateRange"]["start"],
+                        data["dateRange"]["end"]
+                    )):
+                    return True, submission["bookingID"]
+            except ValueError as e:
+                logger.error("ValueError in is_open_slot_duplicate: %s", str(e))
+
     return False, None
 
-import logging
-
-logger = logging.getLogger(__name__)
 
 def save_submission(request):
     ensure_files_exist()
@@ -149,9 +167,15 @@ def save_submission(request):
         try:
             data = json.loads(request.body)
 
-            # 🔽 Print the incoming data for debugging
-            logger.info("📦 Incoming Frontend Data: %s", json.dumps(data, indent=4))
-            
+            # Log the incoming data from the frontend
+            logger.info("Incoming Frontend Data: %s", json.dumps(data, indent=4))
+
+            # Validate date range
+            start_date = data["dateRange"]["start"]
+            end_date = data["dateRange"]["end"]
+            if not start_date or not end_date:
+                return JsonResponse({"error": "Date range cannot be empty"}, status=400)
+
             # Check for open slot duplicate booking if open slot is true
             is_open_slot, open_slot_booking_id = is_open_slot_duplicate(data)
             if is_open_slot:
@@ -162,12 +186,11 @@ def save_submission(request):
             if is_duplicate:
                 return JsonResponse({"error": f"Duplicate booking found (Booking ID: {booking_id})"}, status=409)
 
-            # ✅ Inject all servers if openSlot is true
+            # Inject all servers if openSlot is true
             if data.get("openSlot"):
-                if os.path.exists(CONFIG_PATH):
-                    with open(CONFIG_PATH, 'r') as f:
-                        config = json.load(f)
-                        data["server"] = config.get("servers", [])
+                with open(CONFIG_PATH, 'r') as f:
+                    config = json.load(f)
+                    data["server"] = config.get("servers", [])
 
             # Get the next booking ID
             last_booking_id = read_counter()
@@ -189,13 +212,15 @@ def save_submission(request):
                 "bookingID": new_booking_id
             }, status=200)
 
+        except ValueError as e:
+            logger.error("ValueError: %s", str(e), exc_info=True)
+            return JsonResponse({"error": str(e)}, status=400)
         except Exception as e:
             logger.error("Error saving submission: %s", str(e), exc_info=True)
             return JsonResponse({"error": str(e)}, status=500)
 
     return HttpResponse(status=405)
 
-# NEW VIEW: Serve the submissions for the calendar
 def get_submissions(request):
     if request.method == 'GET':
         try:
@@ -205,9 +230,7 @@ def get_submissions(request):
         except FileNotFoundError:
             return JsonResponse({"submissions": []})
 
-from django.views.decorators.csrf import csrf_exempt
-
-@csrf_exempt  # Or use CSRF token in the fetch call!
+@csrf_exempt  
 def cancel_booking(request, booking_id):
     ensure_files_exist()
     if request.method == 'POST':

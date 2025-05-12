@@ -91,6 +91,7 @@ def parse_iso8583(log_data):
     integer_fields = ['004', '049']
     pad_zero_fields = {
         '003': 6,
+        '012': 6,
         '018': 4,
         '013': 4,
         '019': 3,
