@@ -6,9 +6,12 @@ ENV TZ=Europe/Dublin
 
 # Install system packages
 RUN apt update && \
-    apt install -y tzdata sudo git python-is-python3 python3-pip vim tar && \
+    apt install -y tzdata sudo git python-is-python3 python3-pip vim tar curl && \
     ln -fs /usr/share/zoneinfo/Europe/Dublin /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
+
+# Install Herokuish
+RUN curl -sL https://raw.githubusercontent.com/gliderlabs/herokuish/master/includes/install.sh | sudo bash
 
 # Create user 'monkey' with password 'admin' and grant sudo access
 RUN adduser --disabled-password --gecos "" monkey && \
@@ -32,6 +35,9 @@ RUN pip install --break-system-packages -r requirements.txt
 
 # Expose the Django port
 EXPOSE 8000
+
+# Run the buildpack test using Herokuish
+RUN sudo /bin/herokuish buildpack test  # Ensure to run this as a setup step
 
 # Run Django
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

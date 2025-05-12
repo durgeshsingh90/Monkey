@@ -1,0 +1,638 @@
+variables:
+  SCM_DOCKER_HOST_NEXUSEMEA: nexus-emea.1dc.com:15001/nexus-cache
+  DEPLOY_ONLY:
+    value: "no-deploy"
+    description: "Valid values: all | banana | dea | deb | dev | si1 | sit | ce | ompy"
+    options:
+      - "no-deploy"
+      - "all"
+      - "banana"
+      - "dea"
+      - "deb"
+      - "dev"
+      - "si1"
+      - "sit"
+      - "ce"
+      - "ompy"
+  DEPLOY_UI_ONLY:
+    value: "no-chart"
+    # description: "Valid values: all | banana | banana-a | banana-b | dev | si1 | sit | ce | ompy"
+    description: "Valid values: banana-a | banana-b | dev | si1 | sit | ce | ompy"
+    options:
+      - "no-chart"
+      - "ui-all"
+      - "ui-banana"
+      - "ui-banana-a"
+      - "ui-banana-b"
+      - "ui-dev"
+      - "ui-si1"
+      - "ui-sit"
+      - "ui-ce"
+      - "ui-ompy"
+
+stages:
+  - prescan
+  - chart
+  - prepare_build
+  - build
+  # - test
+  - publish  
+  - scan
+  - deploy
+
+image: $CI_REGISTRY/emea/b24/b24eps/tools/python:3.11.9-slim-bookworm
+
+default:
+  tags:
+    - scm-eks-shared
+  after_script:
+    - rm -rf ./*  
+
+prescan:
+  stage: prescan
+  allow_failure: true
+  script:
+    - wizcli version
+    - wizcli auth --id $WIZIO_CLIENT_ID --secret $WIZIO_TOKEN
+    - wizcli dir scan --path .
+    - wizcli dir scan --path ./mango
+    - wizcli dir scan --path ./mango/frontend
+  rules:
+    - if: '$CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE != "web" && $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/'
+
+chart_banana_a:
+  stage: chart
+  script:
+    - chmod +x chart.sh
+    - DEPLOY_ENV=ui-banana-a ./chart.sh
+  rules:
+    - if: '$CI_COMMIT_TAG != null && ( $DEPLOY_UI_ONLY == "ui-all" || $DEPLOY_UI_ONLY == "ui-banana" || $DEPLOY_UI_ONLY == "ui-banana-a" ) && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ && $CI_PIPELINE_SOURCE == "web"'
+  environment: ui-banana-a
+
+chart_banana_b:
+  stage: chart
+  script:
+    - chmod +x chart.sh
+    - DEPLOY_ENV=ui-banana-b ./chart.sh
+  rules:
+    - if: '$CI_COMMIT_TAG != null && ( $DEPLOY_UI_ONLY == "ui-all" || $DEPLOY_UI_ONLY == "ui-banana" || $DEPLOY_UI_ONLY == "ui-banana-b" ) && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ && $CI_PIPELINE_SOURCE == "web"'
+  environment: ui-banana-b
+
+chart_dev:
+  stage: chart
+  script:
+    - chmod +x chart.sh
+    - DEPLOY_ENV=ui-dev ./chart.sh
+  rules:
+    - if: '$CI_COMMIT_TAG != null && ( $DEPLOY_UI_ONLY == "ui-all" || $DEPLOY_UI_ONLY == "ui-dev" ) && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ && $CI_PIPELINE_SOURCE == "web"'
+  environment: ui-dev
+
+chart_si1:
+  stage: chart
+  script:
+    - chmod +x chart.sh
+    - DEPLOY_ENV=ui-si1 ./chart.sh
+  rules:
+    - if: '$CI_COMMIT_TAG != null && ( $DEPLOY_UI_ONLY == "ui-all" || $DEPLOY_UI_ONLY == "ui-si1" ) && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ && $CI_PIPELINE_SOURCE == "web"'
+  environment: ui-si1
+
+chart_sit:
+  stage: chart
+  script:
+    - chmod +x chart.sh
+    - DEPLOY_ENV=ui-sit ./chart.sh
+  rules:
+    - if: '$CI_COMMIT_TAG != null && ( $DEPLOY_UI_ONLY == "ui-all" || $DEPLOY_UI_ONLY == "ui-sit" ) && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ && $CI_PIPELINE_SOURCE == "web"'
+  environment: ui-sit
+
+chart_ce:
+  stage: chart
+  script:
+    - chmod +x chart.sh
+    - DEPLOY_ENV=ui-ce ./chart.sh
+  rules:
+    - if: '$CI_COMMIT_TAG != null && ( $DEPLOY_UI_ONLY == "ui-all" || $DEPLOY_UI_ONLY == "ui-ce" ) && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ && $CI_PIPELINE_SOURCE == "web"'
+  environment: ui-ce
+
+chart_ompy:
+  stage: chart
+  script:
+    - chmod +x chart.sh
+    - DEPLOY_ENV=ui-ompy ./chart.sh
+  rules:
+    - if: '$CI_COMMIT_TAG != null && ( $DEPLOY_UI_ONLY == "ui-all" || $DEPLOY_UI_ONLY == "ui-ompy" ) && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ && $CI_PIPELINE_SOURCE == "web"'
+  environment: ui-ompy
+
+prepare_build:
+  stage: prepare_build
+  script:
+    - mkdir -p whls
+    - cd whls
+    - pip download logging-expert --no-deps --index-url https://__token__:$GARDENER_READ_2026_04_04@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/9812/packages/pypi/simple
+    - ls -la
+    - cd ..
+  artifacts:
+    paths:
+      - whls/*
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE != "web" && ( $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ || $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ )'
+  after_script:
+    - echo "Skipping cleaning"
+
+build-mango:
+  extends: [".build-job"]
+  needs: ["prepare_build"]
+  script:
+    - mkdir -p whls
+    - cd whls && pip download dukpt --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && pip download payments --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && pip download schemer --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && pip download logging_ext --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    # - cd whls && pip download json-obj-utils --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && pip download msg_stream --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && pip download config_from --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && ls -la && cd ..
+    - docker build --build-arg REGISTRY=$CI_REGISTRY -f Dockerfile.mango -t $CI_REGISTRY_IMAGE/mango:$IMAGE_TAG .
+    - docker push $CI_REGISTRY_IMAGE/mango:$IMAGE_TAG
+    - docker tag $CI_REGISTRY_IMAGE/mango:$IMAGE_TAG $HARBOR_REGISTRY/emea-b24-b24dev/mango:$IMAGE_TAG
+    - docker push $HARBOR_REGISTRY/emea-b24-b24dev/mango:$IMAGE_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE != "web" && $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/'
+
+build-backend:
+  extends: [".build-job"]
+  needs: ["prepare_build"]
+  script:
+    - mkdir -p whls
+    - cd whls && pip download schemer --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && pip download logging_ext --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && pip download json_obj_utils --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && pip download payments --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && pip download config_from --no-deps --index-url https://__token__:$LIBS_ACCESS_TOKEN@gitlab.scm-emea.aws.fisv.cloud/api/v4/projects/1146/packages/pypi/simple && cd ..
+    - cd whls && ls -la && cd ..
+    - docker build --build-arg REGISTRY=$CI_REGISTRY -f Dockerfile.mango_ui_backend -t $CI_REGISTRY_IMAGE/mango_ui_backend:$IMAGE_TAG .
+    - docker push $CI_REGISTRY_IMAGE/mango_ui_backend:$IMAGE_TAG
+    - docker tag $CI_REGISTRY_IMAGE/mango_ui_backend:$IMAGE_TAG $HARBOR_REGISTRY/emea-b24-b24dev/mango_ui_backend:$IMAGE_TAG
+    - docker push $HARBOR_REGISTRY/emea-b24-b24dev/mango_ui_backend:$IMAGE_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE != "web" && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/'
+
+build-frontend:
+  extends: [".build-job"]
+  script:
+    - docker build --build-arg NPM_REGISTRY=https://nexus-emea.1dc.com/repository/npm-public --build-arg REGISTRY=$CI_REGISTRY --build-arg HARBOR_REGISTRY=$HARBOR_REGISTRY -f Dockerfile.mango_ui_frontend -t $CI_REGISTRY_IMAGE/mango_ui_frontend:$IMAGE_TAG .
+    - docker push $CI_REGISTRY_IMAGE/mango_ui_frontend:$IMAGE_TAG
+    - docker tag $CI_REGISTRY_IMAGE/mango_ui_frontend:$IMAGE_TAG $HARBOR_REGISTRY/emea-b24-b24dev/mango_ui_frontend:$IMAGE_TAG
+    - docker push $HARBOR_REGISTRY/emea-b24-b24dev/mango_ui_frontend:$IMAGE_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE != "web" && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/'
+
+scan-mango:
+  extends: [".build-job"]
+  stage: scan
+  script:
+    - docker pull $HARBOR_REGISTRY/emea-b24-b24dev/mango:$IMAGE_TAG
+    - /usr/bin/wizcli docker scan --image $HARBOR_REGISTRY/emea-b24-b24dev/mango:$IMAGE_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE != "web" && $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/'
+
+scan-backend:
+  extends: [".build-job"]
+  stage: scan
+  script:
+    - docker pull $HARBOR_REGISTRY/emea-b24-b24dev/mango_ui_backend:$IMAGE_TAG
+    - /usr/bin/wizcli docker scan --image $HARBOR_REGISTRY/emea-b24-b24dev/mango_ui_backend:$IMAGE_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE != "web" && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/'
+
+scan-frontend:
+  extends: [".build-job"]
+  stage: scan
+  script:
+    - docker pull $HARBOR_REGISTRY/emea-b24-b24dev/mango_ui_frontend:$IMAGE_TAG
+    - /usr/bin/wizcli docker scan --image $HARBOR_REGISTRY/emea-b24-b24dev/mango_ui_frontend:$IMAGE_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE != "web" && $CI_COMMIT_TAG =~ /^mangoui_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/'
+
+deploy-dev:
+  extends: [".deploy-env"]
+  environment: dev
+  before_script:
+    - IMAGE_TAG=${CI_COMMIT_TAG#*_}
+    - |
+      if [ "$IMAGE_TAG" == "" ]; then
+        echo "required variable IMAGE_TAG for push of app image not set, will exit"
+        exit 2
+      fi
+    - |
+      curl --header "PRIVATE-TOKEN: $MANGO_API_TOKEN" "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/repository/files/docker-compose-dev.yml/raw?ref=$CI_COMMIT_REF_NAME" -o docker-compose-dev.yml
+    - scp docker-compose-dev.yml ec2-user@10.218.139.209:/home/ec2-user/
+    - ssh_compose_cmd="
+        sudo
+        IMG_PRFX=$CI_REGISTRY_IMAGE
+        IMAGE_TAG=$IMAGE_TAG
+        ENV_NAME=$CI_ENVIRONMENT_NAME
+        LIME_RMQ_URI=\"$LIME_RMQ_URI\"
+        LIME_MONGO_URI=\"$LIME_MONGO_URI\"
+        LIME_MONGO_MSG_COLLECTION=$LIME_MONGO_MSG_COLLECTION      
+        MANGO_RMQ_URI=\"$MANGO_RMQ_URI\"        
+        MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+        MANGO_MONGO_URI=\"$MANGO_MONGO_URI\"
+        LOG_PATH=$LOG_PATH
+        docker compose -f /srv/mango/dev/docker-compose-dev.yml down --rmi local || exit_code=$?
+        "
+    - |
+      ssh ec2-user@10.218.139.209 << EOT
+      $ssh_compose_cmd
+      if [ $exit_code -ne 0 ]; then echo "docker compose down failed"; else echo "docker compose down successful"; fi;
+      sudo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+      sudo docker pull $CI_REGISTRY_IMAGE/mango
+      sudo docker pull $CI_REGISTRY_IMAGE/mango_ui_backend
+      sudo docker pull $CI_REGISTRY_IMAGE/mango_ui_frontend
+      sudo cp /home/ec2-user/docker-compose-dev.yml /srv/mango/dev
+      sudo rm /home/ec2-user/docker-compose-dev.yml
+      EOT
+  script:
+    - ssh_compose_cmd="
+      sudo
+      IMG_PRFX=$CI_REGISTRY_IMAGE
+      IMAGE_TAG=$IMAGE_TAG
+      ENV_NAME=$CI_ENVIRONMENT_NAME
+      LIME_RMQ_URI=\"$LIME_RMQ_URI\"      
+      LIME_MONGO_URI=\"$LIME_MONGO_URI\"
+      LIME_MONGO_MSG_COLLECTION=$LIME_MONGO_MSG_COLLECTION
+      MANGO_RMQ_URI=\"$MANGO_RMQ_URI\"      
+      MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+      MANGO_MONGO_URI=\"$MANGO_MONGO_URI\"
+      LOG_PATH=$LOG_PATH
+      docker compose -f /srv/mango/dev/docker-compose-dev.yml up -d  
+      "
+    - |
+      ssh ec2-user@10.218.139.209 << EOT      
+      $ssh_compose_cmd
+      EOT
+  variables:
+    GIT_STRATEGY: none
+  rules:
+    - if: '($DEPLOY_ONLY == "all" || $DEPLOY_ONLY == "dev") && $CI_COMMIT_TAG != null && ( $CI_COMMIT_TAG =~ /^deploymango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ || $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ ) && $CI_PIPELINE_SOURCE == "web"'
+
+deploy-si1:
+  tags:
+    - shell@199
+  extends: [".deploy-env"]
+  environment: si1
+  before_script:
+    - IMAGE_TAG=${CI_COMMIT_TAG#*_}
+    - |
+      if [ "$IMAGE_TAG" == "" ]; then
+        echo "required variable IMAGE_TAG for push of app image not set, will exit"
+        exit 2
+      fi
+    - |
+      curl --header "PRIVATE-TOKEN: $MANGO_API_TOKEN" "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/repository/files/docker-compose-si1.yml/raw?ref=$CI_COMMIT_REF_NAME" -o docker-compose-si1.yml
+    - scp docker-compose-si1.yml ec2-user@10.218.139.209:/home/ec2-user/
+    - ssh_compose_cmd="
+        sudo
+        IMG_PRFX=$CI_REGISTRY_IMAGE
+        IMAGE_TAG=$IMAGE_TAG
+        ENV_NAME=$CI_ENVIRONMENT_NAME
+        MANGO_RMQ_URI=\"$MANGO_RMQ_URI\"
+        MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+        MANGO_MONGO_URI=\"$MANGO_MONGO_URI\" 
+        LOG_PATH=$LOG_PATH
+        docker compose -f /srv/mango/si1/docker-compose-si1.yml down --rmi local || exit_code=$?
+        "
+    - |
+      ssh ec2-user@10.218.139.209 << EOT
+      $ssh_compose_cmd
+      if [ $exit_code -ne 0 ]; then echo "docker compose down failed"; else echo "docker compose down successful"; fi;
+      sudo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+      sudo docker pull $CI_REGISTRY_IMAGE/mango
+      sudo docker pull $CI_REGISTRY_IMAGE/mango_ui_backend
+      sudo docker pull $CI_REGISTRY_IMAGE/mango_ui_frontend
+      sudo cp /home/ec2-user/docker-compose-si1.yml /srv/mango/si1
+      sudo rm /home/ec2-user/docker-compose-si1.yml
+      EOT
+  script:
+    - ssh_compose_cmd="
+      sudo
+      IMG_PRFX=$CI_REGISTRY_IMAGE
+      IMAGE_TAG=$IMAGE_TAG
+      ENV_NAME=$CI_ENVIRONMENT_NAME
+      MANGO_RMQ_URI=\"$MANGO_RMQ_URI\"
+      MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+      MANGO_MONGO_URI=\"$MANGO_MONGO_URI\"
+      LOG_PATH=$LOG_PATH
+      docker compose -f /srv/mango/si1/docker-compose-si1.yml up -d  
+      "
+    - |
+      ssh ec2-user@10.218.139.209 << EOT      
+      $ssh_compose_cmd
+      EOT
+  variables:
+    GIT_STRATEGY: none
+  rules:
+    - if: '($DEPLOY_ONLY == "all" || $DEPLOY_ONLY == "si1") && $CI_COMMIT_TAG != null && ( $CI_COMMIT_TAG =~ /^deploymango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ || $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ ) && $CI_PIPELINE_SOURCE == "web"'
+
+deploy-sit:
+  extends: [".deploy-env"]
+  environment: sit
+  before_script:
+    - IMAGE_TAG=${CI_COMMIT_TAG#*_}
+    - |
+      if [ "$IMAGE_TAG" == "" ]; then
+        echo "required variable IMAGE_TAG for push of app image not set, will exit"
+        exit 2
+      fi
+    - |
+      curl --header "PRIVATE-TOKEN: $MANGO_API_TOKEN" "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/repository/files/docker-compose-sit.yml/raw?ref=$CI_COMMIT_REF_NAME" -o docker-compose-sit.yml
+    - scp docker-compose-sit.yml ec2-user@10.218.139.209:/home/ec2-user/
+    - ssh_compose_cmd="
+        sudo
+        IMG_PRFX=$CI_REGISTRY_IMAGE
+        IMAGE_TAG=$IMAGE_TAG
+        ENV_NAME=$CI_ENVIRONMENT_NAME
+        MANGO_RMQ_URI=\"$MANGO_RMQ_URI\"
+        MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+        MANGO_MONGO_URI=\"$MANGO_MONGO_URI\"
+        LOG_PATH=$LOG_PATH
+        docker compose -f /srv/mango/sit/docker-compose-sit.yml down --rmi local || exit_code=$?
+        "
+    - |
+      ssh ec2-user@10.218.139.209 << EOT
+      $ssh_compose_cmd
+      if [ $exit_code -ne 0 ]; then echo "docker compose down failed"; else echo "docker compose down successful"; fi;
+      sudo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+      sudo docker pull $CI_REGISTRY_IMAGE/mango
+      sudo docker pull $CI_REGISTRY_IMAGE/mango_ui_backend
+      sudo docker pull $CI_REGISTRY_IMAGE/mango_ui_frontend
+      sudo cp /home/ec2-user/docker-compose-sit.yml /srv/mango/sit
+      sudo rm /home/ec2-user/docker-compose-sit.yml
+      EOT
+  script:
+    - ssh_compose_cmd="
+      sudo
+      IMG_PRFX=$CI_REGISTRY_IMAGE
+      IMAGE_TAG=$IMAGE_TAG
+      ENV_NAME=$CI_ENVIRONMENT_NAME
+      MANGO_RMQ_URI=\"$MANGO_RMQ_URI\"
+      MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+      MANGO_MONGO_URI=\"$MANGO_MONGO_URI\"
+      LOG_PATH=$LOG_PATH
+      docker compose -f /srv/mango/sit/docker-compose-sit.yml up -d  
+      "
+    - |
+      ssh ec2-user@10.218.139.209 << EOT      
+      $ssh_compose_cmd
+      EOT
+  variables:
+    GIT_STRATEGY: none
+  rules:
+    - if: '($DEPLOY_ONLY == "all" || $DEPLOY_ONLY == "sit") && $CI_COMMIT_TAG != null && ( $CI_COMMIT_TAG =~ /^deploymango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ || $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ ) && $CI_PIPELINE_SOURCE == "web"'
+
+deploy-ce:
+  extends: [".deploy-env"]
+  environment: ce
+  before_script:
+    - IMAGE_TAG=${CI_COMMIT_TAG#*_}
+    - |
+      if [ "$IMAGE_TAG" == "" ]; then
+        echo "required variable IMAGE_TAG for push of app image not set, will exit"
+        exit 2
+      fi
+    - |
+      curl --header "PRIVATE-TOKEN: $MANGO_API_TOKEN" "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/repository/files/docker-compose-ce.yml/raw?ref=$CI_COMMIT_REF_NAME" -o docker-compose-ce.yml
+    - scp docker-compose-ce.yml ec2-user@10.218.139.209:/home/ec2-user/
+    - ssh_compose_cmd="
+        sudo
+        IMG_PRFX=$CI_REGISTRY_IMAGE
+        IMAGE_TAG=$IMAGE_TAG
+        ENV_NAME=$CI_ENVIRONMENT_NAME
+        MANGO_RMQ_URI=\"$MANGO_RMQ_URI\"
+        MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+        MANGO_MONGO_URI=\"$MANGO_MONGO_URI\" 
+        LOG_PATH=$LOG_PATH
+        docker compose -f /srv/mango/ce/docker-compose-ce.yml down || exit_code=$?
+        "
+    - |
+      ssh ec2-user@10.218.139.209 << EOT
+      $ssh_compose_cmd
+      if [ $exit_code -ne 0 ]; then echo "docker compose down failed"; else echo "docker compose down successful"; fi;
+      sudo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+      sudo docker pull $CI_REGISTRY_IMAGE/mango
+      sudo docker pull $CI_REGISTRY_IMAGE/mango_ui_backend
+      sudo docker pull $CI_REGISTRY_IMAGE/mango_ui_frontend
+      sudo cp /home/ec2-user/docker-compose-ce.yml /srv/mango/ce
+      sudo rm /home/ec2-user/docker-compose-ce.yml
+      EOT
+  script:
+    - ssh_compose_cmd="
+      sudo
+      IMG_PRFX=$CI_REGISTRY_IMAGE
+      IMAGE_TAG=$IMAGE_TAG
+      ENV_NAME=$CI_ENVIRONMENT_NAME
+      MANGO_RMQ_URI=\"$MANGO_RMQ_URI\"
+      MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+      MANGO_MONGO_URI=\"$MANGO_MONGO_URI\"
+      LOG_PATH=$LOG_PATH
+      docker compose -f /srv/mango/ce/docker-compose-ce.yml up -d  
+      "
+    - |
+      ssh ec2-user@10.218.139.209 << EOT      
+      $ssh_compose_cmd
+      sudo docker image rm $(sudo docker images -q --filter "dangling=true") || true
+      EOT
+  variables:
+    GIT_STRATEGY: none
+  rules:
+    - if: '($DEPLOY_ONLY == "all" || $DEPLOY_ONLY == "ce") && $CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE == "web" && ( $CI_COMMIT_TAG =~ /^deploymango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ || $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ )'
+
+deploy-dea:
+  extends: [".deploy-env"]
+  environment: dea
+  before_script:
+    - IMAGE_TAG=${CI_COMMIT_TAG#*_}
+    - |
+      if [ "$IMAGE_TAG" == "" ]; then
+        echo "required variable IMAGE_TAG for push of app image not set, will exit"
+        exit 2
+      fi
+    - echo "Downloading docker-compose file..."
+    - echo "CI_API_V4_URL=${CI_API_V4_URL}"
+    - echo "CI_PROJECT_ID=${CI_PROJECT_ID}"
+    - echo "CI_COMMIT_REF_NAME=${CI_COMMIT_REF_NAME}"
+    - |
+      curl --header "PRIVATE-TOKEN: $MANGO_API_TOKEN" "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/repository/files/docker-compose-dea.yml/raw?ref=$CI_COMMIT_REF_NAME" -o docker-compose-dea.yml
+    - IMG_PRFX=$CI_REGISTRY_IMAGE
+      IMAGE_TAG=$IMAGE_TAG
+      ENV_NAME=$CI_ENVIRONMENT_NAME
+      MANGO_RMQ_URI="$MANGO_RMQ_URI"
+      LIME_RMQ_URI="$LIME_RMQ_URI"
+      LIME_MONGO_URI="$LIME_MONGO_URI"
+      LIME_MONGO_MSG_COLLECTION=$LIME_MONGO_MSG_COLLECTION
+      MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+      MANGO_MONGO_URI=\"$MANGO_MONGO_URI\"
+      LOG_PATH=$LOG_PATH
+      docker compose -f docker-compose-dea.yml down --rmi local || exit_code=$?
+    - if [ $exit_code -ne 0 ]; then echo "docker compose down failed"; else echo "docker compose down successful"; fi;
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # TODO: Purpouse of this is not clear
+    - docker pull $CI_REGISTRY_IMAGE/mango:$IMAGE_TAG
+    - docker pull $CI_REGISTRY_IMAGE/mango_ui_backend
+    - docker pull $CI_REGISTRY_IMAGE/mango_ui_frontend
+  script:
+    - IMG_PRFX=$CI_REGISTRY_IMAGE
+      IMAGE_TAG=$IMAGE_TAG
+      ENV_NAME=$CI_ENVIRONMENT_NAME
+      MANGO_RMQ_URI="$MANGO_RMQ_URI"      
+      LIME_RMQ_URI="$LIME_RMQ_URI"
+      LIME_MONGO_URI="$LIME_MONGO_URI"
+      LIME_MONGO_MSG_COLLECTION=$LIME_MONGO_MSG_COLLECTION
+      MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+      MANGO_MONGO_URI="$MANGO_MONGO_URI"
+      LOG_PATH=$LOG_PATH
+      docker compose -f docker-compose-dea.yml up -d
+  variables:
+    GIT_STRATEGY: none
+  rules:
+    - if: '($DEPLOY_ONLY == "all" || $DEPLOY_ONLY == "banana" || $DEPLOY_ONLY == "dea") && $CI_COMMIT_TAG != null && $CI_PIPELINE_SOURCE == "web" && ( $CI_COMMIT_TAG =~ /^deploymango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ || $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ )'
+
+deploy-deb:
+  extends: [".deploy-env"]
+  environment: deb
+  before_script:
+    - IMAGE_TAG=${CI_COMMIT_TAG#*_}
+    - |
+      if [ "$IMAGE_TAG" == "" ]; then
+        echo "required variable IMAGE_TAG for push of app image not set, will exit"
+        exit 2
+      fi
+    - echo "Downloading docker-compose file..."
+    - echo "CI_API_V4_URL=${CI_API_V4_URL}"
+    - echo "CI_PROJECT_ID=${CI_PROJECT_ID}"
+    - echo "CI_COMMIT_REF_NAME=${CI_COMMIT_REF_NAME}"
+    - |
+      curl --header "PRIVATE-TOKEN: $MANGO_API_TOKEN" "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/repository/files/docker-compose-deb.yml/raw?ref=$CI_COMMIT_REF_NAME" -o docker-compose-deb.yml
+    - IMG_PRFX=$CI_REGISTRY_IMAGE
+      IMAGE_TAG=$IMAGE_TAG
+      ENV_NAME=$CI_ENVIRONMENT_NAME      
+      MANGO_RMQ_URI="$MANGO_RMQ_URI"
+      LIME_RMQ_HOST=$LIME_RMQ_HOST
+      LIME_RMQ_VHOST=$LIME_RMQ_VHOST
+      LIME_MONGO_URI="$LIME_MONGO_URI"
+      LIME_MONGO_MSG_COLLECTION=$LIME_MONGO_MSG_COLLECTION
+      MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+      MANGO_MONGO_URI=\"$MANGO_MONGO_URI\"
+      LOG_PATH=$LOG_PATH
+      docker compose -f docker-compose-deb.yml down --rmi local || exit_code=$?
+    - if [ $exit_code -ne 0 ]; then echo "docker compose down failed"; else echo "docker compose down successful"; fi;
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # TODO: Purpouse of this is not clear
+    - docker pull $CI_REGISTRY_IMAGE/mango:$IMAGE_TAG
+    - docker pull $CI_REGISTRY_IMAGE/mango_ui_backend
+    - docker pull $CI_REGISTRY_IMAGE/mango_ui_frontend
+  script:
+    - IMG_PRFX=$CI_REGISTRY_IMAGE
+      IMAGE_TAG=$IMAGE_TAG
+      ENV_NAME=$CI_ENVIRONMENT_NAME      
+      MANGO_RMQ_URI="$MANGO_RMQ_URI"
+      LIME_RMQ_HOST=$LIME_RMQ_HOST
+      LIME_RMQ_VHOST=$LIME_RMQ_VHOST
+      LIME_MONGO_URI="$LIME_MONGO_URI"
+      LIME_MONGO_MSG_COLLECTION=$LIME_MONGO_MSG_COLLECTION
+      MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+      MANGO_MONGO_URI="$MANGO_MONGO_URI"
+      LOG_PATH=$LOG_PATH
+      docker compose -f docker-compose-deb.yml up -d
+  variables:
+    GIT_STRATEGY: none
+  rules:
+    - if: '($DEPLOY_ONLY == "all" || $DEPLOY_ONLY == "banana" || $DEPLOY_ONLY == "deb") && $CI_COMMIT_TAG != null && ( $CI_COMMIT_TAG =~ /^deploymango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ || $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ ) && $CI_PIPELINE_SOURCE == "web"'
+
+deploy-ompy:
+  extends: [".deploy-env"]
+  environment: ompy
+  before_script:
+    - IMAGE_TAG=${CI_COMMIT_TAG#*_}
+    - |
+      if [ "$IMAGE_TAG" == "" ]; then
+        echo "required variable IMAGE_TAG for push of app image not set, will exit"
+        exit 2
+      fi
+    - |
+      curl --header "PRIVATE-TOKEN: $MANGO_API_TOKEN" "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/repository/files/docker-compose-ompy.yml/raw?ref=$CI_COMMIT_REF_NAME" -o docker-compose-ompy.yml
+    - scp docker-compose-ompy.yml ec2-user@10.218.139.209:/home/ec2-user/
+    - ssh_compose_cmd="
+        sudo
+        IMG_PRFX=$CI_REGISTRY_IMAGE
+        IMAGE_TAG=$IMAGE_TAG
+        ENV_NAME=$CI_ENVIRONMENT_NAME
+        MANGO_RMQ_URI=\"$MANGO_RMQ_URI\"
+        MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+        MANGO_MONGO_URI=\"$MANGO_MONGO_URI\"
+        LOG_PATH=$LOG_PATH
+        docker compose -f /srv/mango/ompy/docker-compose-ompy.yml down --rmi local || exit_code=$?
+        "
+    - |
+      ssh ec2-user@10.218.139.209 << EOT
+      $ssh_compose_cmd
+      if [ $exit_code -ne 0 ]; then echo "docker compose down failed"; else echo "docker compose down successful"; fi;
+      sudo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+      sudo docker pull $CI_REGISTRY_IMAGE/mango
+      sudo docker pull $CI_REGISTRY_IMAGE/mango_ui_backend
+      sudo docker pull $CI_REGISTRY_IMAGE/mango_ui_frontend
+      sudo cp /home/ec2-user/docker-compose-ompy.yml /srv/mango/ompy
+      sudo rm /home/ec2-user/docker-compose-ompy.yml
+      EOT
+  script:
+    - ssh_compose_cmd="
+      sudo
+      IMG_PRFX=$CI_REGISTRY_IMAGE
+      IMAGE_TAG=$IMAGE_TAG
+      ENV_NAME=$CI_ENVIRONMENT_NAME
+      MANGO_RMQ_URI=\"$MANGO_RMQ_URI\"
+      MANGO_MONGO_CONFIG_COLLECTION=$MANGO_MONGO_CONFIG_COLLECTION
+      MANGO_MONGO_URI=\"$MANGO_MONGO_URI\"
+      LOG_PATH=$LOG_PATH
+      docker compose -f /srv/mango/ompy/docker-compose-ompy.yml up -d  
+      "
+    - |
+      ssh ec2-user@10.218.139.209 << EOT      
+      $ssh_compose_cmd
+      EOT
+  variables:
+    GIT_STRATEGY: none
+  rules:
+    - if: '($DEPLOY_ONLY == "all" || $DEPLOY_ONLY == "ompy") && $CI_COMMIT_TAG != null && $CI_COMMIT_TAG =~ /^mango_v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/ && $CI_PIPELINE_SOURCE == "web"'
+
+.build-job:
+  stage: build
+  image: $CI_REGISTRY/emea/b24/b24eps/tools/gitlab-docker:20.10.5-2
+  tags:
+    - scm-eks-shared
+  services:
+    - name: $HARBOR_REGISTRY/dockerhub/library/docker:20.10.20-dind
+      entrypoint: ["dockerd-entrypoint.sh", "--tls=false"]
+  variables:
+    DOCKER_DRIVER: overlay2
+    # Create the certificates inside this directory for both the server and client. The certificates used by the client 
+    # will be created in /certs/client so we only need to share this directory with the volume mount in `config.toml`.
+    # DOCKER_TLS_CERTDIR: "/certs"    
+    DOCKER_TLS_CERTDIR: ''
+    DOCKER_HOST: tcp://localhost:2375
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $HARBOR_APP_USER -p $HARBOR_APP_PASSWORD $HARBOR_REGISTRY
+    - IMAGE_TAG=${CI_COMMIT_TAG#*_}
+    - |
+      if [ "$IMAGE_TAG" == "" ]; then
+        echo "required variable IMAGE_TAG for push of app image not set, will exit"
+        exit 2
+      fi
+    - /usr/bin/wizcli auth --id $WIZIO_CLIENT_ID --secret $WIZIO_TOKEN    
+
+.deploy-env:
+  stage: deploy
+  tags:
+    - shell@199
