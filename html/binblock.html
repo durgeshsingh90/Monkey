@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Index Page with Monaco Editor</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Univers, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    .container-row {
+      display: flex;
+      height: 100vh; /* Full viewport height */
+    }
+    .container1 {
+      width: 50%;
+      position: relative;
+      background-color: #FF6600; /* Fiserv Orange */
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    .editor-status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #333333; /* Fiserv Charcoal Gray */
+      color: white;
+      padding: 5px 10px;
+    }
+    .editor {
+      flex: 1;
+      position: relative;
+    }
+    .clean-data-btn {
+      padding: 5px 10px; /* Narrower button */
+      font-size: 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #FF6600; /* Fiserv Orange */
+      color: white;
+    }
+    .cleaned {
+      background-color: green;
+      color: white;
+    }
+    .right-column {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .container2, .container3 {
+      flex: 1;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .container2 {
+      background-color: #666666; /* Fiserv Graphite Gray */
+    }
+    .container3 {
+      background-color: #333333; /* Fiserv Charcoal Gray */
+    }
+    .container4 {
+      height: 100vh; /* Full viewport height */
+      background-color: #FF6600; /* Fiserv Orange */
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      position: relative;
+    }
+    .button-row {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .left-buttons {
+      width: 50%;
+      display: flex;
+      justify-content: flex-start;
+    }
+    .right-buttons {
+      width: 30%;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .btn {
+      margin: 0 5px;
+      padding: 10px 10px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #333333; /* Fiserv Charcoal Gray */
+      color: white;
+      text-align: center;
+    }
+    .selected {
+      background-color: green; /* Indicate selected state */
+    }
+    .copied {
+      background-color: green;
+      color: white;
+    }
+    .status-title {
+      margin: 0;
+      font-size: 14px;
+    }
+    .editor-readonly {
+      width: 100%;
+      flex: 1;
+      margin-top: 20px; /* Add space */
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/loader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/monaco-editor/min/vs/editor/editor.main.js"></script>
+</head>
+<body>
+  
+<div id="content" class="content">
+  <div class="container-row">
+    <div class="container1">
+      <div class="editor-status-bar">
+        <p class="status-title">Bin Blocking</p>
+        <button id="cleanDataBtn" class="clean-data-btn">Clean Data</button>
+      </div>
+      <div id="editor" class="editor"></div>
+    </div>
+
+    <div class="right-column">
+      <div class="container2" id="container2">
+        <h1>Container 2</h1>
+        <select id="dropdown1">
+          <option value="" selected disabled>Select an option</option>
+          <option value="option1">Dropdown 1 - Option 1</option>
+          <option value="option2">Dropdown 1 - Option 2</option>
+          <option value="option3">Dropdown 1 - Option 3</option>
+        </select>
+        <select id="dropdown2" disabled>
+          <option value="" selected disabled>Select an option</option>
+          <option value="option1">Dropdown 2 - Option 1</option>
+          <option value="option2">Dropdown 2 - Option 2</option>
+          <option value="option3">Dropdown 2 - Option 3</option>
+        </select>
+      </div>
+      <div class="container3" id="container3">
+        <h1>Container 3</h1>
+        <input type="file" id="fileUpload" name="fileUpload">
+        <select id="dropdown3" disabled>
+          <option value="" selected disabled>Select an option</option>
+          <option value="option1">Dropdown 3 - Option 1</option>
+          <option value="option2">Dropdown 3 - Option 2</option>
+          <option value="option3">Dropdown 3 - Option 3</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="container4" id="container4">
+    <div class="button-row">
+      <div class="left-buttons">
+        <button id="copyBtn" class="btn copy-btn">Copy</button>
+        <button id="downloadBtn" class="btn download-btn">Download</button>
+      </div>
+      <div class="right-buttons">
+        <button id="jsonBtn" class="btn">JSON</button>
+        <button id="sqlBtn" class="btn selected">SQL</button>
+      </div>
+    </div>
+    <h1>Container 4</h1>
+    <p>This is where the final output will be displayed.</p>
+    <div id="editor-readonly" class="editor-readonly"></div>
+  </div>
+</div>
+
+<script>
+  require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs' }});
+  require(['vs/editor/editor.main'], function() {
+    var editor = monaco.editor.create(document.getElementById('editor'), {
+        value: '',
+        language: 'plaintext',
+        theme: 'vs-dark'
+    });
+
+    var editorReadOnly = monaco.editor.create(document.getElementById('editor-readonly'), {
+        value: '', // Default to SQL content
+        language: 'sql',
+        theme: 'vs-dark',
+        readOnly: true
+    });
+
+    // Set default to SQL output
+    editorReadOnly.setValue("SELECT * FROM table;");
+
+    document.getElementById('cleanDataBtn').addEventListener('click', function() {
+        var content = editor.getValue();
+        var lines = content.split('\n');
+        var cleanedLines = Array.from(new Set(
+            lines.filter(line => line.trim() !== '').map(Number)
+        )).sort((a, b) => a - b);
+        editor.setValue(cleanedLines.join('\n'));
+        editorReadOnly.setValue(cleanedLines.join('\n')); // Update read-only editor
+
+        var cleanDataBtn = document.getElementById('cleanDataBtn');
+        cleanDataBtn.textContent = 'Cleaned';
+        cleanDataBtn.classList.add('cleaned');
+
+        setTimeout(function() {
+          cleanDataBtn.textContent = 'Clean Data';
+          cleanDataBtn.classList.remove('cleaned');
+          editor.setScrollTop(0); // Scroll to the top
+        }, 1000);
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', function() {
+      var copyBtn = document.getElementById('copyBtn');
+      var content = editorReadOnly.getValue();
+      navigator.clipboard.writeText(content).then(function() {
+        copyBtn.textContent = 'Copied';
+        copyBtn.classList.add('copied');
+        setTimeout(function() {
+          copyBtn.textContent = 'Copy';
+          copyBtn.classList.remove('copied');
+        }, 1000);
+      });
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', function() {
+      var content = editorReadOnly.getValue();
+      var selectedFormat = document.querySelector('.right-buttons .selected').id;
+      var fileName = selectedFormat === 'jsonBtn' ? 'output.json' : 'output.sql';
+      var blob = new Blob([content], { type: 'text/plain' });
+      var url = window.URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    });
+
+    document.getElementById('jsonBtn').addEventListener('click', function() {
+      setActiveFileButton('jsonBtn');
+      loadFileContent('output.json');
+    });
+
+    document.getElementById('sqlBtn').addEventListener('click', function() {
+      setActiveFileButton('sqlBtn');
+      loadFileContent('output.sql');
+    });
+
+    function setActiveFileButton(activeBtnId) {
+      document.getElementById('jsonBtn').classList.remove('selected');
+      document.getElementById('sqlBtn').classList.remove('selected');
+      document.getElementById(activeBtnId).classList.add('selected');
+    }
+
+    function loadFileContent(fileName) {
+      // Mock file reading logic. Replace with actual file reading logic.
+      if (fileName === 'output.json') {
+        editorReadOnly.setValue(`{\n  "message": "This is JSON content."\n}`);
+      } else if (fileName === 'output.sql') {
+        editorReadOnly.setValue("SELECT * FROM table;");
+      }
+    }
+  });
+
+  // Container 2 functionality to enable dropdown2 and check validation
+  document.getElementById('dropdown1').addEventListener('change', function() {
+    var dropdown2 = document.getElementById('dropdown2');
+    dropdown2.disabled = false;
+
+    disableContainer3(); // Disable container 3 when container 2 is used
+  });
+
+  document.getElementById('dropdown2').addEventListener('change', function() {
+    checkEnabled();
+  });
+  
+  // Container 3 functionality to enable dropdown3 once file is uploaded
+  document.getElementById('fileUpload').addEventListener('change', function() {
+    var dropdown3 = document.getElementById('dropdown3');
+    dropdown3.disabled = false;
+
+    disableContainer2(); // Disable container 2 when container 3 is used
+  });
+
+  document.getElementById('dropdown3').addEventListener('change', function() {
+    checkEnabled();
+  });
+
+  function disableContainer2() {
+    document.getElementById('dropdown1').disabled = true;
+    document.getElementById('dropdown2').disabled = true;
+  }
+
+  function disableContainer3() {
+    document.getElementById('fileUpload').disabled = true;
+    document.getElementById('dropdown3').disabled = true;
+  }
+
+  function checkEnabled() {
+    var dropdown2 = document.getElementById('dropdown2');
+    var dropdown3 = document.getElementById('dropdown3');
+
+    if ((!dropdown2.disabled && dropdown2.value !== "") || (!dropdown3.disabled && dropdown3.value !== "")) {
+      document.getElementById('container4').scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+</script>
+
+</body>
+</html>

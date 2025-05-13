@@ -9,6 +9,7 @@ from django.http import FileResponse
 import time
 
 # Import your processing scripts
+from .scripts.formatxml_0 import format_xml_file as format_xml
 from .scripts.breakemvco_1 import process_file as split_file
 from .scripts.adjustemvco_2 import adjust_file as fix_unclosed_online_messages
 from .scripts.adjustelements_3 import adjust_elements
@@ -53,6 +54,10 @@ def upload_file(request):
             logger.info(f"File saved to {save_path}")
 
             start_time = time.time()
+
+            # Step 0: Format xml file
+            format_xml(save_path)
+            logger.info("Step 0: Format xml")
 
             # Step 1: Split the uploaded XML
             split_file(save_path)

@@ -60,24 +60,31 @@ def format_filtered_xml(filtered_file_path, base_uploaded_file_path):
     logging.info(f"Formatted {filtered_file_path} successfully.")
 
 def clean_filtered_xml(file_path):
-    """Remove <?xml ... ?> and <Root> tags from filtered XML."""
+    """Remove <?xml ... ?>, <Root>, <OnlineMessageList>, and associated end tags from filtered XML."""
     with open(file_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     new_lines = []
     for line in lines:
         if '<?xml' in line:
+            logging.info(f"Deleting line: {line.strip()}")
             continue
-        if '<Root>' in line:
-            continue
-        if '</Root>' in line:
-            continue
+        if '<Root><OnlineMessageList>' in line:
+            logging.info(f"Replacing line: {line.strip()}")
+            line = line.replace('<Root><OnlineMessageList>', '    ')
+        if '</OnlineMessageList></Root>' in line:
+            logging.info(f"Deleting line: {line.strip()}")
+            line = line.replace('</OnlineMessageList></Root>', '')
         new_lines.append(line)
 
     with open(file_path, 'w', encoding='utf-8') as f:
         f.writelines(new_lines)
 
 def prepend_content(file, lines_to_prepend):
+    logging.info("Prepending the following lines:")
+    for line in lines_to_prepend:
+        logging.info(line.strip())
+
     with open(file, 'r', encoding='utf-8') as original:
         original_content = original.read()
     with open(file, 'w', encoding='utf-8') as updated:
@@ -85,5 +92,12 @@ def prepend_content(file, lines_to_prepend):
         updated.write(original_content)
 
 def append_content(file, lines_to_append):
+    logging.info("Appending the following lines:")
+    for line in lines_to_append:
+        logging.info(line.strip())
+
     with open(file, 'a', encoding='utf-8') as updated:
         updated.writelines(lines_to_append)
+
+# Uncomment the next lines and call the function with your paths to test
+# format_filtered_xml('path_to_filtered_file.xml', 'path_to_base_uploaded_file.xml')

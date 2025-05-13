@@ -25,24 +25,15 @@ def element_to_string(element):
             content.append(elem.text.strip())
     return " ".join(content)
 
+
 def evaluate_conditions(content, conditions):
     """Evaluate complex conditions within the given content."""
-    def parse_condition(condition):
-        if ' AND ' in condition:
-            sub_conditions = condition.split(' AND ')
-            return all(parse_condition(sub) for sub in sub_conditions)
-        elif ' OR ' in condition:
-            sub_conditions = condition.split(' OR ')
-            return any(parse_condition(sub) for sub in sub_conditions)
-        elif ' NOT ' in condition:
-            sub_conditions = condition.split(' NOT ')
-            return not parse_condition(sub_conditions[1])
-        else:
-            return condition in content
+    conditions = conditions.split(' AND ')
+    return all(condition in content for condition in conditions)
 
-    return parse_condition(conditions)
 
 def filter_online_messages(part_xml_file, condition):
+    logging.info(f"Filtering file: {part_xml_file} for condition: {condition}")
     try:
         tree = ET.parse(part_xml_file)
     except ET.ParseError as e:
@@ -54,19 +45,20 @@ def filter_online_messages(part_xml_file, condition):
     filtered_messages = []
 
     if online_message_list is not None:
-        keep_message = False
-        for online_message in online_message_list.findall('OnlineMessage'):
+        for index, online_message in enumerate(online_message_list.findall('OnlineMessage')):
             content = element_to_string(online_message)
+            # Log content as part of debugging
+            # logging.debug(f"Processing OnlineMessage {index + 1}")
             if evaluate_conditions(content, condition):
-                keep_message = True
+                logging.debug(f"Message {index + 1} meets condition")
                 filtered_messages.append(online_message)
-            elif keep_message:
-                filtered_messages.append(online_message)
-                keep_message = False
 
+    logging.info(f"Filtered {len(filtered_messages)} messages from {part_xml_file} for condition: {condition}")
     return filtered_messages
 
+
 def load_json_mapping(json_file_path):
+    logging.info(f"Loading JSON mapping from {json_file_path}")
     with open(json_file_path, 'r') as f:
         data = json.load(f)
 
@@ -80,6 +72,7 @@ def load_json_mapping(json_file_path):
             file_mappings[condition].append(file_path)
     return file_mappings
 
+
 def write_filtered_file(base_path, condition, part_xml_file, filtered_messages):
     base_name, ext = os.path.splitext(os.path.basename(part_xml_file))
     base_name = '_'.join(base_name.split('_')[:-1])
@@ -90,21 +83,22 @@ def write_filtered_file(base_path, condition, part_xml_file, filtered_messages):
     online_message_list = ET.SubElement(new_root, "OnlineMessageList")
 
     for message in filtered_messages:
+        # Log the entire message for troubleshooting
+        message_content = ET.tostring(message, encoding='unicode')
+        logging.info(f"Writing message to output: {message_content}")
         online_message_list.append(message)
 
     new_tree.write(output_file, encoding='utf-8', xml_declaration=True)
+    logging.info(f"Written filtered file: {output_file}")
     return output_file
 
+
 def filter_by_conditions(conditions, uploaded_file_path):
-    """
-    Main callable function to filter XML messages based on DE032 conditions.
-    :param conditions: List of DE032 values or conditions to filter
-    """
     start_time = time.time()
+    logging.info("Starting filtering by conditions")
 
     output_base_path = os.path.dirname(JSON_FILE_PATH)
     condition_file_map = load_json_mapping(JSON_FILE_PATH)
-
 
     generated_files = []
 
@@ -140,7 +134,7 @@ def filter_by_conditions(conditions, uploaded_file_path):
         for file in generated_files:
             zipf.write(file, os.path.basename(file))
             logging.info(f"Added '{file}' to ZIP.")
-    
+
     # Clean up individual XMLs after zipping
     for file in generated_files:
         if os.path.exists(file):
@@ -151,3 +145,4 @@ def filter_by_conditions(conditions, uploaded_file_path):
     logging.info(f"Filtered ZIP created: {zip_filename}")
 
     return zip_filename
+
