@@ -1,8 +1,6 @@
 from django.urls import path
-from .views import bin_blocking_editor
-
-app_name = 'binblock'
+from . import views
 
 urlpatterns = [
-    path('', bin_blocking_editor, name='binblocking_editor'),
+    path('', views.index, name='index'),
 ]
