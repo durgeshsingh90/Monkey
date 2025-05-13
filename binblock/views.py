@@ -1,12 +1,10 @@
-# binblock/views.py
-
 import os
 import shutil
 import json
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from django.http import JsonResponse
+from django.http import JsonResponse  # Import JsonResponse
 from runquery.db_connection import execute_query, CustomJSONEncoder
 
 def clear_binblock_folder():
@@ -41,8 +39,7 @@ def index(request):
         elif 'editorContent' in request.POST:
             content = request.POST.get('editorContent', '')
             with open(os.path.join(settings.MEDIA_ROOT, 'binblock', 'block_content.json'), 'w') as f:
-                json.dump(content, f)
-            return JsonResponse({'status': 'success'})
+                json.dump(content, f, indent=2)
         elif 'dropdown1' in request.POST:
             query = "SELECT * FROM oasis77.SHCEXTBINDB ORDER BY LOWBIN"
             table_name = "SHCEXTBINDB"
@@ -52,28 +49,30 @@ def index(request):
             try:
                 result_data = execute_query(query, db_key=request.POST['dropdown1'])
                 result = result_data.get('result', [])
-                if not result:
-                    return JsonResponse({'status': 'error', 'message': 'Query failed or returned no results'})
-                json_path = os.path.join(binblock_path, f"{table_name}.json")
-                sql_path = os.path.join(binblock_path, f"{table_name}.sql")
-                with open(json_path, 'w') as json_file:
-                    json.dump(result, json_file, cls=CustomJSONEncoder, indent=2)
-                    
-                    # Save the first entry to block_content.json
-                    if result:
+                if result:
+                    json_path = os.path.join(binblock_path, f"{table_name}.json")
+                    sql_path = os.path.join(binblock_path, f"{table_name}.sql")
+                    with open(json_path, 'w') as json_file:
+                        json.dump(result, json_file, cls=CustomJSONEncoder, indent=2)
+                        
+                        # Save the first entry to block_content.json without LOWBIN and HIGHBIN
                         first_entry = result[0]
+                        if 'LOWBIN' in first_entry:
+                            del first_entry['LOWBIN']
+                        if 'HIGHBIN' in first_entry:
+                            del first_entry['HIGHBIN']
                         block_content_path = os.path.join(binblock_path, 'block_content.json')
                         with open(block_content_path, 'w') as block_content_file:
                             json.dump(first_entry, block_content_file, cls=CustomJSONEncoder, indent=2)
 
-                with open(sql_path, 'w') as sql_file:
-                    for row in result:
-                        columns = ', '.join(row.keys())
-                        values = ', '.join([f"'{v}'" for v in row.values()])
-                        sql_file.write(f"INSERT INTO {table_name} ({columns}) VALUES ({values});\n")
-                return JsonResponse({'status': 'success', 'message': 'Query executed and files saved'})
+                    with open(sql_path, 'w') as sql_file:
+                        for row in result:
+                            columns = ', '.join(row.keys())
+                            values = ', '.join([f"'{v}'" for v in row.values()])
+                            sql_file.write(f"INSERT INTO {table_name} ({columns}) VALUES ({values});\n")
+
             except Exception as e:
-                return JsonResponse({'status': 'error', 'message': str(e)})
+                print(f'Error executing query or handling files: {e}')
 
     return render(request, 'binblock/index.html', {'databases': databases})
 

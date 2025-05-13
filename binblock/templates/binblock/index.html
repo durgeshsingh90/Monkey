@@ -2,7 +2,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bin Block</title>
   <link rel="stylesheet" href="{% static 'binblock/css/styles.css' %}">
   <link rel="icon" href="{% static 'binblock/images/binblock.png' %}" type="image/png">
@@ -10,7 +11,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
 </head>
 <body>
-
 <div id="content" class="content">
   <form method="post" enctype="multipart/form-data" id="queryForm">
     {% csrf_token %}
@@ -18,7 +18,7 @@
       <div class="container1">
         <div class="editor-status-bar">
           <p class="status-title">Bin Blocking</p>
-          <button id="cleanDataBtn" class="clean-data-btn">Clean Data</button>
+          <button type="button" id="cleanDataBtn" class="clean-data-btn">Clean Data</button>
         </div>
         <div id="editor" class="editor"></div>
       </div>
@@ -47,12 +47,12 @@
     <div class="container4" id="container4">
       <div class="button-row">
         <div class="left-buttons">
-          <button id="copyBtn" class="btn copy-btn">Copy</button>
-          <button id="downloadBtn" class="btn download-btn">Download</button>
+          <button type="button" id="copyBtn" class="btn copy-btn">Copy</button>
+          <button type="button" id="downloadBtn" class="btn download-btn">Download</button>
         </div>
         <div class="right-buttons">
-          <button id="jsonBtn" class="btn">JSON</button>
-          <button id="sqlBtn" class="btn selected">SQL</button>
+          <button type="button" id="jsonBtn" class="btn">JSON</button>
+          <button type="button" id="sqlBtn" class="btn selected">SQL</button>
         </div>
       </div>
       <h1>Container 4</h1>
@@ -61,8 +61,6 @@
     </div>
   </form>
 </div>
-
 <script src="{% static 'binblock/js/scripts.js' %}"></script>
-
 </body>
 </html>
