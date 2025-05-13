@@ -7,7 +7,7 @@ require(['vs/editor/editor.main'], function () {
     });
 
     var editorReadOnly = monaco.editor.create(document.getElementById('editor-readonly'), {
-        value: '', // Default to SQL content
+        value: '',
         language: 'sql',
         theme: 'vs-dark',
         readOnly: true
@@ -21,10 +21,44 @@ require(['vs/editor/editor.main'], function () {
 
     // Load content for editable editor
     fetch('/get_content/')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
         .then(data => {
-            editorEditable.setValue(JSON.stringify(data.content, null, 2));
+            if (Object.keys(data.content).length === 0) {
+                editorEditable.setValue(''); // Set container 3 editor to blank if content is empty
+            } else {
+                editorEditable.setValue(JSON.stringify(data.content, null, 2));
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            editorEditable.setValue('Failed to load content');
         });
+
+    function updateContainer3() {
+        fetch('/get_content/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (Object.keys(data.content).length === 0) {
+                    editorEditable.setValue(''); // Set container 3 editor to blank if content is empty
+                } else {
+                    editorEditable.setValue(JSON.stringify(data.content, null, 2));
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                editorEditable.setValue('Failed to load content');
+            });
+    }
 
     document.getElementById('cleanDataBtn').addEventListener('click', function () {
         var content = editor.getValue();
@@ -100,8 +134,9 @@ require(['vs/editor/editor.main'], function () {
         }
     }
 
-    document.getElementById('dropdown1').addEventListener('change', function () {
+    document.getElementById('dropdown1').addEventListener('change', function (event) {
         var form = document.getElementById('queryForm');
+        updateContainer3(); // Fetch and update container 3
         form.submit();
     });
 
@@ -116,25 +151,25 @@ require(['vs/editor/editor.main'], function () {
             fileDisplay.style.display = 'block';
             fileDisplay.textContent = file.name;
         }
+        updateContainer3();
+    });
+
+    document.getElementById('queryForm').addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent default form submission
+        var formData = new FormData(this);
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        }).then(data => {
+            updateContainer3(); // Update content after form submission
+        }).catch(error => {
+            console.error('Fetch error:', error);
+        });
     });
 });
-
-// Disable/enable inputs based on selections
-document.getElementById('dropdown1').addEventListener('change', function () {
-    disableContainer3();
-    document.getElementById('fileUpload').disabled = true;
-});
-
-document.getElementById('fileUpload').addEventListener('change', function () {
-    disableContainer2();
-    document.getElementById('dropdown1').disabled = true;
-});
-
-function disableContainer2() {
-    document.getElementById('dropdown1').disabled = true;
-    document.getElementById('fileUpload').disabled = true;
-}
-
-function disableContainer3() {
-    document.getElementById('dropdown3').disabled = true;
-}
