@@ -12,7 +12,7 @@
 <body>
 
 <div id="content" class="content">
-  <form method="post" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data" id="queryForm">
     {% csrf_token %}
     <div class="container-row">
       <div class="container1">
@@ -25,7 +25,7 @@
 
       <div class="middle-column" id="container2">
         <h1>Connect to Database</h1>
-        <select id="dropdown1" class="dropdown-large">
+        <select id="dropdown1" class="dropdown-large" name="dropdown1">
           <option value="" selected disabled>Select a database</option>
           {% for db in databases %}
             <option value="{{ db }}">{{ db }}</option>
