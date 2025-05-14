@@ -152,19 +152,45 @@ document.getElementById('dropdown1').addEventListener('change', function () {
 
 
 
-    document.getElementById('fileUpload').addEventListener('change', function () {
-        var dropdown1 = document.getElementById('dropdown1');
-        dropdown1.disabled = true;
+document.getElementById('fileUpload').addEventListener('change', function () {
+    const file = this.files[0];
+    const dropdown1 = document.getElementById('dropdown1');
+    dropdown1.disabled = true;
 
-        var fileDisplay = document.getElementById('fileDisplay');
-        var file = document.getElementById('fileUpload').files[0];
-        if (file) {
-            fileDisplay.style.display = 'block';
-            fileDisplay.textContent = file.name;
+    const fileDisplay = document.getElementById('fileDisplay');
+
+    if (file) {
+        fileDisplay.style.display = 'block';
+        fileDisplay.textContent = file.name;
+
+        // ✅ Read and show first JSON entry in Container 3
+        if (file.name.endsWith('.json')) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                try {
+                    const content = JSON.parse(event.target.result);
+                    let firstEntry = {};
+
+                    if (Array.isArray(content) && content.length > 0) {
+                        firstEntry = content[0];
+                    } else if (typeof content === 'object') {
+                        firstEntry = content;
+                    }
+
+                    editorEditable.setValue(JSON.stringify(firstEntry, null, 2));
+                } catch (e) {
+                    console.error('Invalid JSON file:', e);
+                    editorEditable.setValue('// Invalid JSON file');
+                }
+            };
+            reader.readAsText(file);
         }
-        updateContainer3();
-    });
+    } else {
+        fileDisplay.style.display = 'none';
+        fileDisplay.textContent = '';
+    }
 });
+
 
 function getCSRFToken() {
     const name = 'csrftoken';
@@ -177,3 +203,24 @@ function getCSRFToken() {
     }
     return '';
 }
+
+const dbDropdown = document.getElementById('dropdown1');
+const fileInput = document.getElementById('fileUpload');
+
+// When a database is selected, disable file input
+dbDropdown.addEventListener('change', function () {
+    if (this.value) {
+        fileInput.disabled = true;
+    } else {
+        fileInput.disabled = false;
+    }
+});
+
+// When a file is selected, disable dropdown
+fileInput.addEventListener('change', function () {
+    if (this.files.length > 0) {
+        dbDropdown.disabled = true;
+    } else {
+        dbDropdown.disabled = false;
+    }
+});
