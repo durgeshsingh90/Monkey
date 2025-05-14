@@ -1,4 +1,5 @@
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs' } });
+
 require(['vs/editor/editor.main'], function () {
     var editor = monaco.editor.create(document.getElementById('editor'), {
         value: '',
@@ -20,45 +21,31 @@ require(['vs/editor/editor.main'], function () {
     });
 
     // Load content for editable editor
+    updateContainer3();
+
+function updateContainer3() {
     fetch('/get_content/')
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok ' + response.statusText);
+                // Likely 404 – block_content.json not created yet
+                editorEditable.setValue('');
+                return null;
             }
             return response.json();
         })
         .then(data => {
-            if (Object.keys(data.content).length === 0) {
-                editorEditable.setValue(''); // Set container 3 editor to blank if content is empty
-            } else {
+            if (data && data.content) {
                 editorEditable.setValue(JSON.stringify(data.content, null, 2));
+            } else {
+                editorEditable.setValue('');
             }
         })
         .catch(error => {
-            console.error('Fetch error:', error);
-            editorEditable.setValue('Failed to load content');
+            console.warn('Optional fetch warning:', error);
+            editorEditable.setValue('');
         });
+}
 
-    function updateContainer3() {
-        fetch('/get_content/')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (Object.keys(data.content).length === 0) {
-                    editorEditable.setValue(''); // Set container 3 editor to blank if content is empty
-                } else {
-                    editorEditable.setValue(JSON.stringify(data.content, null, 2));
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-                editorEditable.setValue('Failed to load content');
-            });
-    }
 
     document.getElementById('cleanDataBtn').addEventListener('click', function () {
         var content = editor.getValue();
@@ -67,7 +54,7 @@ require(['vs/editor/editor.main'], function () {
             lines.filter(line => line.trim() !== '').map(Number)
         )).sort((a, b) => a - b);
         editor.setValue(cleanedLines.join('\n'));
-        editorReadOnly.setValue(cleanedLines.join('\n')); // Update read-only editor
+        editorReadOnly.setValue(cleanedLines.join('\n'));
 
         var cleanDataBtn = document.getElementById('cleanDataBtn');
         cleanDataBtn.textContent = 'Cleaned';
@@ -76,7 +63,7 @@ require(['vs/editor/editor.main'], function () {
         setTimeout(function () {
             cleanDataBtn.textContent = 'Clean Data';
             cleanDataBtn.classList.remove('cleaned');
-            editor.setScrollTop(0); // Scroll to the top
+            editor.setScrollTop(0);
         }, 1000);
     });
 
@@ -126,7 +113,6 @@ require(['vs/editor/editor.main'], function () {
     }
 
     function loadFileContent(fileName) {
-        // Mock file reading logic. Replace with actual file reading logic.
         if (fileName === 'output.json') {
             editorReadOnly.setValue(`{\n  "message": "This is JSON content."\n}`);
         } else if (fileName === 'output.sql') {
@@ -134,17 +120,35 @@ require(['vs/editor/editor.main'], function () {
         }
     }
 
-    document.getElementById('dropdown1').addEventListener('change', function (event) {
-        var form = document.getElementById('queryForm');
-        updateContainer3(); // Fetch and update container 3
-        form.submit();
+    document.getElementById('dropdown1').addEventListener('change', function () {
+        const form = document.getElementById('queryForm');
+        const formData = new FormData(form);
+
+        fetch('/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.text();  // Not using returned HTML
+        })
+        .then(() => {
+            updateContainer3();  // Refresh container 3 with new block_content.json
+        })
+        .catch(error => {
+            console.error('AJAX error:', error);
+        });
     });
 
     document.getElementById('fileUpload').addEventListener('change', function () {
         var dropdown1 = document.getElementById('dropdown1');
         dropdown1.disabled = true;
 
-        // Display the full name of the uploaded file
         var fileDisplay = document.getElementById('fileDisplay');
         var file = document.getElementById('fileUpload').files[0];
         if (file) {
@@ -152,24 +156,5 @@ require(['vs/editor/editor.main'], function () {
             fileDisplay.textContent = file.name;
         }
         updateContainer3();
-    });
-
-    document.getElementById('queryForm').addEventListener('submit', function (event) {
-        event.preventDefault(); // Prevent default form submission
-        var formData = new FormData(this);
-        
-        fetch(this.action, {
-            method: 'POST',
-            body: formData
-        }).then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok ' + response.statusText);
-            }
-            return response.json();
-        }).then(data => {
-            updateContainer3(); // Update content after form submission
-        }).catch(error => {
-            console.error('Fetch error:', error);
-        });
     });
 });

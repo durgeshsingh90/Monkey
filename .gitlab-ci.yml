@@ -1,0 +1,31 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  only:
+    - main
+  before_script:
+    # Install required packages
+    - apk add --no-cache openssh git docker-cli
+    # Set up SSH key
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOY_SSH_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    # Add EC2 host to known hosts to prevent SSH confirmation prompt
+    - ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+  script:
+    # SSH into EC2, pull code, build and run Docker container
+    - ssh "$EC2_HOST" '
+        set -e
+        if [ ! -d monkey ]; then
+          git clone https://github.com/durgeshsingh90/monkey.git
+        fi
+        cd monkey
+        git pull origin main
+        docker build -t monkey-app .
+        docker stop monkey || true
+        docker rm monkey || true
+        docker run -d -p 8000:8000 --name monkey monkey-app
+      '

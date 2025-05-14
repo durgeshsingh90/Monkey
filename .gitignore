@@ -3,7 +3,7 @@ __pycache__/
 migrations
 media/
 *.log
-
+.gitlab-ci-mango.yml
 
 # git rm --cached *.log
 # find . -name "*.log" -exec git rm --cached {} \;
