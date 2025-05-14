@@ -126,13 +126,14 @@ document.getElementById('dropdown1').addEventListener('change', function () {
 
     formData.append('dropdown1', selectedDb);
 
+    showLoading();  // 👈 Show loading screen
+
     fetch('/binblock/', {
         method: 'POST',
         body: formData,
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': getCSRFToken()  // ✅ Add this
-
+            'X-CSRFToken': getCSRFToken()
         }
     })
     .then(response => {
@@ -143,12 +144,16 @@ document.getElementById('dropdown1').addEventListener('change', function () {
     })
     .then(data => {
         console.log("✅ DB query completed:", data);
-        updateContainer3(); // Load block_content.json
+        updateContainer3();
     })
     .catch(error => {
         console.error('❌ Error running DB query:', error);
+    })
+    .finally(() => {
+        hideLoading();  // 👈 Hide when done
     });
 });
+
 
 
 
@@ -160,10 +165,11 @@ document.getElementById('fileUpload').addEventListener('change', function () {
     const fileDisplay = document.getElementById('fileDisplay');
 
     if (file) {
+        showLoading();  // 👈 Show loading
+
         fileDisplay.style.display = 'block';
         fileDisplay.textContent = file.name;
 
-        // ✅ Read and show first JSON entry in Container 3
         if (file.name.endsWith('.json')) {
             const reader = new FileReader();
             reader.onload = function (event) {
@@ -177,17 +183,26 @@ document.getElementById('fileUpload').addEventListener('change', function () {
                         firstEntry = content;
                     }
 
+                    // ❗ Blank out LOWBIN / HIGHBIN if present
+                    firstEntry['LOWBIN'] = '';
+                    firstEntry['HIGHBIN'] = '';
+
                     editorEditable.setValue(JSON.stringify(firstEntry, null, 2));
                 } catch (e) {
                     console.error('Invalid JSON file:', e);
                     editorEditable.setValue('// Invalid JSON file');
+                } finally {
+                    hideLoading();  // 👈 Hide loading even on error
                 }
             };
             reader.readAsText(file);
+        } else {
+            hideLoading();
         }
     } else {
         fileDisplay.style.display = 'none';
         fileDisplay.textContent = '';
+        hideLoading();
     }
 });
 
@@ -224,3 +239,12 @@ fileInput.addEventListener('change', function () {
         dbDropdown.disabled = false;
     }
 });
+});
+
+function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
