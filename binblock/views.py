@@ -66,12 +66,12 @@ def index(request):
                             print(f"Offending row: {row}")
                             raise  # Optional: re-raise or skip
                     json_file.write('\n]')
-                
+
 
                 if result:
                     first_entry = result[0].copy()
-                    first_entry.pop('LOWBIN', None)
-                    first_entry.pop('HIGHBIN', None)
+                    first_entry['LOWBIN'] = ''
+                    first_entry['HIGHBIN'] = ''
                     with open(block_content_path, 'w', encoding='utf-8') as block_file:
                         json.dump(first_entry, block_file, indent=2, cls=CustomJSONEncoder)
 
@@ -93,3 +93,45 @@ def get_content(request):
     else:
         content = {}
     return JsonResponse({'content': content})
+
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+@require_POST
+def generate_output(request):
+    try:
+        payload = json.loads(request.body)
+        bin_list = payload.get('bin_list', [])
+        edited_bin = payload.get('edited_bin', {})
+
+        binblock_path = os.path.join(settings.MEDIA_ROOT, 'binblock', 'SHCEXTBINDB.json')
+        with open(binblock_path, 'r') as f:
+            original_data = json.load(f)
+
+        updated_data = split_bin_ranges(original_data, bin_list, edited_bin)
+
+        # Write JSON
+        json_path = os.path.join(settings.MEDIA_ROOT, 'binblock', 'generated_output.json')
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(updated_data, f, indent=2, cls=CustomJSONEncoder)
+
+        # Write SQL
+        sql_path = os.path.join(settings.MEDIA_ROOT, 'binblock', 'generated_output.sql')
+        with open(sql_path, 'w', encoding='utf-8') as f:
+            for row in updated_data:
+                columns = ', '.join(row.keys())
+                values = ', '.join([f"'{str(v).replace('\'', '\'\'')}'" if v is not None else 'NULL' for v in row.values()])
+                f.write(f"INSERT INTO SHCEXTBINDB ({columns}) VALUES ({values});\n")
+
+        return JsonResponse({
+            'status': 'success',
+            'generated_json': updated_data,
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

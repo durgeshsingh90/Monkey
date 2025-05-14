@@ -112,13 +112,22 @@ fetch('/binblock/get_content/')
         document.getElementById(activeBtnId).classList.add('selected');
     }
 
-    function loadFileContent(fileName) {
-        if (fileName === 'output.json') {
-            editorReadOnly.setValue(`{\n  "message": "This is JSON content."\n}`);
-        } else if (fileName === 'output.sql') {
-            editorReadOnly.setValue("SELECT * FROM table;");
-        }
-    }
+function loadFileContent(fileName) {
+    fetch(`/media/binblock/${fileName}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to load ${fileName}`);
+            }
+            return response.text();
+        })
+        .then(data => {
+            editorReadOnly.setValue(data);
+        })
+        .catch(err => {
+            editorReadOnly.setValue(`// Error loading ${fileName}`);
+            console.error(err);
+        });
+}
 
 document.getElementById('dropdown1').addEventListener('change', function () {
     const formData = new FormData();
@@ -248,3 +257,33 @@ function showLoading() {
 function hideLoading() {
     document.getElementById('loadingOverlay').style.display = 'none';
 }
+
+document.getElementById('generateBtn').addEventListener('click', function () {
+    const editorContent = editor.getValue();              // BIN list from Container 1
+    const editedJson = editorEditable.getValue();         // Edited JSON from Container 3
+
+    showLoading();
+
+    fetch('/binblock/generate_output/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            bin_list: editorContent.split('\n').filter(line => line.trim() !== ''),
+            edited_bin: JSON.parse(editedJson)
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        editorReadOnly.setValue(JSON.stringify(data.generated, null, 2));  // Show in Container 4
+    })
+    .catch(err => {
+        console.error('Generate error:', err);
+        editorReadOnly.setValue('// Error generating output.');
+    })
+    .finally(() => {
+        hideLoading();
+    });
+});
