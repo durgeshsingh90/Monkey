@@ -93,13 +93,14 @@ def get_content(request):
     else:
         content = {}
     return JsonResponse({'content': content})
-
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.utils.decorators import method_decorator
-from django.views import View
 from django.http import JsonResponse
+import os
 import json
+from django.conf import settings
+from .utils import split_bin_ranges  # If your logic is split
+from runquery.db_connection import CustomJSONEncoder
 
 @csrf_exempt
 @require_POST
@@ -109,28 +110,36 @@ def generate_output(request):
         bin_list = payload.get('bin_list', [])
         edited_bin = payload.get('edited_bin', {})
 
-        binblock_path = os.path.join(settings.MEDIA_ROOT, 'binblock', 'SHCEXTBINDB.json')
-        with open(binblock_path, 'r') as f:
+        # Load the original BIN data from file (uploaded or DB pulled)
+        input_path = os.path.join(settings.MEDIA_ROOT, 'binblock', 'SHCEXTBINDB.json')
+        if not os.path.exists(input_path):
+            return JsonResponse({'status': 'error', 'message': 'Original JSON file not found'}, status=404)
+
+        with open(input_path, 'r', encoding='utf-8') as f:
             original_data = json.load(f)
 
+        # Always produce some output — even if nothing matches
         updated_data = split_bin_ranges(original_data, bin_list, edited_bin)
 
-        # Write JSON
-        json_path = os.path.join(settings.MEDIA_ROOT, 'binblock', 'generated_output.json')
-        with open(json_path, 'w', encoding='utf-8') as f:
+        # Write the output JSON
+        output_json_path = os.path.join(settings.MEDIA_ROOT, 'binblock', 'generated_output.json')
+        with open(output_json_path, 'w', encoding='utf-8') as f:
             json.dump(updated_data, f, indent=2, cls=CustomJSONEncoder)
 
-        # Write SQL
-        sql_path = os.path.join(settings.MEDIA_ROOT, 'binblock', 'generated_output.sql')
-        with open(sql_path, 'w', encoding='utf-8') as f:
+        # Write the output SQL
+        output_sql_path = os.path.join(settings.MEDIA_ROOT, 'binblock', 'generated_output.sql')
+        with open(output_sql_path, 'w', encoding='utf-8') as f:
             for row in updated_data:
                 columns = ', '.join(row.keys())
-                values = ', '.join([f"'{str(v).replace('\'', '\'\'')}'" if v is not None else 'NULL' for v in row.values()])
+                values = ', '.join([
+                    f"'{str(v).replace('\'', '\'\'')}'" if v is not None else 'NULL'
+                    for v in row.values()
+                ])
                 f.write(f"INSERT INTO SHCEXTBINDB ({columns}) VALUES ({values});\n")
 
         return JsonResponse({
             'status': 'success',
-            'generated_json': updated_data,
+            'generated_count': len(updated_data),
         })
 
     except Exception as e:
