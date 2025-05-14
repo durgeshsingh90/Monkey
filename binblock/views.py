@@ -56,11 +56,17 @@ def index(request):
                 with open(json_path, 'w', encoding='utf-8') as json_file:
                     json_file.write('[\n')
                     for i, row in enumerate(result):
-                        line = json.dumps(row, cls=CustomJSONEncoder, indent=2)
-                        json_file.write(line)
-                        if i < len(result) - 1:
-                            json_file.write(',\n')
+                        try:
+                            line = json.dumps(row, cls=CustomJSONEncoder, indent=2)
+                            json_file.write(line)
+                            if i < len(result) - 1:
+                                json_file.write(',\n')
+                        except Exception as e:
+                            print(f"❌ Failed to serialize row {i}: {e}")
+                            print(f"Offending row: {row}")
+                            raise  # Optional: re-raise or skip
                     json_file.write('\n]')
+                
 
                 if result:
                     first_entry = result[0].copy()
