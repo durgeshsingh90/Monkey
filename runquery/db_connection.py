@@ -198,7 +198,16 @@ def get_or_load_table_metadata(db_key="uat_ist", refresh=False):
 
     return {"tables": metadata}
 
+from datetime import datetime
+import json
+from pathlib import Path
+from django.conf import settings
+
 def log_query_execution(db_key, query, result, duration):
+    """
+    Writes only the most recent query result to query_logs.json,
+    safely overwriting previous logs and ensuring valid JSON.
+    """
     log_dir = Path(settings.MEDIA_ROOT) / "runquery"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / "query_logs.json"
@@ -213,14 +222,7 @@ def log_query_execution(db_key, query, result, duration):
     }
 
     try:
-        if log_file.exists():
-            with open(log_file, "r+", encoding="utf-8") as f:
-                data = json.load(f)
-                data.append(log_entry)
-                f.seek(0)
-                json.dump(data, f, indent=2, cls=CustomJSONEncoder)
-        else:
-            with open(log_file, "w", encoding="utf-8") as f:
-                json.dump([log_entry], f, indent=2, cls=CustomJSONEncoder)
+        with open(log_file, "w", encoding="utf-8") as f:
+            json.dump(log_entry, f, indent=2, cls=CustomJSONEncoder)
     except Exception as e:
-        logging.error(f"Failed to write query log: {e}")
+        print(f"❌ Failed to write query log: {e}")
