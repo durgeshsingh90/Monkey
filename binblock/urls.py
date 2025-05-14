@@ -1,9 +1,8 @@
 from django.urls import path
-from . import views
+from .views import index, get_content, generate_output
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('get_content/', views.get_content, name='get_content'),
-    path('generate_output/', views.generate_output, name='generate_output'),  # ✅ new route
-
+    path('', index, name='index'),
+    path('get_content/', get_content, name='get_content'),
+    path('generate_output/', generate_output, name='generate_output'),  # ✅ This is correct
 ]
