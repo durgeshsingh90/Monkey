@@ -17,28 +17,36 @@
     <div class="container-row">
       <div class="container1">
         <div class="editor-status-bar">
-          <p class="status-title">Bin Blocking</p>
+          <p class="status-title">Enter bins to block</p>
           <button type="button" id="cleanDataBtn" class="clean-data-btn">Clean Data</button>
         </div>
         <div id="editor" class="editor"></div>
       </div>
 
-      <div class="middle-column" id="container2">
-        <h1>Connect to Database</h1>
-        <select id="dropdown1" class="dropdown-large" name="dropdown1">
-          <option value="" selected disabled>Select a database</option>
-          {% for db in databases %}
-            <option value="{{ db }}">{{ db }}</option>
-          {% endfor %}
-        </select>
-        <p class="or-separator">OR</p>
-        <input type="file" id="fileUpload" name="fileUpload" class="dropdown-large" accept=".json, .sql">
-        <div id="fileDisplay" class="file-display" style="display: none;"></div>
-      </div>
+<div class="middle-column" id="container2" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+  <!-- Top Half -->
+  <div style="flex: 1;">
+    <h1>Connect to Database</h1>
+    <select id="dropdown1" class="dropdown-large" name="dropdown1">
+      <option value="" selected disabled>Select a database</option>
+      {% for db in databases %}
+        <option value="{{ db }}">{{ db }}</option>
+      {% endfor %}
+    </select>
+    <p class="or-separator">OR</p>
+    <input type="file" id="fileUpload" name="fileUpload" class="dropdown-large" accept=".json, .sql">
+    <div id="fileDisplay" class="file-display" style="display: none;"></div>
+  </div>
+
+  <!-- Bottom Button -->
+  <div style="text-align: center; padding-top: 20px;">
+    <button type="button" id="generateBtn" class="btn generate-btn">Generate</button>
+  </div>
+</div>
 
       <div class="container3" id="container3">
         <div class="editor-status-bar">
-          <p class="status-title">Editable Content</p>
+          <p class="status-title">Enter associated block bin body</p>
         </div>
         <div id="editor-container" class="editor-fullscreen"></div>
       </div>
