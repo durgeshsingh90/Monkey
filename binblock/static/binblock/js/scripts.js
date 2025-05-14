@@ -24,7 +24,7 @@ require(['vs/editor/editor.main'], function () {
     updateContainer3();
 
 function updateContainer3() {
-    fetch('/get_content/')
+fetch('/binblock/get_content/')
         .then(response => {
             if (!response.ok) {
                 // Likely 404 – block_content.json not created yet
@@ -120,30 +120,37 @@ function updateContainer3() {
         }
     }
 
-    document.getElementById('dropdown1').addEventListener('change', function () {
-        const form = document.getElementById('queryForm');
-        const formData = new FormData(form);
+document.getElementById('dropdown1').addEventListener('change', function () {
+    const formData = new FormData();
+    const selectedDb = this.value;
 
-        fetch('/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
-            }
-            return response.text();  // Not using returned HTML
-        })
-        .then(() => {
-            updateContainer3();  // Refresh container 3 with new block_content.json
-        })
-        .catch(error => {
-            console.error('AJAX error:', error);
-        });
+    formData.append('dropdown1', selectedDb);
+
+    fetch('/binblock/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCSRFToken()  // ✅ Add this
+
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Server error: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("✅ DB query completed:", data);
+        updateContainer3(); // Load block_content.json
+    })
+    .catch(error => {
+        console.error('❌ Error running DB query:', error);
     });
+});
+
+
 
     document.getElementById('fileUpload').addEventListener('change', function () {
         var dropdown1 = document.getElementById('dropdown1');
@@ -158,3 +165,15 @@ function updateContainer3() {
         updateContainer3();
     });
 });
+
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(name + '=')) {
+            return decodeURIComponent(cookie.substring(name.length + 1));
+        }
+    }
+    return '';
+}
