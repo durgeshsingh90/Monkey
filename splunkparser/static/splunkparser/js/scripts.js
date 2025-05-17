@@ -97,16 +97,42 @@ function setupOutputSelectionListener() {
 async function parseLogsToJSON() {
   const logData = editor.getValue().trim();
   if (!logData) return notify("Please provide log data to parse.");
+
   try {
-    const data = await sendLogsToBackend(logData);
-    if (data.status === 'error' || !data.result) return notify(`❌ Error: ${data.message}`);
-    const jsonOutput = JSON.stringify(data.result, null, 2);
-    displayOutput(jsonOutput, 'language-json');
-    await saveOutputFileAndValidate(jsonOutput);  // ✅ New call after parsing
+    const response = await fetch('/splunkparser/parse/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify({ log_data: logData })
+    });
+
+    const data = await response.json();
+    if (data.status !== 'success') {
+      return notify(`❌ Error: ${data.message}`);
+    }
+
+    const fullMessages = data.messages;
+
+    // Show only result section in output
+const resultOnly = fullMessages.map(msg => msg.result);
+
+
+    document.getElementById('outputArea').textContent = JSON.stringify(resultOnly, null, 2);
+    document.getElementById('validationArea').textContent = JSON.stringify(fullMessages, null, 2);
+
+    Prism.highlightElement(document.getElementById('outputArea'));
+    Prism.highlightElement(document.getElementById('validationArea'));
+
+    notify(`✅ Parsed ${fullMessages.length} messages`);
+
   } catch (error) {
     notify(`❌ Error: ${error.message}`);
   }
 }
+
+
 async function saveOutputFileAndValidate(content) {
   try {
     const saveResponse = await fetch('/splunkparser/save_output/', {

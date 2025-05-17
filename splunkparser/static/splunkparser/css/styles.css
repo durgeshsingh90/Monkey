@@ -126,14 +126,15 @@ body {
 }
 
 pre {
-  margin: 0;
+  margin: 0 0 20px 0;
   white-space: pre-wrap;
   word-wrap: break-word;
-  background: #ffffff; /* light card feel inside yellow output */
+  background: #ffffff;
   padding: 12px;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* slight shadow for depth */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+
 
 
 #notification {

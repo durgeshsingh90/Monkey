@@ -11,55 +11,96 @@ from splunkparser.views.validate_output import validate_transaction, load_json
 
 logger = logging.getLogger('splunkparser')
 
+import re
+
+def split_log_by_timestamp(log_data):
+    pattern = re.compile(r"^\d{2}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}\.\d{3}")
+    lines = log_data.splitlines()
+
+    blocks = []
+    current_block = []
+    current_timestamp = None
+
+    for line in lines:
+        if pattern.match(line.strip()):
+            # If current_block has content, save it first
+            if current_block:
+                blocks.append({
+                    "timestamp": current_timestamp,
+                    "content": "\n".join(current_block).strip()
+                })
+                current_block = []
+
+            # Start a new block — even if same timestamp as previous
+            current_timestamp = line.strip().split(" ")[0] + " " + line.strip().split(" ")[1]
+
+        current_block.append(line)
+
+    # Final block
+    if current_block:
+        blocks.append({
+            "timestamp": current_timestamp,
+            "content": "\n".join(current_block).strip()
+        })
+
+    return blocks
+
 
 @csrf_exempt
 def parse_logs(request):
-    if request.method == 'POST':
-        try:
-            content_type = request.content_type
-            if content_type == 'application/json':
-                data = json.loads(request.body)
-                log_data = data.get('log_data', '')
-            elif content_type.startswith('multipart/form-data'):
-                file = request.FILES.get('file')
-                if file:
-                    log_data = file.read().decode('utf-8')
-                else:
-                    return JsonResponse({'status': 'error', 'message': 'File not provided'}, status=400)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+    try:
+        content_type = request.content_type
+        if content_type == 'application/json':
+            data = json.loads(request.body)
+            log_data = data.get('log_data', '')
+        elif content_type.startswith('multipart/form-data'):
+            file = request.FILES.get('file')
+            if file:
+                log_data = file.read().decode('utf-8')
             else:
-                return JsonResponse({'status': 'error', 'message': 'Unsupported content type'}, status=415)
+                return JsonResponse({'status': 'error', 'message': 'File not provided'}, status=400)
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Unsupported content type'}, status=415)
 
-            logger.info("Received request for log parsing.")
-            logger.debug(f"Raw log data received: {log_data}")
+        logger.info("Received request for log parsing.")
+        logger.debug(f"Raw log data received: {log_data}")
 
-            parsed_output = parse_iso8583(log_data)
+        blocks = split_log_by_timestamp(log_data)
+        results = []
 
-            # Load schema and validate
-            schema = load_json(field_definitions_path)
-            validation_result = validate_transaction(schema, parsed_output)
+        for block in blocks:
+            try:
+                parsed_output = parse_iso8583(block['content'])
+                schema = load_json(field_definitions_path)
+                validation_result = validate_transaction(schema, parsed_output)
 
-            logger.info("Log data parsed and validated successfully.")
-            logger.debug(f"Parsed output: {parsed_output}")
-            logger.debug(f"Validation result: {validation_result}")
+                result_entry = {
+                    "timestamp": block['timestamp'],
+                    "route": extract_route(block['content']),
+                    "message_id": extract_message_id(block['content']),
+                    "result": parsed_output,
+                    "validation": validation_result
+                }
+                results.append(result_entry)
+            except Exception as e:
+                logger.error(f"Error parsing block with timestamp {block['timestamp']}: {e}")
+                results.append({
+                    "timestamp": block['timestamp'],
+                    "error": str(e),
+                    "raw": block['content']
+                })
 
-            return JsonResponse({
-                'status': 'success',
-                'timestamp': extract_timestamp(log_data),
-                'route': extract_route(log_data),
-                'message_id': extract_message_id(log_data),
-                'result': parsed_output,
-                'validation': validation_result
-            })
+        return JsonResponse({
+            "status": "success",
+            "messages": results
+        })
 
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON decode error: {e}")
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'})
-        except Exception as e:
-            logger.critical(f"Unexpected error during log parsing: {e}", exc_info=True)
-            return JsonResponse({'status': 'error', 'message': str(e)})
-
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
-
+    except Exception as e:
+        logger.critical(f"Unexpected error during log parsing: {e}", exc_info=True)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def parse_iso8583(log_data):
     message = {}

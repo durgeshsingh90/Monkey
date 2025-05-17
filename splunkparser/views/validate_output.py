@@ -47,7 +47,7 @@ def validate_field(field_name, field_value, field_schema):
     wrong_length = []
     wrong_format = []
 
-    # Handle subfields recursively
+    # ✅ Recursive subfield validation (e.g., DE055, DE060)
     if isinstance(field_value, dict) and 'subfields' in field_schema:
         subfields_schema = field_schema.get('subfields', {})
         for subfield_key, subfield_value in field_value.items():
@@ -64,36 +64,34 @@ def validate_field(field_name, field_value, field_schema):
                 wrong_format.append(f"{full_subfield_name}: Unknown subfield")
         return success, wrong_length, wrong_format
 
-    # For standard fields
     raw_value_str = str(field_value)
     value_str_nospaces = raw_value_str.replace(' ', '')
     fmt = field_schema.get('format')
-    variable = field_schema.get('variable_length', False)
+    field_type = field_schema.get('field_type', '').upper()
+    variable = field_type in ['LLVAR', 'LLLVAR']
 
-    # ✅ Skip DE004 length validation since it's intentionally converted to int
+
+    # Skip DE004 (intentionally converted to integer)
     if field_name == "DE004":
         if fmt and not is_valid_format(value_str_nospaces, fmt):
             wrong_format.append(f"{field_name}: Format mismatch (expected {fmt})")
         else:
             success.append(field_name)
         return success, wrong_length, wrong_format
-    
-    # Ignore masked values
+
+    # Skip masked values like 4111********1234
     if value_str_nospaces and re.fullmatch(r'[0-9]*\*+[0-9]*', value_str_nospaces):
         logger.info(f"{field_name} appears masked and will be excluded from validation.")
         success.append(field_name)
         return success, wrong_length, wrong_format
 
-
-    # Length validation (spaces included)
-    # Length validation (spaces included)
+    # ✅ Length check
     if variable:
         max_length = field_schema.get('max_length')
         if max_length and len(raw_value_str) > max_length:
             wrong_length.append(f"{field_name}: Length {len(raw_value_str)} exceeds max_length {max_length}")
         else:
-            success.append(field_name)  
-
+            success.append(field_name)
     else:
         fixed_length = field_schema.get('length')
         if fixed_length and len(raw_value_str) != fixed_length:
@@ -101,7 +99,7 @@ def validate_field(field_name, field_value, field_schema):
         else:
             success.append(field_name)
 
-    # Format validation (spaces excluded)
+    # ✅ Format check
     if fmt and not is_valid_format(value_str_nospaces, fmt):
         wrong_format.append(f"{field_name}: Format mismatch (expected {fmt})")
 
@@ -152,7 +150,6 @@ def validate_output(request):
 
         total_wrong_length = len(result.get('wrong_length', []))
         total_wrong_format = len(result.get('wrong_format', []))
-        total_errors = total_wrong_length + total_wrong_format
 
         if total_wrong_length == 0 and total_wrong_format == 0:
             message = "✅ All fields and subfields passed validation!"
@@ -161,7 +158,6 @@ def validate_output(request):
                 f"⚠️ Validation completed with {total_wrong_length + total_wrong_format} issues "
                 f"(Wrong Length: {total_wrong_length}, Wrong Format: {total_wrong_format})"
             )
-
 
         return JsonResponse({
             "status": "success",
