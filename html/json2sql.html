@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON to SQL Converter</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.0/min/vs/editor/editor.main.min.css">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    .status-bar {
+      background: #333;
+      color: white;
+      padding: 5px;
+      text-align: right;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px;
+    }
+    #editors {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    #editorLeft, #editorRight {
+      flex: 1;
+      border: 1px solid #d4d4d4;
+      overflow: hidden;
+    }
+    .button {
+      color: #fff;
+      background-color: #007bff;
+      border-color: #007bff;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      border: none;
+    }
+    .button:hover {
+      background-color: #0056b3;
+      border-color: #004085;
+    }
+    @media (min-width: 768px) {
+      #editors {
+        flex-direction: row;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="toolbar">
+      <div>
+        <button class="button" id="toggleWrapLeft">Enable Word Wrap (Left)</button>
+        <button class="button" id="copyLeft">Copy Left</button>
+      </div>
+      <div>
+        <button class="button" id="toggleWrapRight">Enable Word Wrap (Right)</button>
+        <button class="button" id="copyRight">Copy Right</button>
+      </div>
+    </div>
+    <div id="editors">
+      <div id="editorLeft"></div>
+      <div id="editorRight"></div>
+    </div>
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.0/min/vs/loader.min.js"></script>
+  <script>
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.28.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+      var editorLeft = monaco.editor.create(document.getElementById('editorLeft'), {
+        value: '',
+        language: 'json',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        scrollBeyondLastLine: false,
+        wordWrap: 'on' // Default to wordWrap enabled
+      });
+
+      var editorRight = monaco.editor.create(document.getElementById('editorRight'), {
+        value: '',
+        language: 'sql',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        scrollBeyondLastLine: false,
+        wordWrap: 'on' // Default to wordWrap enabled
+      });
+
+      function copyToClipboard(editor) {
+        const text = editor.getValue();
+        navigator.clipboard.writeText(text)
+          .then(() => {
+            console.log('Copied to clipboard successfully!');
+          })
+          .catch(err => {
+            console.error('Failed to copy text: ', err);
+          });
+      }
+
+      document.getElementById('copyLeft').addEventListener('click', function() {
+        copyToClipboard(editorLeft);
+        var button = document.getElementById('copyLeft');
+        button.textContent = 'Copied';
+        setTimeout(() => {
+          button.textContent = 'Copy Left';
+        }, 1000);
+      });
+
+      document.getElementById('copyRight').addEventListener('click', function() {
+        copyToClipboard(editorRight);
+        var button = document.getElementById('copyRight');
+        button.textContent = 'Copied';
+        setTimeout(() => {
+          button.textContent = 'Copy Right';
+        }, 1000);
+      });
+
+      document.getElementById('toggleWrapLeft').addEventListener('click', function() {
+        var button = document.getElementById('toggleWrapLeft');
+        if (editorLeft.getRawOptions().wordWrap === 'off') {
+          editorLeft.updateOptions({ wordWrap: 'on' });
+          button.textContent = 'Disable Word Wrap (Left)';
+        } else {
+          editorLeft.updateOptions({ wordWrap: 'off' });
+          button.textContent = 'Enable Word Wrap (Left)';
+        }
+      });
+
+      document.getElementById('toggleWrapRight').addEventListener('click', function() {
+        var button = document.getElementById('toggleWrapRight');
+        if (editorRight.getRawOptions().wordWrap === 'off') {
+          editorRight.updateOptions({ wordWrap: 'on' });
+          button.textContent = 'Disable Word Wrap (Right)';
+        } else {
+          editorRight.updateOptions({ wordWrap: 'off' });
+          button.textContent = 'Enable Word Wrap (Right)';
+        }
+      });
+
+      editorLeft.onDidChangeModelContent(function() {
+        var jsonContent = editorLeft.getValue();
+        try {
+          var jsonData = JSON.parse(jsonContent);
+          var sqlStatements = jsonToSql(jsonData.recordset);
+          editorRight.setValue(sqlStatements);
+        } catch (error) {
+          editorRight.setValue('Error parsing JSON: ' + error.message);
+        }
+      });
+
+      function jsonToSql(recordset) {
+        var tableName = 'your_table_name'; // Set your table name here
+        var sqlStatements = '';
+
+        if (Array.isArray(recordset)) {
+          recordset.forEach(function(row) {
+            var columns = Object.keys(row).join(', ');
+            var values = Object.values(row).map(function(value) {
+              return typeof value === 'string' ? `'${value.replace(/'/g, "''")}'` : (value === null ? 'NULL' : value);
+            }).join(', ');
+
+            sqlStatements += `INSERT INTO ${tableName} (${columns}) VALUES (${values});\n`;
+          });
+        } else {
+          sqlStatements = 'Error: The JSON recordset should be an array of objects.';
+        }
+
+        return sqlStatements;
+      }
+    });
+  </script>
+</body>
+</html>
