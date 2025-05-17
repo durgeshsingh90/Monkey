@@ -4,8 +4,8 @@ migrations
 media/
 *.log
 .gitlab-ci-mango.yml
-.terraform*
-terraform.tfstate*
+terraform/*
+!/*.tf
 # git rm --cached *.log
 # find . -name "*.log" -exec git rm --cached {} \;
 # git commit -m "Ignore all .log files"
