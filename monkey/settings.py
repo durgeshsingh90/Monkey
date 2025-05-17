@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     'yaml2json',
     'xlog_mastercard',
     'certifications',
-    'hex2iso'
+    'hex2iso',
+    'json2sql'
 ]
 
 LOG_DIR = BASE_DIR / 'logs'
@@ -263,6 +264,9 @@ STATICFILES_DIRS = [
     BASE_DIR / "xlog_mastercard/static",
     BASE_DIR / "certifications/static",
     BASE_DIR / "hex2iso/static",
+    BASE_DIR / "json2sql/static",
+
+    
 
 
     

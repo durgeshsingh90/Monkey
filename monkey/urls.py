@@ -48,8 +48,7 @@ urlpatterns = [
     path('xlog_mastercard/', include('xlog_mastercard.urls')),
     path('certifications/', include('certifications.urls')),
     path('hex2iso/', include('hex2iso.urls')),
-
-
+    path('json2sql/', include('json2sql.urls')),
 ]
 
 # Append this only when DEBUG is True (development mode)

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JSON to SQL with Monaco</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    #statusBar {
+      background: #282c34;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #copyButton {
+      padding: 6px 12px;
+      font-size: 14px;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #copyButton:disabled {
+      background-color: #ccc;
+      cursor: default;
+    }
+    #container {
+      display: flex;
+      height: calc(100vh - 42px);
+    }
+    .editor {
+      flex: 1;
+      height: 100%;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+<div id="statusBar">
+  <span>Status: Live Conversion | Table: <strong>my_table</strong></span>
+  <button id="copyButton" onclick="copySQL()">Copy SQL</button>
+</div>
+
+<div id="container">
+  <div id="inputEditor" class="editor"></div>
+  <div id="outputEditor" class="editor"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+<script>
+  let inputEditor, outputEditor;
+
+  require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
+
+  require(['vs/editor/editor.main'], function () {
+    inputEditor = monaco.editor.create(document.getElementById('inputEditor'), {
+      value: `[\n  { "id": 1, "name": "Alice" },\n  { "id": 2, "name": "Bob" }\n]`,
+      language: 'json',
+      theme: 'vs-dark',
+      automaticLayout: true
+    });
+
+    outputEditor = monaco.editor.create(document.getElementById('outputEditor'), {
+      value: '-- SQL output will appear here --',
+      language: 'sql',
+      theme: 'vs-dark',
+      readOnly: true,
+      automaticLayout: true
+    });
+
+    inputEditor.onDidChangeModelContent(() => {
+      convertToSQL();
+    });
+
+    convertToSQL(); // initial conversion
+  });
+
+  function convertToSQL() {
+    const jsonText = inputEditor.getValue();
+    const tableName = 'my_table';
+    try {
+      const data = JSON.parse(jsonText);
+      if (!Array.isArray(data)) throw new Error("JSON must be an array of objects.");
+
+      const sqlStatements = data.map(row => {
+        const keys = Object.keys(row).map(k => `\`${k}\``).join(", ");
+        const values = Object.values(row).map(v =>
+          typeof v === 'string' ? `'${v.replace(/'/g, "''")}'` :
+          v === null ? "NULL" : v
+        ).join(", ");
+        return `INSERT INTO \`${tableName}\` (${keys}) VALUES (${values});`;
+      });
+
+      outputEditor.setValue(sqlStatements.join('\n'));
+    } catch (err) {
+      outputEditor.setValue('-- Error: ' + err.message);
+    }
+  }
+
+  function copySQL() {
+    const button = document.getElementById('copyButton');
+    const sqlText = outputEditor.getValue();
+    navigator.clipboard.writeText(sqlText).then(() => {
+      const originalText = button.textContent;
+      button.textContent = 'Copied!';
+      button.disabled = true;
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.disabled = false;
+      }, 1000);
+    });
+  }
+</script>
+
+</body>
+</html>
