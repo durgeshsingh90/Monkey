@@ -68,4 +68,4 @@ def adjust_file(file_path):
         part_number += 1
 
 # Example call to adjust_file
-adjust_file('C:\\Durgesh\\Office\\Automation\\monkey\\media\\emvco_logs\\L3_2025-05-13-1224.xml')
+# adjust_file('C:\\Durgesh\\Office\\Automation\\monkey\\media\\emvco_logs\\L3_2025-05-13-1224.xml')

@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from .hex2json import parse_iso8583
 from .json2hex import json_to_hex
+import traceback
 
 def index(request):
     return render(request, 'hex2iso/index.html')
@@ -51,22 +52,29 @@ def convert_view(request):
 
             if not os.path.exists(schema_path):
                 return JsonResponse({'error': f'Schema not found: {schema_filename}'}, status=404)
+
             if not input_str.strip():
-                return JsonResponse({}, safe=False)  # return empty result for blank input
+                return JsonResponse({}, safe=False)
 
             if direction == 'hex_to_json':
                 result = parse_iso8583(input_str, schema_path)
                 return JsonResponse(result, safe=False)
 
             elif direction == 'json_to_hex':
-                result = json_to_hex(input_str, schema_path)
-                return JsonResponse({}, safe=False)  # Send empty result instead of error
+                try:
+                    input_dict = json.loads(input_str)
+                except json.JSONDecodeError:
+                    return JsonResponse({'error': 'Invalid JSON input'}, status=400)
 
+                result = json_to_hex(input_dict, schema_path)
+                return JsonResponse({'hex': result}, safe=False)
 
             else:
                 return JsonResponse({'error': 'Invalid direction'}, status=400)
 
         except Exception as e:
+            traceback.print_exc()  # 👈 logs full traceback to console
+
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid method'}, status=405)

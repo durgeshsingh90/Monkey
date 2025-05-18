@@ -80,12 +80,18 @@ def json_to_hex(data, schema_path=r"D:\Projects\VSCode\docker\monkey\media\schem
 
     logging.info(f"\n\n📥 input JSON:\n{json.dumps(data, indent=2)}")
 
-    mti = data.get("mti", "")
+    mti = str(data.get("mti", "")).zfill(4)
     hex_str = ascii_to_hex(mti)
+
+
     logging.info(f"mti: {mti} -> {hex_str}")
 
     fields = data.get("data_elements", {})
     sorted_fields = sorted(fields.keys(), key=lambda x: int(x[2:]))
+
+    # Normalize DE004 to 12-digit string
+    if "DE004" in fields:
+        fields["DE004"] = str(fields["DE004"]).zfill(12)
 
     bitmap_hex = build_bitmap(sorted_fields)
     logging.info(f"bitmap ascii: {bitmap_hex}")
@@ -106,11 +112,6 @@ def json_to_hex(data, schema_path=r"D:\Projects\VSCode\docker\monkey\media\schem
             plain_text = get_de055_plain_text(value)
             de055_hex = convert_plain_text_to_hex(plain_text)
             hex_str += de055_hex
-
-
-
-        
-
         elif de in DE6X_FIELDS:
             nested = build_de6x_subfields(value)
             hex_str += build_variable_length(nested, 3)
