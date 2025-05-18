@@ -56,16 +56,17 @@ require(['vs/editor/editor.main'], function () {
       },
       body: JSON.stringify({ input, direction, schema: currentSchema })
     });
-    return await response.text();
+    const json = await response.json();
+    return json.hex ?? json;
   }
 
   async function convertHexToJson(hexString) {
-    if (!/^[0-9A-F]+$/.test(hexString)) return;
+    if (!/^[0-9A-F]+$/i.test(hexString)) return;
 
     try {
       isUpdating = true;
       const result = await convert(hexString, 'hex_to_json');
-      let finalJson = JSON.stringify(JSON.parse(result), null, 2);
+      let finalJson = JSON.stringify(result, null, 2);
 
       const mango = document.getElementById('mango-toggle');
       if (mango && mango.checked) {
@@ -73,6 +74,7 @@ require(['vs/editor/editor.main'], function () {
       }
 
       jsonEditor.setValue(finalJson);
+      localStorage.setItem('jsonEditorContent', finalJson);
     } catch (e) {
       console.warn("HEX→JSON conversion failed:", e);
     } finally {
@@ -83,7 +85,6 @@ require(['vs/editor/editor.main'], function () {
   function applyMangoConversion(jsonStr) {
     try {
       const obj = JSON.parse(jsonStr);
-
       const targetKeys = ['mti', 'DE004', 'DE048'];
 
       function convertNumbers(o) {
@@ -97,7 +98,6 @@ require(['vs/editor/editor.main'], function () {
       }
 
       convertNumbers(obj);
-
       return JSON.stringify(obj, null, 2);
     } catch (e) {
       console.warn("Mango conversion failed:", e);
@@ -146,7 +146,7 @@ require(['vs/editor/editor.main'], function () {
             setModelValueSafely(hexEditor, result);
           } else if (/^[0-9A-Fa-f\s]+$/.test(hexVal)) {
             const result = await convert(hexVal, 'hex_to_json');
-            let parsed = JSON.stringify(JSON.parse(result), null, 2);
+            let parsed = JSON.stringify(result, null, 2);
             if (document.getElementById('mango-toggle')?.checked) {
               parsed = applyMangoConversion(parsed);
             }
@@ -168,7 +168,6 @@ require(['vs/editor/editor.main'], function () {
         savedButton.classList.add('active');
         currentSchema = savedSchema;
 
-        // ✅ Auto-trigger conversion after reload
         if (savedHex && savedSchema === 'omnipay.json') {
           const cleanedHex = savedHex.replace(/\s+/g, '').toUpperCase();
           if (/^[0-9A-F]+$/.test(cleanedHex)) {
@@ -183,15 +182,20 @@ require(['vs/editor/editor.main'], function () {
     if (!currentSchema || isUpdating) return;
     userHasEdited = true;
 
-    const jsonVal = jsonEditor.getValue();
+    const jsonVal = jsonEditor.getValue().trim();
     localStorage.setItem('jsonEditorContent', jsonVal);
 
-    if (!jsonVal.trim().startsWith('{')) return;
+    if (!jsonVal) {
+      hexEditor.setValue('');
+      localStorage.setItem('hexEditorContent', '');
+      return;
+    }
 
     try {
       isUpdating = true;
       const result = await convert(jsonVal, 'json_to_hex');
       hexEditor.setValue(result);
+      localStorage.setItem('hexEditorContent', result);
     } catch (e) {
       console.warn("JSON→HEX failed:", e);
     } finally {
@@ -203,8 +207,14 @@ require(['vs/editor/editor.main'], function () {
     if (!currentSchema || isUpdating) return;
     userHasEdited = true;
 
-    let hexVal = hexEditor.getValue();
+    let hexVal = hexEditor.getValue().trim();
     let cleanedHex;
+
+    if (!hexVal) {
+      jsonEditor.setValue('');
+      localStorage.setItem('jsonEditorContent', '');
+      return;
+    }
 
     if (/^\s*\d{4}\s+[0-9A-Fa-f]{2}/m.test(hexVal)) {
       cleanedHex = extractHexFromLog(hexVal);
@@ -217,24 +227,12 @@ require(['vs/editor/editor.main'], function () {
       hexEditor.setValue(cleanedHex);
       isUpdating = false;
 
-      setTimeout(() => {
-        if (currentSchema === 'omnipay.json') {
-          convertHexToJson(cleanedHex);
-        }
-      }, 0);
+      setTimeout(() => convertHexToJson(cleanedHex), 0);
       return;
     }
 
     localStorage.setItem('hexEditorContent', cleanedHex);
-
-    if (!cleanedHex) {
-      jsonEditor.setValue('');
-      return;
-    }
-
-    if (currentSchema === 'omnipay.json') {
-      convertHexToJson(cleanedHex);
-    }
+    convertHexToJson(cleanedHex);
   });
 
   document.getElementById('mango-toggle').addEventListener('change', () => {
