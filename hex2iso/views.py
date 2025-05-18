@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .hex2iso import parse_iso8583
-from .iso2hex import json_to_hex
+from .hex2json import parse_iso8583
+from .json2hex import json_to_hex
 
 def index(request):
     return render(request, 'hex2iso/index.html')
@@ -21,7 +21,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .hex2iso import parse_iso8583  # your parser
+from .hex2json import parse_iso8583  # your parser
 
 def list_schemas(request):
     schema_dir = os.path.join(settings.MEDIA_ROOT, 'schemas')
@@ -33,7 +33,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import os
-from .hex2iso import parse_iso8583
+from .hex2json import parse_iso8583
 
 @csrf_exempt
 def convert_view(request):

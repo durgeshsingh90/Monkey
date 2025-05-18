@@ -93,20 +93,22 @@ def json_to_hex(data, schema_path=r"D:\Projects\VSCode\docker\monkey\media\schem
 
     for de in sorted_fields:
         field_schema = schema['fields'].get(de)
-        if not field_schema:
-            logging.warning(f"schema not found for {de}, skipping.")
+        if not isinstance(field_schema, dict):
+            logging.warning(f"Schema for {de} is not a valid object: {field_schema} (type: {type(field_schema)}), skipping.")
             continue
+        
 
         logging.info(f"encoding {de.lower()}: {field_schema.get('name', '')}")
         value = fields[de]
         field_type = field_schema.get("field_type", "").lower()
 
         if de == "DE055":
-            tlv_hex = build_tlv(value)
-            tlv_bytes = bytes.fromhex(tlv_hex)
-            length_prefix = ascii_to_hex(str(len(tlv_bytes)).zfill(3))
-            logging.info(f"DE055 total length: {len(tlv_bytes)} -> prefix: {length_prefix}")
-            hex_str += length_prefix + tlv_hex.upper()
+            plain_text = get_de055_plain_text(value)
+            de055_hex = convert_plain_text_to_hex(plain_text)
+            hex_str += de055_hex
+
+
+
         
 
         elif de in DE6X_FIELDS:
@@ -127,8 +129,33 @@ def json_to_hex(data, schema_path=r"D:\Projects\VSCode\docker\monkey\media\schem
     logging.info(f"\n✅ final hex:\n{hex_str}")
     return hex_str
 
-if __name__ == '__main__':
-    with open("sample.json", "r") as f:
-        sample_json = json.load(f)
-    result = json_to_hex(sample_json)
-    print("\nfinal hex output:\n" + result)
+def get_de055_plain_text(de055_dict):
+    plain_str = ""
+
+    for tag, value_hex in de055_dict.items():
+        value_bytes = bytes.fromhex(value_hex)
+        value_len = len(value_bytes)
+        value_len_str = str(value_len).zfill(2)
+        entry = tag + value_len_str + value_hex.upper()
+        plain_str += entry
+
+        logging.info(f"DE055 tag {tag}: len={value_len} -> {entry}")
+
+    total_len = len(plain_str)
+    total_len_prefix = str(total_len).zfill(3)
+    full_plain = total_len_prefix + plain_str
+
+    logging.info(f"\n🧾 Final DE055 plain text:\n{full_plain}")
+    return full_plain
+
+def convert_plain_text_to_hex(plain_text):
+    hex_result = plain_text.encode('ascii').hex().upper()
+    logging.info(f"\n🔁 Final DE055 HEX (from ASCII):\n{hex_result}")
+    return hex_result
+
+
+# if __name__ == '__main__':
+#     with open("sample.json", "r") as f:
+#         sample_json = json.load(f)
+#     result = json_to_hex(sample_json)
+#     print("\nfinal hex output:\n" + result)

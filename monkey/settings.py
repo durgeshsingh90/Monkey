@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     'xlog_mastercard',
     'certifications',
     'hex2iso',
-    'json2sql'
+    'json2sql',
+    'ascii2hex'
 ]
 
 LOG_DIR = BASE_DIR / 'logs'

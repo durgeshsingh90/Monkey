@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hex ↔ ISO8583 Converter</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    #container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #ccc;
+    }
+    .editor {
+      flex: 1;
+    }
+    .status-bar {
+      height: 24px;
+      background: #eee;
+      padding: 4px 10px;
+      font-size: 12px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      border-top: 1px solid #ccc;
+      font-family: monospace;
+    }
+    .editor-container:last-child {
+      border-right: none;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align: center;">Hex ↔ ISO8583 Converter</h2>
+  <div id="container">
+    <div class="editor-container">
+      <div id="hex-editor" class="editor"></div>
+      <div id="hex-status" class="status-bar">Ln 1, Col 1, Sel 0</div>
+    </div>
+    <div class="editor-container">
+      <div id="iso-editor" class="editor"></div>
+      <div id="iso-status" class="status-bar">Ln 1, Col 1, Sel 0</div>
+    </div>
+  </div>
+
+  <!-- Monaco Editor Loader -->
+  <script src="https://unpkg.com/monaco-editor@0.43.0/min/vs/loader.js"></script>
+  <script>
+    require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.43.0/min/vs' } });
+
+    require(['vs/editor/editor.main'], function () {
+      const hexEditor = monaco.editor.create(document.getElementById('hex-editor'), {
+        value: '',
+        language: 'plaintext',
+        theme: 'vs',
+        automaticLayout: true,
+        wordWrap: "on"
+      });
+
+      const isoEditor = monaco.editor.create(document.getElementById('iso-editor'), {
+        value: '',
+        language: 'plaintext',
+        theme: 'vs',
+        automaticLayout: true,
+        wordWrap: "on"
+      });
+
+      function updateStatusBar(editor, statusEl) {
+        const selection = editor.getSelection();
+        const line = selection.positionLineNumber;
+        const column = selection.positionColumn;
+        const selLength = editor.getModel().getValueLengthInRange(selection);
+        statusEl.textContent = `Ln ${line}, Col ${column}, Sel ${selLength}`;
+      }
+
+      hexEditor.onDidChangeCursorSelection(() =>
+        updateStatusBar(hexEditor, document.getElementById('hex-status'))
+      );
+      isoEditor.onDidChangeCursorSelection(() =>
+        updateStatusBar(isoEditor, document.getElementById('iso-status'))
+      );
+
+      function hexToIso(hexStr) {
+        try {
+          const bytes = hexStr.replace(/\s+/g, '').match(/.{1,2}/g) || [];
+          return bytes.map(b => String.fromCharCode(parseInt(b, 16))).join('');
+        } catch {
+          return '[Invalid Hex]';
+        }
+      }
+
+      function isoToHex(isoStr) {
+        return isoStr
+          .split('')
+          .map(c => c.charCodeAt(0).toString(16).padStart(2, '0'))
+          .join(' ');
+      }
+
+      let preventLoop = false;
+
+      const syncFromHex = () => {
+        if (preventLoop) return;
+        preventLoop = true;
+        const hex = hexEditor.getValue();
+        isoEditor.setValue(hexToIso(hex));
+        preventLoop = false;
+      };
+
+      const syncFromIso = () => {
+        if (preventLoop) return;
+        preventLoop = true;
+        const iso = isoEditor.getValue();
+        hexEditor.setValue(isoToHex(iso));
+        preventLoop = false;
+      };
+
+      hexEditor.onDidChangeModelContent(syncFromHex);
+      isoEditor.onDidChangeModelContent(syncFromIso);
+
+      // Initial status
+      updateStatusBar(hexEditor, document.getElementById('hex-status'));
+      updateStatusBar(isoEditor, document.getElementById('iso-status'));
+    });
+  </script>
+</body>
+</html>
