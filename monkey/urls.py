@@ -50,6 +50,7 @@ urlpatterns = [
     path('hex2iso/', include('hex2iso.urls')),
     path('json2sql/', include('json2sql.urls')),
     path('ascii2hex/', include('ascii2hex.urls')),
+    path('junglewire/', include('junglewire.urls')),
 
 
 ]

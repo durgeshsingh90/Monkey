@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'certifications',
     'hex2iso',
     'json2sql',
-    'ascii2hex'
+    'ascii2hex',
+    'junglewire'
 ]
 
 LOG_DIR = BASE_DIR / 'logs'
@@ -266,6 +267,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "certifications/static",
     BASE_DIR / "hex2iso/static",
     BASE_DIR / "json2sql/static",
+    BASE_DIR / "junglewire/static",
 
     
 

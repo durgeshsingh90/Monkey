@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hex JSON Tool</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .container0 {
+      height: 3em;
+      background-color: #f2f2f2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .header-title {
+      font-weight: bold;
+      font-size: 1em;
+      color: #333;
+    }
+
+    .button-groups {
+      display: flex;
+      gap: 20px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      padding: 4px 8px;
+      background-color: #e8e8e8;
+      border-radius: 6px;
+      box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn {
+      padding: 0.35em 0.9em;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.9em;
+      cursor: pointer;
+      color: white;
+      background-color: gray;
+      transition: background-color 0.2s;
+    }
+
+    .btn.active {
+      background-color: green;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+    }
+
+    .container1 {
+      width: 20%;
+      background-color: #add8e6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container4 {
+      width: 20%;
+      background-color: #90ee90;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .log-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 5px;
+      padding: 5px;
+      background-color: #82d882;
+    }
+
+    .log-toolbar button {
+      padding: 3px 8px;
+      font-size: 0.8em;
+      border: none;
+      border-radius: 4px;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+    }
+
+    .log-toolbar button:active {
+      transform: scale(0.97);
+    }
+
+    .container4 textarea {
+      flex: 1;
+      width: 100%;
+      resize: none;
+      font-family: monospace;
+      font-size: 0.9em;
+      border: none;
+      background-color: #e0e0e0;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+
+    .middle {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container2 {
+      background-color: #ffe4b5;
+    }
+
+    .container2 textarea {
+      font-family: monospace;
+      font-size: 0.9em;
+      height: 6em;
+      resize: none;
+      overflow-x: auto;
+      overflow-y: auto;
+      width: 100%;
+      white-space: pre;
+      border: none;
+    }
+
+    .container3 {
+      flex: 1;
+      background-color: #f0f0f0;
+    }
+
+    #editor {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+
+  <!-- Monaco Editor loader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+</head>
+<body>
+  <div class="container0">
+    <div class="header-title">🧩 Hex JSON Tool</div>
+    <div class="button-groups">
+      <div class="btn-group" id="exclusiveGroup">
+        <button class="btn" id="dev77">dev77</button>
+        <button class="btn" id="paypal77">paypal77</button>
+        <button class="btn" id="novate">novate</button>
+        <button class="btn" id="test77">test77</button>
+        <button class="btn" id="cert77">cert77</button>
+        <button class="btn" id="netscaler">netscaler</button>
+      </div>
+      <div class="btn-group">
+        <button class="btn" id="updateBtn">Update</button>
+        <button class="btn" id="echoBtn">Echo</button>
+        <button class="btn" id="incrBtn">Incr</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="container1">Container 1 (Left)</div>
+    <div class="middle">
+      <div class="container2">
+        <textarea id="hexInput" placeholder="Paste hex dump here..."></textarea>
+      </div>
+      <div class="container3">
+        <div id="editor"></div>
+      </div>
+    </div>
+    <div class="container4">
+      <div class="log-toolbar">
+        <button id="copyBtn">Copy</button>
+        <button id="clearBtn">Clear</button>
+      </div>
+      <textarea id="logViewer" readonly placeholder="Logs will appear here..."></textarea>
+    </div>
+  </div>
+
+  <script>
+    // Exclusive group logic
+    const exclusiveButtons = [
+      'dev77', 'paypal77', 'novate', 'test77', 'cert77', 'netscaler'
+    ];
+    exclusiveButtons.forEach(id => {
+      document.getElementById(id).addEventListener('click', function () {
+        exclusiveButtons.forEach(btnId => {
+          document.getElementById(btnId).classList.remove('active');
+        });
+        this.classList.add('active');
+      });
+    });
+
+    // Independent toggles
+    ['updateBtn', 'echoBtn', 'incrBtn'].forEach(id => {
+      document.getElementById(id).addEventListener('click', function () {
+        this.classList.toggle('active');
+      });
+    });
+
+    // Monaco setup
+    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+    require(['vs/editor/editor.main'], function () {
+      monaco.editor.create(document.getElementById('editor'), {
+        value: `{\n  "example": true\n}`,
+        language: 'json',
+        theme: 'vs-light',
+        automaticLayout: true
+      });
+    });
+
+    // Copy & Clear behavior
+    const copyBtn = document.getElementById('copyBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const logViewer = document.getElementById('logViewer');
+
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(logViewer.value).then(() => {
+        const original = copyBtn.textContent;
+        copyBtn.textContent = "Copied";
+        setTimeout(() => copyBtn.textContent = original, 1000);
+      });
+    });
+
+    clearBtn.addEventListener('click', () => {
+      logViewer.value = '';
+      const original = clearBtn.textContent;
+      clearBtn.textContent = "Cleared";
+      setTimeout(() => clearBtn.textContent = original, 1000);
+    });
+
+    // Simulated log appending (you can replace this with live backend feed)
+    /*
+    setInterval(() => {
+      logViewer.value += `\n[${new Date().toLocaleTimeString()}] Log entry`;
+      logViewer.scrollTop = logViewer.scrollHeight;
+    }, 3000);
+    */
+  </script>
+</body>
+</html>
