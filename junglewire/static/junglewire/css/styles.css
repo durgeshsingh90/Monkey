@@ -1,148 +1,227 @@
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+/* Reset and Base Layout */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    html, body {
-      height: 100%;
-      font-family: sans-serif;
-    }
+html, body {
+  height: 100%;
+  font-family: sans-serif;
+}
 
-    body {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #fef8e6;
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-    .container0 {
-      height: 3em;
-      background-color: #f2f2f2;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 15px;
-      border-bottom: 1px solid #ccc;
-    }
+/* Container 0 (Top Bar) */
+.container0 {
+  height: 3.5em;
+  background-color: #fef8e6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px;
+  border-bottom: 1px solid #ccc;
+}
 
-    .header-title {
-      font-weight: bold;
-      font-size: 1em;
-      color: #333;
-    }
+.header-title {
+  font-family: 'Chewy', cursive;
+  font-size: 1.9rem;
+  color: #8c1b13;
+  font-weight: bold;
+}
 
-    .button-groups {
-      display: flex;
-      gap: 20px;
-    }
+.button-groups {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
 
-    .btn-group {
-      display: flex;
-      gap: 8px;
-      padding: 4px 8px;
-      background-color: #e8e8e8;
-      border-radius: 6px;
-      box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
-    }
+.btn-group {
+  display: flex;
+  gap: 8px;
+  padding: 4px 8px;
+  background-color: #e8e8e8;
+  border-radius: 6px;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
+}
 
-    .btn {
-      padding: 0.35em 0.9em;
-      border: none;
-      border-radius: 4px;
-      font-weight: bold;
-      font-size: 0.9em;
-      cursor: pointer;
-      color: white;
-      background-color: gray;
-      transition: background-color 0.2s;
-    }
+.btn {
+  padding: 0.35em 0.9em;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.9em;
+  cursor: pointer;
+  color: white;
+  background-color: gray;
+  transition: background-color 0.2s;
+}
 
-    .btn.active {
-      background-color: green;
-    }
+.btn.active {
+  background-color: green;
+}
 
-    .main {
-      flex: 1;
-      display: flex;
-    }
+.btn-send {
+  font-size: 1.2em;
+  padding: 0.6em 1.5em;
+  background-color: #007BFF;
+  border-radius: 8px;
+}
 
-    .container1 {
-      width: 20%;
-      background-color: #add8e6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+.btn-send:hover {
+  background-color: #0056b3;
+}
 
-    .container4 {
-      width: 20%;
-      background-color: #90ee90;
-      display: flex;
-      flex-direction: column;
-    }
+/* Main Layout */
+.main {
+  flex: 1;
+  display: flex;
+}
 
-    .log-toolbar {
-      display: flex;
-      justify-content: flex-end;
-      gap: 5px;
-      padding: 5px;
-      background-color: #82d882;
-    }
+/* Container 1 (Test Case Tree) */
+.container1 {
+  width: 20%;
+  background-color: #add8e6;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 10px;
+  overflow-y: auto;
+}
 
-    .log-toolbar button {
-      padding: 3px 8px;
-      font-size: 0.8em;
-      border: none;
-      border-radius: 4px;
-      background-color: #444;
-      color: white;
-      cursor: pointer;
-    }
+.tree-view {
+  width: 100%;
+  font-family: monospace;
+  font-size: 0.85em;
+}
 
-    .log-toolbar button:active {
-      transform: scale(0.97);
-    }
+.tree-item {
+  margin-left: 1em;
+  cursor: pointer;
+}
 
-    .container4 textarea {
-      flex: 1;
-      width: 100%;
-      resize: none;
-      font-family: monospace;
-      font-size: 0.9em;
-      border: none;
-      background-color: #e0e0e0;
-      overflow-y: auto;
-      overflow-x: auto;
-    }
+.tree-folder {
+  font-weight: bold;
+  color: #333;
+  cursor: default;
+  margin-top: 4px;
+}
 
-    .middle {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
+.tree-file {
+  color: #007BFF;
+}
 
-    .container2 {
-      background-color: #ffe4b5;
-    }
+.tree-file:hover {
+  text-decoration: underline;
+}
 
-    .container2 textarea {
-      font-family: monospace;
-      font-size: 0.9em;
-      height: 6em;
-      resize: none;
-      overflow-x: auto;
-      overflow-y: auto;
-      width: 100%;
-      white-space: pre;
-      border: none;
-    }
+/* Container 2 (Hex Input with Line Numbers) */
+.container2 {
+  background-color: #ffe4b5;
+}
 
-    .container3 {
-      flex: 1;
-      background-color: #f0f0f0;
-    }
+.linenumber-wrapper {
+  display: flex;
+  font-family: monospace;
+  font-size: 0.9em;
+  height: 6em;
+  background-color: #ffe4b5;
+  overflow: hidden;
+}
 
-    #editor {
-      width: 100%;
-      height: 100%;
-    }
+#lineNumbersWrapper {
+  width: 3em;
+  background-color: #f4d3a1;
+  border-right: 1px solid #ccc;
+  overflow: hidden;
+}
+
+#lineNumbers {
+  text-align: right;
+  color: #333;
+  padding: 0.5em 0.4em 0.5em 0;
+  line-height: 1.4em;
+  white-space: pre;
+  font-family: monospace;
+}
+
+#hexInput {
+  flex: 1;
+  padding: 0.5em;
+  resize: none;
+  border: none;
+  outline: none;
+  overflow: auto;
+  white-space: pre;
+  background-color: #fff3dc;
+  font-family: monospace;
+  font-size: 0.9em;
+  line-height: 1.4em;
+}
+
+/* Container 3 (Monaco Editor) */
+.container3 {
+  flex: 1;
+  background-color: #1e1e1e; /* Matches Monaco dark theme */
+}
+
+#editor {
+  width: 100%;
+  height: 100%;
+}
+
+/* Container 4 (Logs) */
+.container4 {
+  width: 20%;
+  background-color: #90ee90;
+  display: flex;
+  flex-direction: column;
+}
+
+.log-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  padding: 5px;
+  background-color: #82d882;
+}
+
+.log-toolbar button {
+  padding: 3px 8px;
+  font-size: 0.8em;
+  border: none;
+  border-radius: 4px;
+  background-color: #444;
+  color: white;
+  cursor: pointer;
+}
+
+.log-toolbar button:active {
+  transform: scale(0.97);
+}
+
+.container4 textarea {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  font-family: monospace;
+  font-size: 0.9em;
+  border: none;
+  background-color: #e0e0e0;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* Middle Section Layout */
+.middle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}

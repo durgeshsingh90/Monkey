@@ -1,0 +1,71 @@
+{
+            "certified": {
+                "Fiserv": {
+                    "Authorization Tests": [
+                        {
+                            "id": "TC001.a",
+                            "name": "Authorization request - minimal fields",
+                            "request": {
+                                "mti": "0200",
+                                "data_elements": {
+                                    "DE003": "000000",
+                                    "DE004": "000000000000",
+                                    "DE011": "123456",
+                                    "DE041": "12345678",
+                                    "DE049": "840"
+                                }
+                            }
+                        },
+                        {
+                            "id": "TC001.b",
+                            "name": "Authorization response - minimal fields",
+                            "request": {
+                                "mti": "0210",
+                                "data_elements": {
+                                    "DE003": "000000",
+                                    "DE004": "000000000000",
+                                    "DE011": "123456",
+                                    "DE041": "12345678",
+                                    "DE049": "840",
+                                    "DE039": "00"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "AcquirerX": {
+                "Reversal Tests": [
+                    {
+                        "id": "TC101",
+                        "name": "Reversal request with basic fields",
+                        "request": {
+                            "mti": "0400",
+                            "data_elements": {
+                                "DE003": "200000",
+                                "DE004": "000000001000",
+                                "DE011": "789123",
+                                "DE041": "11223344",
+                                "DE049": "840"
+                            }
+                        }
+                    }
+                ]
+            },
+            "Authorization Tests": [
+                {
+                    "id": "TC900",
+                    "name": "Generic auth test in flat hierarchy",
+                    "request": {
+                        "mti": "0200",
+                        "data_elements": {
+                            "DE003": "000000",
+                            "DE004": "000000000100",
+                            "DE011": "000001",
+                            "DE041": "TERMID01",
+                            "DE049": "840"
+                        }
+                    }
+                }
+            ]
+        }

@@ -46,7 +46,6 @@ urlpatterns = [
     path('compare/', include('compare.urls')),
     path('yaml2json/', include('yaml2json.urls')),
     path('xlog_mastercard/', include('xlog_mastercard.urls')),
-    path('certifications/', include('certifications.urls')),
     path('hex2iso/', include('hex2iso.urls')),
     path('json2sql/', include('json2sql.urls')),
     path('ascii2hex/', include('ascii2hex.urls')),
