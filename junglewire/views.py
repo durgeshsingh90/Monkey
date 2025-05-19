@@ -3,6 +3,8 @@ import json
 from django.conf import settings
 from django.shortcuts import render
 from django.apps import apps
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 
 def index(request):
     media_dir = os.path.join(settings.MEDIA_ROOT, 'junglewire')
@@ -38,11 +40,6 @@ def api_schedule(request):
         return JsonResponse({'message': 'Task scheduled!'})
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
-import json
-import os
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from django.conf import settings
 
 @csrf_exempt
 def save_testcases_api(request):

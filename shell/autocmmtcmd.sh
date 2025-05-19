@@ -18,6 +18,7 @@
 #
 # Version History:
 #    - Version 1.0 (2025-02-26) - Durgesh Singh - Initial version
+#    - Version 2.0 (2025-05-19) - Durgesh Singh - Included cronjob changes.
 ##############################################################################################
 
 # Function to display usage
@@ -27,6 +28,7 @@ usage() {
     echo "  <argument> Argument to be passed to the commands"
     echo "  autocmmtcmd.sh sta - to start one by one"
     echo "  autocmmtcmd.sh sto - to stop one by one"
+    echo "  when -a is used, note that cronjob will be disabled before stopping the ports and enable after starting it"
     exit 1
 }
 
@@ -134,3 +136,4 @@ if $run_all && [ "$arg" = "sta" ]; then
 fi
 
 echo "All commands executed."
+

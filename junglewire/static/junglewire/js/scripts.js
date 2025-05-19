@@ -1,4 +1,3 @@
-// Exclusive group logic
 const exclusiveButtons = ['dev77', 'paypal77', 'novate', 'test77', 'cert77', 'netscaler'];
 exclusiveButtons.forEach(id => {
   document.getElementById(id).addEventListener('click', function () {
@@ -99,47 +98,28 @@ function buildTree(data, container) {
 
       container.appendChild(file);
     });
-  } else if (typeof data === 'object') {
+  } else if (typeof data === 'object' && data !== null) {
     Object.entries(data).forEach(([key, value]) => {
       const folder = document.createElement('div');
       folder.className = 'tree-item tree-folder';
-      folder.innerHTML = `<span class="folder-icon">▶</span> <span class="folder-label">${key}</span>`;
+      folder.innerHTML = `<span class="folder-icon">▶</span><span class="folder-label">${key}</span>`;
       container.appendChild(folder);
 
       const subContainer = document.createElement('div');
       subContainer.className = 'tree-indent';
 
-      const subtree = document.createElement('div');
-      subtree.className = 'tree-subtree';
-
-      subContainer.appendChild(subtree);
-      container.appendChild(subContainer);
-
-      buildTree(value, subtree);
-
       folder.addEventListener('click', (e) => {
         e.stopPropagation();
         const icon = folder.querySelector('.folder-icon');
-
-        if (e.ctrlKey || e.metaKey) {
-          const files = subContainer.querySelectorAll('.tree-file');
-          const anyUnselected = [...files].some(f => !f.classList.contains('selected'));
-          files.forEach(file => {
-            const key = file.dataset.testcase;
-            if (anyUnselected) {
-              file.classList.add('selected');
-              selectedTestCases.add(key);
-            } else {
-              file.classList.remove('selected');
-              selectedTestCases.delete(key);
-            }
-          });
-          console.log("Selected:", [...selectedTestCases].map(JSON.parse));
-        } else {
-          const isCollapsed = subContainer.classList.toggle('collapsed');
-          icon.textContent = isCollapsed ? '▶' : '▼';
-        }
+        const isCollapsed = subContainer.classList.toggle('collapsed');
+        icon.textContent = isCollapsed ? '▶' : '▼';
       });
+
+      const subtree = document.createElement('div');
+      subtree.className = 'tree-subtree';
+      subContainer.appendChild(subtree);
+      container.appendChild(subContainer);
+      buildTree(value, subtree);
     });
   }
 }

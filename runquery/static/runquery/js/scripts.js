@@ -11,7 +11,13 @@ let paginatedData = [];
 let resultWindow = null;
 let editors = {};                 // Global Monaco editor instances per tab
 let columnCache = {};            // Table → column cache for suggestions
-
+ const dbColors = {
+  "prod_main": "#dc2626",  
+  "uat_ist": "#facc15",    
+  "sit_env": "#60a5fa",    
+  "dev_db": "#4ade80",      
+  "default": "#ffb347"      
+ };
 
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabContents = document.querySelectorAll(".tab-content");
@@ -480,10 +486,10 @@ function toggleViewMode(toggle) {
   document.getElementById("columnResult").style.display = isColumn ? "block" : "none";
   document.getElementById("jsonResult").style.display = isColumn ? "none" : "block";
 
-  const icon = document.getElementById("toggleIcon");
-  icon.src = isColumn
-    ? "/static/runquery/images/tablet.png"
-    : "/static/runquery/images/json.png";
+  // const icon = document.getElementById("toggleIcon");
+  // icon.src = isColumn
+  //   ? "/static/runquery/images/tablet.png"
+  //   : "/static/runquery/images/json.png";
 
   localStorage.setItem("viewMode", isColumn ? "column" : "json");
 }
@@ -1195,13 +1201,7 @@ function toggleExportDropdown() {
   };
  }
 
- const dbColors = {
-  "prod_main": "#dc2626",  
-  "uat_ist": "#facc15",    
-  "sit_env": "#60a5fa",    
-  "dev_db": "#4ade80",      
-  "default": "#ffb347"      
- };
+
  function updatePageTitle(dbName) {
   const titleEl = document.getElementById("pageTitle");
   const themeColorEl = document.getElementById("themeColorMeta");
