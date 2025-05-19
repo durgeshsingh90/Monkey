@@ -148,7 +148,9 @@ function execute() {
   jsonContainer.style.display = "none";
 
   // Always attempt new connection with fresh 10-min session
+  if (!isSessionConnected) {
   updateDbSessionIcon("connecting");
+}
 
   fetch("/runquery/start_db_session/", {
     method: "POST",
@@ -1499,4 +1501,50 @@ window.addEventListener("DOMContentLoaded", () => {
 window.addEventListener("beforeunload", () => {
   disconnectDbSession();  // ⛔ auto disconnect on page refresh
 });
+window.addEventListener("load", () => {
+  const isColumn = (localStorage.getItem("viewMode") || "column") === "column";
+  const isVertical = localStorage.getItem("verticalView") === "true";
+  const hideEmpty = localStorage.getItem("hideEmptyCols") === "true";
 
+  document.getElementById("btnViewMode").classList.toggle("enabled", isColumn);
+  document.getElementById("btnViewMode").textContent = `View Mode: ${isColumn ? "Column" : "JSON"}`;
+
+  document.getElementById("btnVertical").classList.toggle("enabled", isVertical);
+  document.getElementById("btnVertical").textContent = `Vertical: ${isVertical ? "Enabled" : "Disabled"}`;
+
+  document.getElementById("btnEmptyCols").classList.toggle("enabled", hideEmpty);
+  document.getElementById("btnEmptyCols").textContent = `Empty Columns: ${hideEmpty ? "Enabled" : "Disabled"}`;
+});
+
+
+
+function toggleVerticalLayout() {
+  const btn = document.getElementById("btnVertical");
+  const enabled = !btn.classList.contains("enabled");
+  btn.classList.toggle("enabled", enabled);
+  btn.textContent = `Vertical: ${enabled ? "Enabled" : "Disabled"}`;
+  localStorage.setItem("verticalView", enabled);
+  document.getElementById("toggleVertical").checked = enabled;
+  renderResults(lastExecutedResults);
+}
+
+function toggleEmptyColumns() {
+  const btn = document.getElementById("btnEmptyCols");
+  const enabled = !btn.classList.contains("enabled");
+  btn.classList.toggle("enabled", enabled);
+  btn.textContent = `Empty Columns: ${enabled ? "Enabled" : "Disabled"}`;
+  localStorage.setItem("hideEmptyCols", enabled);
+  document.getElementById("toggleEmptyCols").checked = enabled;
+  renderResults(lastExecutedResults);
+}
+
+function toggleViewModeButton() {
+  const btn = document.getElementById("btnViewMode");
+  const isColumn = !btn.classList.contains("enabled");
+  btn.classList.toggle("enabled", isColumn);
+  btn.textContent = `View Mode: ${isColumn ? "Column" : "JSON"}`;
+  localStorage.setItem("viewMode", isColumn ? "column" : "json");
+
+  document.getElementById("toggleSwitch").checked = isColumn;
+  toggleViewMode({ checked: isColumn });
+}

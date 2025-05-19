@@ -50,20 +50,16 @@
 <span id="sessionTimer" style="font-size: 13px; margin-left: 6px;"></span>
 
           <select id="dropdown1"></select>
-          <label class="toggle-switch" title="Vertical layout">
-            <input type="checkbox" id="toggleVertical">
-            <span class="slider"><span class="label-inside">↕</span></span>
-          </label>
-          <label class="toggle-switch" title="Toggle empty columns">
-            <input type="checkbox" id="toggleEmptyCols">
-            <span class="slider"><span class="label-inside">Ø</span></span>
-            </label>
-          <label class="toggle-switch" title="Toggle view mode">
-            <input type="checkbox" id="toggleSwitch" onchange="toggleViewMode(this)">
-            <span class="slider">
-              <img id="toggleIcon" class="label-inside" src="{% static 'runquery/images/tablet.png' %}" alt="icon">
-            </span>
-          </label>
+<!-- Toggle Buttons (Replaces the old toggle-switch labels) -->
+<button id="btnVertical" class="toggle-btn" onclick="toggleVerticalLayout()">Vertical: Disabled</button>
+<button id="btnEmptyCols" class="toggle-btn" onclick="toggleEmptyColumns()">Empty Columns: Disabled</button>
+<button id="btnViewMode" class="toggle-btn" onclick="toggleViewModeButton()">View Mode: Column</button>
+
+<!-- Hidden checkboxes preserved for compatibility (optional) -->
+<input type="checkbox" id="toggleVertical" style="display: none;">
+<input type="checkbox" id="toggleEmptyCols" style="display: none;">
+<input type="checkbox" id="toggleSwitch" style="display: none;">
+
         </div>
       </div>
 

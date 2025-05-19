@@ -60,14 +60,30 @@ def get_session_connection(db_key):
     now = time.time()
     expiry = session_expiry.get(db_key, 0)
 
-    if db_key in db_sessions and now < expiry:
+    if db_key in db_sessions:
+        if now >= expiry:
+            try:
+                db_sessions[db_key].ping()
+                logging.info(f"Session for {db_key} is alive; extending session.")
+            except Exception:
+                logging.warning(f"Session for {db_key} expired; reconnecting.")
+                db_sessions[db_key].close()
+                del db_sessions[db_key]
+                return initialize_connection_with_expiry(db_key)
+
+        # Extend session time even if it's still valid
+        session_expiry[db_key] = now + 600
         return db_sessions[db_key]
 
+    return initialize_connection_with_expiry(db_key)
+
+def initialize_connection_with_expiry(db_key):
     connection = initialize_connection(db_key)
     if connection:
         db_sessions[db_key] = connection
-        session_expiry[db_key] = now + 600  # 10 minutes
+        session_expiry[db_key] = time.time() + 600
     return connection
+
 
 def execute_query(query, db_key="uat_ist", use_session=False):
     query_result = {"query": query, "db_key": db_key, "result": None, "error": None}

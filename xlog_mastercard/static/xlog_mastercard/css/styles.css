@@ -141,11 +141,7 @@ body {
 .de32-card .button {
   margin-top: 10px;
 }
-.loading-overlay {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.4s ease, visibility 0.4s ease;
-}
+
 
 .loading-overlay.active {
   opacity: 1;

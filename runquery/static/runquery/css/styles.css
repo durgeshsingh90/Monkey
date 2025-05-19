@@ -712,3 +712,20 @@ button {
   background: transparent;
  }
  
+
+  .toggle-btn {
+    padding: 6px 12px;
+    margin-left: 8px;
+    font-size: 13px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #d1d5db; /* Disabled = gray */
+    color: #111827;
+    transition: background 0.3s ease;
+  }
+
+  .toggle-btn.enabled {
+    background-color: #34d399; /* Enabled = green */
+    color: #fff;
+  }
