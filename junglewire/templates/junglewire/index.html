@@ -15,9 +15,15 @@
       <a href="{% url 'homepage' %}" style="text-decoration: none; color: inherit;">Junglewire</a>
     </div>
     <div class="button-groups">
+      <div id="selectedTestBadge" class="selected-test-badge hidden">
+  🧪 <span id="currentTestName">No test case selected</span>
+</div>
+
       <button id="saveBtn" class="save-icon" title="Save">
   <img id="saveIconImg" src="{% static 'junglewire/images/save.png' %}" alt="Save" />
 </button>
+
+
             <div class="btn-group">
   <button id="scheduledBtn" class="scheduled-icon" title="Scheduled">
     <img src="{% static 'junglewire/images/schedule.png' %}" alt="Scheduled" />
@@ -47,9 +53,23 @@
   </div>
 
   <div class="main">
-    <div class="container1">
-      <div id="testcaseTree" class="tree-view"></div>
-    </div>
+<div class="container1">
+  <div class="tree-status-bar">
+    <span class="tree-title">Test Case Tree</span>
+    
+<div class="tree-controls">
+  <button id="deleteSelectedBtn" title="Delete Selected Test Cases">
+    <img id="deleteIcon" src="{% static 'junglewire/images/delete.png' %}" alt="Delete" />
+  </button>
+  <button id="collapseAllBtn" title="Collapse All">
+  <img src="/static/junglewire/images/collapse.png" alt="Collapse All" />
+  </button>
+</div>
+
+</div>
+  <div id="testcaseTree" class="tree-view"></div>
+</div>
+
 
     <div class="middle">
       <div class="container2">
@@ -84,14 +104,14 @@
     <label>Test Case Name</label>
     <input type="text" id="saveName" />
 
-    <label>Folder Hierarchy</label>
+    <!-- <label>Folder Hierarchy</label>
     <select id="level1Select"><option value="">Select Level 1</option></select>
     <select id="level2Select"><option value="">Select Level 2</option></select>
-    <select id="level3Select"><option value="">Select Level 3</option></select>
+    <select id="level3Select"><option value="">Select Level 3</option></select> -->
 
     <div class="modal-actions">
       <button id="saveConfirmBtn">Save</button>
-      <button id="deleteBtn">Delete</button>
+  <button id="saveAsBtn">Save As</button>
       <button id="cancelSaveBtn">Cancel</button>
     </div>
   </div>

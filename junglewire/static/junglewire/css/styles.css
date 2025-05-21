@@ -153,9 +153,7 @@ body {
   border-left: 4px solid #007BFF;
 }
 
-.tree-subtree.collapsed {
-  display: none;
-}
+
 .tree-indent {
   margin-left: 0.1em;
   padding-left: 0.1em;
@@ -163,9 +161,6 @@ body {
 }
 
 
-.tree-subtree.collapsed {
-  display: none;
-}
 
 /* Container 2 (Hex Input with Line Numbers) */
 .container2 {
@@ -276,9 +271,6 @@ body {
   transition: max-height 0.2s ease-out;
 }
 
-.tree-subtree.collapsed {
-  display: none;
-}
 
 .tree-folder {
   font-weight: bold;
@@ -405,3 +397,150 @@ body {
   transform: scale(1.1);
 }
 
+.tree-controls {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  /* padding: 1px 1px; */
+}
+
+/* Status bar at the top of tree */
+.tree-status-bar {
+  width: 100%;
+  background-color: #90c4e4;
+  /* padding: 4px 8px; */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Poppins', sans-serif;
+  font-weight: bold;
+  border-bottom: 1px solid #555;
+}
+
+.tree-title {
+  font-size: 1em;
+  color: #333;
+}
+
+#collapseAllBtn {
+  background-color: #333;
+  color: #fff;
+  font-size: 0.85em;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#collapseAllBtn:hover {
+  background-color: #111;
+}
+
+/* Container 1 refinements */
+.container1 {
+  width: 20%;
+  background-color: #add8e6;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow-y: auto;
+  /* border-right: 1px solid #888; */
+}
+
+#saveBtn.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+  cursor: default;
+  transition: opacity 0.3s ease;
+}
+.current-test-label {
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #333;
+  margin-right: 15px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal-actions button {
+  padding: 6px 12px;
+  font-size: 0.95em;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #007BFF;
+  color: white;
+}
+
+.modal-actions button:hover {
+  background-color: #0056b3;
+}
+
+.selected-test-badge {
+  background-color: #f0f8ff;
+  color: #1b3d6d;
+  font-weight: 600;
+  font-size: 0.88em;
+  border-left: 4px solid #007BFF;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selected-test-badge.hidden {
+  display: none;
+}
+
+.tree-file.selected {
+  background-color: #d0ecff;
+  border-left: 4px solid #007BFF;
+  font-weight: bold;
+  color: #004080;
+}
+
+#deleteSelectedBtn {
+  background-color: #cc4444;
+  color: white;
+  font-size: 0.85em;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#deleteSelectedBtn:hover {
+  background-color: #a22;
+}
+
+.tree-controls button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.tree-controls img {
+  height: 24px;
+  width: 24px;
+  transition: transform 0.2s ease;
+}
+
+.tree-controls img:hover {
+  transform: scale(1.1);
+}
+.tree-subtree.collapsed {
+  display: none;
+}

@@ -1,3 +1,8 @@
+let selectedFolderPath = [];  // Example: ["certified", "Fiserv", "Authorization Tests"]
+const deleteGif = "/static/junglewire/images/delete.gif";
+const deletePng = "/static/junglewire/images/delete.png";
+
+
 const exclusiveButtons = ['dev77', 'paypal77', 'novate', 'test77', 'cert77', 'netscaler'];
 exclusiveButtons.forEach(id => {
   document.getElementById(id).addEventListener('click', function () {
@@ -66,11 +71,31 @@ require(['vs/editor/editor.main'], function () {
       theme: 'vs-dark',
       automaticLayout: true
     });
+
+    // ✅ Attach listener after editor is initialized
+    monacoEditor.onDidChangeModelContent(() => {
+      validateEditorJSON();
+    });
   }
+
   buildTree(testcaseData, treeContainer);
 });
 
-function buildTree(data, container) {
+function validateEditorJSON() {
+  const saveBtn = document.getElementById('saveBtn');
+  try {
+    const value = monacoEditor.getValue();
+    JSON.parse(value);
+    saveBtn.classList.remove('disabled');
+    saveBtn.title = "Save Test Case";
+  } catch (e) {
+    saveBtn.classList.add('disabled');
+    saveBtn.title = "Invalid JSON – cannot save";
+  }
+}
+
+
+function buildTree(data, container, path = []) {
   if (Array.isArray(data)) {
     data.forEach(item => {
       const file = document.createElement('div');
@@ -84,14 +109,26 @@ function buildTree(data, container) {
         const parsed = JSON.parse(key);
         loadedTestcase = parsed;
 
-        if (e.ctrlKey || e.metaKey) {
-          const selected = file.classList.toggle('selected');
-          selected ? selectedTestCases.add(key) : selectedTestCases.delete(key);
-        } else {
-          if (monacoEditor) {
-            monacoEditor.setValue(JSON.stringify(parsed.request, null, 2));
-          }
-        }
+if (e.ctrlKey || e.metaKey) {
+  const selected = file.classList.toggle('selected');
+  selected ? selectedTestCases.add(key) : selectedTestCases.delete(key);
+} else {
+  // Clear all previous selections
+  document.querySelectorAll('.tree-file.selected').forEach(el => el.classList.remove('selected'));
+
+  // Highlight the one clicked
+  file.classList.add('selected');
+
+  // Load into editor
+  if (monacoEditor) {
+    monacoEditor.setValue(JSON.stringify(parsed.request, null, 2));
+  }
+
+  // Set current test name badge
+  document.getElementById('currentTestName').textContent = parsed.name || parsed.id || 'Unnamed Test';
+  document.getElementById('selectedTestBadge').classList.remove('hidden');
+}
+
 
         console.log("Selected:", [...selectedTestCases].map(JSON.parse));
       });
@@ -99,30 +136,63 @@ function buildTree(data, container) {
       container.appendChild(file);
     });
   } else if (typeof data === 'object' && data !== null) {
-    Object.entries(data).forEach(([key, value]) => {
-      const folder = document.createElement('div');
-      folder.className = 'tree-item tree-folder';
-      folder.innerHTML = `<span class="folder-icon">▶</span><span class="folder-label">${key}</span>`;
-      container.appendChild(folder);
+Object.entries(data).forEach(([key, value]) => {
+  const folder = document.createElement('div');
+  folder.className = 'tree-item tree-folder';
+  folder.innerHTML = `<span class="folder-icon">▶</span><span class="folder-label">${key}</span>`;
 
-      const subContainer = document.createElement('div');
-      subContainer.className = 'tree-indent';
+  const subContainer = document.createElement('div');
+  subContainer.className = 'tree-indent';
 
-      folder.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const icon = folder.querySelector('.folder-icon');
-        const isCollapsed = subContainer.classList.toggle('collapsed');
-        icon.textContent = isCollapsed ? '▶' : '▼';
-      });
+  const subtree = document.createElement('div');
+  subtree.className = 'tree-subtree';
+  subContainer.appendChild(subtree);
+  container.appendChild(folder);
+  container.appendChild(subContainer);
 
-      const subtree = document.createElement('div');
-      subtree.className = 'tree-subtree';
-      subContainer.appendChild(subtree);
-      container.appendChild(subContainer);
-      buildTree(value, subtree);
-    });
+  folder.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const icon = folder.querySelector('.folder-icon');
+    const subtree = folder.nextElementSibling?.querySelector('.tree-subtree');
+    if (subtree) {
+      const isCollapsed = subtree.classList.toggle('collapsed');
+      icon.textContent = isCollapsed ? '▶' : '▼';
+      if (!e.ctrlKey && !e.metaKey) {
+        selectedFolderPath = path.concat(key);
+        console.log("Folder Path:", selectedFolderPath);
+      }
+
+      if (e.ctrlKey || e.metaKey) {
+        subtree.classList.remove('collapsed');
+        icon.textContent = '▼';
+        const files = subtree.querySelectorAll('.tree-file');
+        files.forEach(file => {
+          const key = file.dataset.testcase;
+          if (!selectedTestCases.has(key)) {
+            selectedTestCases.add(key);
+            file.classList.add('selected');
+          }
+        });
+      }
+    }
+  });
+
+  buildTree(value, subtree, path.concat(key));
+});
+
+
   }
 }
+folder.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const icon = folder.querySelector('.folder-icon');
+  const subtree = folder.nextElementSibling?.querySelector('.tree-subtree');
+  if (subtree) {
+    const isCollapsed = subtree.classList.toggle('collapsed');
+    icon.textContent = isCollapsed ? '▶' : '▼';
+  }
+});
+
 
 // Scheduled API Call
 document.getElementById('scheduledBtn').addEventListener('click', () => {
@@ -166,58 +236,65 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     document.getElementById('saveId').value = ''; // we'll populate it after folder selection
   }
 });
+document.getElementById('saveConfirmBtn').addEventListener('click', () => {
+  saveTestCase(false); // regular save (update)
+});
+
+document.getElementById('saveAsBtn').addEventListener('click', () => {
+  saveTestCase(true); // save as new
+});
 
 
 document.getElementById('cancelSaveBtn').addEventListener('click', () => {
   document.getElementById('saveModal').classList.add('hidden');
 });
-document.getElementById('saveConfirmBtn').addEventListener('click', () => {
+function saveTestCase(isSaveAs = false) {
   const id = document.getElementById('saveId').value.trim();
   const name = document.getElementById('saveName').value.trim();
-  const l1 = document.getElementById('level1Select').value;
-  const l2 = document.getElementById('level2Select').value;
-  const l3 = document.getElementById('level3Select').value;
+  const [l1, l2, l3] = selectedFolderPath;
   const feedbackImg = document.getElementById('saveFeedbackImg');
 
   if (!id || !name || !l1 || !l2 || !l3) {
-    feedbackImg.src = '/static/junglewire/images/error.gif';
-    setTimeout(() => feedbackImg.src = '/static/junglewire/images/save.png', 1500);
-    alert('All fields required');
+    showSaveError(feedbackImg);
+    alert('All fields required and a folder must be selected.');
     return;
   }
 
-  const updatedRequest = monacoEditor ? JSON.parse(monacoEditor.getValue()) : {};
-  const newEntry = { id, name, request: updatedRequest };
+  let updatedRequest;
+  try {
+    updatedRequest = monacoEditor ? JSON.parse(monacoEditor.getValue()) : {};
+  } catch (e) {
+    showSaveError(feedbackImg);
+    alert('Invalid JSON');
+    return;
+  }
 
+  const newEntry = { id, name, request: updatedRequest };
   const targetArray = testcaseData?.[l1]?.[l2]?.[l3];
 
   if (!Array.isArray(targetArray)) {
-    feedbackImg.src = '/static/junglewire/images/error.gif';
-    setTimeout(() => feedbackImg.src = '/static/junglewire/images/save.png', 1500);
+    showSaveError(feedbackImg);
     alert('Invalid folder selection');
     return;
   }
 
   const existingIndex = targetArray.findIndex(t => t.id === id);
-  if (!loadedTestcase || (loadedTestcase && loadedTestcase.id !== id)) {
+
+  if (!isSaveAs && loadedTestcase?.id === id) {
+    // Update existing
+    targetArray[existingIndex] = newEntry;
+  } else {
     if (existingIndex !== -1) {
-      feedbackImg.src = '/static/junglewire/images/error.gif';
-      setTimeout(() => feedbackImg.src = '/static/junglewire/images/save.png', 1500);
+      showSaveError(feedbackImg);
       alert(`Test case ID "${id}" already exists.`);
       return;
     }
-  }
-
-  if (existingIndex !== -1) {
-    targetArray[existingIndex] = newEntry;
-  } else {
     targetArray.push(newEntry);
   }
 
   // Show saving animation
   feedbackImg.src = '/static/junglewire/images/saving.gif';
 
-  // Send updated JSON to server
   fetch('/api/save_testcases/', {
     method: 'POST',
     headers: {
@@ -227,18 +304,23 @@ document.getElementById('saveConfirmBtn').addEventListener('click', () => {
     body: JSON.stringify(testcaseData)
   })
     .then(res => res.ok ? res.json() : Promise.reject('Save failed'))
-    .then(data => {
+    .then(() => {
       feedbackImg.src = '/static/junglewire/images/save.png';
       alert('Saved successfully!');
       document.getElementById('saveModal').classList.add('hidden');
+      loadedTestcase = isSaveAs ? null : newEntry;
+document.getElementById('currentTestName').textContent = newEntry.name || newEntry.id || 'Unnamed Test';
+document.getElementById('selectedTestBadge').classList.add('hidden');
+
+      buildTree(testcaseData, treeContainer);
     })
     .catch(err => {
       console.error('Save error:', err);
-      feedbackImg.src = '/static/junglewire/images/error.gif';
-      setTimeout(() => feedbackImg.src = '/static/junglewire/images/save.png', 1500);
+      showSaveError(feedbackImg);
       alert('Error saving file.');
     });
-});
+}
+
 
 
 document.getElementById('deleteBtn').addEventListener('click', () => {
@@ -348,3 +430,74 @@ function showSaveError(imgEl) {
   }, 1500);
 }
 }
+document.getElementById('collapseAllBtn').addEventListener('click', () => {
+  // Collapse all subtrees
+  const allSubtrees = document.querySelectorAll('.tree-subtree');
+  allSubtrees.forEach(subtree => subtree.classList.add('collapsed'));
+
+  // Update folder icons to closed ▶
+  const allIcons = document.querySelectorAll('.tree-folder .folder-icon');
+  allIcons.forEach(icon => icon.textContent = '▶');
+});
+
+
+document.getElementById('deleteSelectedBtn').addEventListener('click', () => {
+  if (selectedTestCases.size === 0) {
+    alert('No test cases selected to delete.');
+    return;
+  }
+
+  const confirmDelete = confirm(`Delete ${selectedTestCases.size} selected test case(s)?`);
+  if (!confirmDelete) return;
+
+  // 🔄 Animate delete icon
+  const deleteIcon = document.getElementById('deleteIcon');
+  const originalSrc = deleteIcon.src;
+  deleteIcon.src = deleteGif;
+
+  const keysToDelete = [...selectedTestCases].map(JSON.parse);
+  let deletedCount = 0;
+
+  const recurseDelete = (obj) => {
+    if (Array.isArray(obj)) {
+      for (let i = obj.length - 1; i >= 0; i--) {
+        if (keysToDelete.find(k => k.id === obj[i].id)) {
+          obj.splice(i, 1);
+          deletedCount++;
+        }
+      }
+    } else if (typeof obj === 'object') {
+      for (const key in obj) recurseDelete(obj[key]);
+    }
+  };
+
+  recurseDelete(testcaseData);
+
+  setTimeout(() => {
+    deleteIcon.src = originalSrc;
+  }, 1500); // back to static after 1.5s
+
+  if (deletedCount > 0) {
+    alert(`Deleted ${deletedCount} test case(s).`);
+    selectedTestCases.clear();
+    loadedTestcase = null;
+    document.getElementById('selectedTestBadge').classList.add('hidden');
+    monacoEditor.setValue('');
+    document.getElementById('testcaseTree').innerHTML = '';
+    buildTree(testcaseData, treeContainer);
+
+    fetch('/api/save_testcases/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken()
+      },
+      body: JSON.stringify(testcaseData)
+    }).catch(err => {
+      console.error('Save after delete failed:', err);
+    });
+  } else {
+    alert('No matching test cases found.');
+  }
+});
+
