@@ -219,7 +219,7 @@ function runQueryAfterConnect(dbAlias, rawText, start, timerDiv) {
       clearInterval(queryTimerInterval);
       const totalSeconds = ((Date.now() - start) / 1000).toFixed(2);
       timerDiv.textContent = `✔ Completed in ${totalSeconds}s`;
-
+      
       const results = data.results || data;
       lastExecutedResults = results;
       renderResults(results);
@@ -244,29 +244,71 @@ function runQueryAfterConnect(dbAlias, rawText, start, timerDiv) {
         body: JSON.stringify(historyEntry)
       });
     })
-    .catch(err => {
-      clearInterval(queryTimerInterval);
-      const rawMsg = err.message || "Query execution failed";
-      const match = rawMsg.match(/ORA-\d{5}:.*$/);
-      const cleanError = match ? match[0] : rawMsg;
+.catch(err => {
 
-      const columnContainer = document.getElementById("columnResult");
-      columnContainer.innerHTML = `
-        <div style="
-          color: #b91c1c;
-          background: #fee2e2;
-          padding: 14px 18px;
-          border-radius: 12px;
-          font-weight: 600;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-          margin: 12px 0;
-          font-size: 15px;
-        ">
-          ❌ ${cleanError}
-        </div>
+  clearInterval(queryTimerInterval);
+
+  const rawMsg = err.message || "Query execution failed";
+
+  const match = rawMsg.match(/ORA-\d{5}:.*$/);
+
+  const cleanError = match ? match[0] : rawMsg;
+
+  const columnContainer = document.getElementById("columnResult");
+
+  columnContainer.innerHTML = `
+<div style="
+
+      color: #b91c1c;
+
+      background: #fee2e2;
+
+      padding: 14px 18px;
+
+      border-radius: 12px;
+
+      font-weight: 600;
+
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+      margin: 12px 0;
+
+      font-size: 15px;
+
+    ">
+
+      ❌ ${cleanError}
+</div>
+
+  `;
+
+  timerDiv.textContent = "❌ Query failed.";
+
+  // ✅ NEW: Fetch and show query_logs.json
+
+  fetch('/media/runquery/query_logs.json')
+
+    .then(res => res.json())
+
+    .then(data => {
+
+      const wrapper = document.getElementById('result-wrapper');
+
+      wrapper.innerHTML = `
+<h3 style="color: red;">Query Log</h3>
+<p><strong>Timestamp:</strong> ${data.timestamp}</p>
+<p><strong>DB:</strong> ${data.db}</p>
+<p><strong>Query:</strong> ${data.query}</p>
+<p><strong>Error:</strong> ${data.error}</p>
+
       `;
-      timerDiv.textContent = "❌ Query failed.";
-    });
+
+    })
+
+    .catch(console.error);
+
+});
+ 
 }
 
 function extractQuerySetsFromText(text) {
@@ -503,89 +545,171 @@ toggle.checked = savedView === "column";
 toggleViewMode(toggle);  // will update icon too
 
 function countQuery() {
+
   const start = Date.now();
+
   const timerDiv = document.getElementById("queryTimer");
+
   timerDiv.textContent = "⏱ Counting...";
 
   const currentTab = getActiveTabIndex();
+
   const dbAlias = document.getElementById("dropdown1").value;
+
   const rawText = getCurrentEditorContent(currentTab).trim();
 
   if (!rawText) {
+
     timerDiv.textContent = "⚠️ No query provided.";
+
     alert("Please enter a SQL query.");
+
     return;
+
   }
 
   // Auto-connect if not already connected
+
   if (!isSessionConnected) {
+
     fetch("/runquery/start_db_session/", {
+
       method: "POST",
+
       headers: { "Content-Type": "application/json" },
+
       body: JSON.stringify({ db_key: dbAlias })
+
     })
+
       .then(res => res.json())
+
       .then(data => {
+
         if (data.success) {
+
           sessionTimeLeft = data.remaining;
+
           isSessionConnected = true;
+
           updateDbSessionIcon();
+
           startSessionCountdown();
+
+          runCountQuery();  // call after session setup
+
+        } else {
+
+          timerDiv.textContent = "❌ Connection failed.";
+
+          alert("❌ " + data.error);
+
         }
+
       });
+
   } else {
-    sessionTimeLeft = 600;
-    startSessionCountdown();
+
+    runCountQuery();
+
   }
 
-  const lines = rawText
-    .split(";")
-    .map(line => line.trim())
-    .filter(line => line && !line.startsWith("--"));
+  function runCountQuery() {
 
-  const wrappedQueries = lines.map(q => `SELECT COUNT(*) FROM (${q})`);
+    sessionTimeLeft = 600;
 
-  fetch("/runquery/execute_oracle_queries/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      script_name: dbAlias,
-      query_sets: [wrappedQueries],
-      use_session: sessionTimeLeft > 0
+    startSessionCountdown();
+
+    const lines = rawText
+
+      .split(";")
+
+      .map(line => line.trim())
+
+      .filter(line => line && !line.startsWith("--"));
+
+    const wrappedQueries = lines.map(q => `SELECT COUNT(*) AS ROW_COUNT FROM (${q})`);
+
+    fetch("/runquery/execute_oracle_queries/", {
+
+      method: "POST",
+
+      headers: { "Content-Type": "application/json" },
+
+      body: JSON.stringify({
+
+        script_name: dbAlias,
+
+        query_sets: [wrappedQueries],
+
+        use_session: sessionTimeLeft > 0
+
+      })
+
     })
-  })
-    .then(res => res.json())
-    .then(data => {
-      const totalSeconds = ((Date.now() - start) / 1000).toFixed(2);
-      timerDiv.textContent = `✔ Count completed in ${totalSeconds}s`;
 
-      const results = data.results || data;
-      lastExecutedResults = results;
-      renderResults(results);
-    })
-    .catch(err => {
-      const rawMsg = err.message || "Query execution failed";
-      const match = rawMsg.match(/ORA-\d{5}:.*$/);
-      const cleanError = match ? match[0] : rawMsg;
+      .then(res => res.json())
 
-      const columnContainer = document.getElementById("columnResult");
-      columnContainer.innerHTML = `
-        <div style="
-          color: #b91c1c;
-          background: #fee2e2;
-          padding: 14px 18px;
-          border-radius: 12px;
-          font-weight: 600;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-          margin: 12px 0;
-          font-size: 15px;
-        ">
-          ❌ ${cleanError}
-        </div>
-      `;
-      timerDiv.textContent = "❌ Count failed.";
-    });
+      .then(data => {
+
+        const totalSeconds = ((Date.now() - start) / 1000).toFixed(2);
+
+        const result = data.results[0]?.result?.[0];
+
+        const count = result ? Object.values(result)[0] : "N/A";
+
+        timerDiv.textContent = `✔ Count completed in ${totalSeconds}s | Total Rows: ${count}`;
+
+        lastExecutedResults = data.results;
+
+        renderResults(data.results);
+
+      })
+
+      .catch(err => {
+
+        const rawMsg = err.message || "Query execution failed";
+
+        const match = rawMsg.match(/ORA-\d{5}:.*$/);
+
+        const cleanError = match ? match[0] : rawMsg;
+
+        const columnContainer = document.getElementById("columnResult");
+
+        columnContainer.innerHTML = `
+<div style="
+
+            color: #b91c1c;
+
+            background: #fee2e2;
+
+            padding: 14px 18px;
+
+            border-radius: 12px;
+
+            font-weight: 600;
+
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+            margin: 12px 0;
+
+            font-size: 15px;
+
+          ">
+
+            ❌ ${cleanError}
+</div>
+
+        `;
+
+        timerDiv.textContent = "❌ Count failed.";
+
+      });
+
+  }
+
 }
+ 
 
 
 function displayQueryTime(startTime) {
@@ -617,45 +741,76 @@ function updateScrollButtonVisibility() {
   }
 }
 function renderResults(results) {
-  const columnContainer = document.getElementById("columnResult");
-  const jsonContainer = document.getElementById("jsonResult");
-  const exportContainer = document.getElementById("exportDropdownContainer");
-  const copyBtn = document.getElementById("copyJsonBtn");
-  const isVertical = document.getElementById("toggleVertical").checked;
-  const hideEmptyCols = document.getElementById("toggleEmptyCols")?.checked;
-
-  columnContainer.innerHTML = "";
-  jsonContainer.innerHTML = "";
-  document.getElementById("paginationControls")?.remove();
-
-  if (!results || results.length === 0 || !results[0].result || results[0].result.length === 0) {
-    exportContainer.style.display = "none";
-    copyBtn.style.display = "none";
-    columnContainer.innerHTML = "<div>No rows returned.</div>";
-    return;
-  }
-
-  exportContainer.style.display = "inline-block";
-  copyBtn.style.display = "inline-block";
-
-  // Set paginatedData globally and reset to page 1
-  paginatedData = results[0].result;
-  currentPage = 1;
-
-  // Filter empty columns if needed
-  if (hideEmptyCols && paginatedData.length > 0) {
-    const keys = Object.keys(paginatedData[0]);
-    const nonEmptyKeys = keys.filter(k =>
-      paginatedData.some(row => row[k] !== null && row[k] !== undefined && row[k] !== "")
-    );
-    paginatedData = paginatedData.map(row => {
-      const filtered = {};
-      nonEmptyKeys.forEach(k => filtered[k] = row[k]);
-      return filtered;
-    });
-  }
-
-  renderPage(currentPage);
+ const columnContainer = document.getElementById("columnResult");
+ const jsonContainer = document.getElementById("jsonResult");
+ const exportContainer = document.getElementById("exportDropdownContainer");
+ const copyBtn = document.getElementById("copyJsonBtn");
+ const isVertical = document.getElementById("toggleVertical").checked;
+ const hideEmptyCols = document.getElementById("toggleEmptyCols")?.checked;
+ columnContainer.innerHTML = "";
+ jsonContainer.innerHTML = "";
+ document.getElementById("paginationControls")?.remove();
+ if (!results || results.length === 0) {
+   columnContainer.innerHTML = "<div>No data returned.</div>";
+   return;
+ }
+ const first = results[0];
+ // ✅ Show error if result is null but error exists
+ if (!first.result && first.error) {
+   columnContainer.innerHTML = `
+<div style="
+       color: #b91c1c;
+       background: #fee2e2;
+       padding: 14px 18px;
+       border-radius: 12px;
+       font-weight: 600;
+       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+       margin: 12px 0;
+       font-size: 15px;
+     ">
+       ❌ ${first.error}
+</div>
+   `;
+   // Optional: Show the query_logs.json content
+   fetch('/media/runquery/query_logs.json')
+     .then(res => res.json())
+     .then(data => {
+       const wrapper = document.getElementById("result-wrapper");
+       wrapper.innerHTML = `
+<h3 style="color:red;">Query Log</h3>
+<p><strong>Timestamp:</strong> ${data.timestamp}</p>
+<p><strong>DB:</strong> ${data.db}</p>
+<p><strong>Query:</strong> ${data.query}</p>
+<p><strong>Error:</strong> ${data.error}</p>
+       `;
+     })
+     .catch(console.error);
+   return;
+ }
+ const rows = first.result;
+ if (!rows || !Array.isArray(rows) || rows.length === 0) {
+   exportContainer.style.display = "none";
+   copyBtn.style.display = "none";
+   columnContainer.innerHTML = "<div>No rows returned.</div>";
+   return;
+ }
+ exportContainer.style.display = "inline-block";
+ copyBtn.style.display = "inline-block";
+ paginatedData = rows;
+ currentPage = 1;
+ // Optional: hide empty columns
+ if (hideEmptyCols) {
+   const keys = Object.keys(rows[0]);
+   const nonEmptyKeys = keys.filter(k =>
+     rows.some(row => row[k] !== null && row[k] !== undefined && row[k] !== "")
+   );
+   paginatedData = rows.map(row => {
+     const filtered = {};
+     nonEmptyKeys.forEach(k => filtered[k] = row[k]);
+     return filtered;
+   });
+ }
+ renderPage(currentPage);
 }
 
 document.getElementById("toggleVertical").addEventListener("change", () => {

@@ -9,7 +9,7 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Hardcoded folder path
-folder_path = r"C:\Users\f94gdos\Downloads\New folder (6)\logs\logs"
+folder_path = r"C:\Users\f94gdos\Downloads\logs\logs"
 
 # Output file path
 output_file = os.path.join(folder_path, "merged_debug.log")
@@ -28,10 +28,10 @@ def process_file(file_path):
 
     with open(file_path, 'r') as file:
         for line in file:
-            timestamp_match = re.match(r'^([0-9]{2}\.[0-9]{2}\.[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3})', line)
+            timestamp_match = re.match(r'^([0-9]{2}\.[0-9]{2}\.[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2})', line)
             if timestamp_match:
                 # Update current timestamp
-                current_timestamp = datetime.strptime(timestamp_match.group(1), '%d.%m.%y %H:%M:%S.%f').timestamp()
+                current_timestamp = datetime.strptime(timestamp_match.group(1), '%d.%m.%y %H:%M:%S').timestamp()
                 # Append previous unknown_logs to log_entries
                 if unknown_logs:
                     log_entries.append((current_timestamp, unknown_logs))
