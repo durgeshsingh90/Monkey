@@ -134,3 +134,91 @@
 .selected-test-badge.hidden {
   display: none;
 }
+
+/* Base container has light blue: #add8e6 */
+
+/* Top-level file bar */
+.file-bar {
+  background-color: #00acc1; /* tropical blue */
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin: 4px 6px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.file-bar:hover {
+  background-color: #0097a7;
+}
+/* Root suite bar */
+.root-bar {
+  background-color: #7cb342; /* lime green */
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin: 4px 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+/* All expandable bars */
+.tree-bar {
+  padding: 6px 10px;
+  margin: 2px 4px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.2s ease;
+}
+.root-bar:hover {
+  background-color: #689f38;
+}
+/* Hover effects */
+.tree-bar:hover {
+  background-color: #245580;
+}
+
+/* Triangle icon spacing */
+.tree-bar .folder-icon {
+  width: 1.2em;
+  text-align: center;
+  font-size: 1em;
+  user-select: none;
+}
+.tree-subtree.collapsed {
+  display: none;
+}
+
+/* Tree file (test case) styling */
+.tree-file {
+  background-color: #fff59d; /* banana yellow */
+  color: #333;
+  padding: 5px 12px;
+  margin: 2px 16px;
+  border-left: 4px solid #ffb300;
+  border-radius: 4px;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.tree-file:hover {
+  background-color: #fff176;
+}
+
+.tree-file.selected {
+  background-color: #ffccbc; /* light coral-orange */
+  font-weight: bold;
+  color: #bf360c;           /* deep spicy red-orange */
+  border-left: 4px solid #ff5722; /* vibrant orange (like a ripe papaya) */
+}
