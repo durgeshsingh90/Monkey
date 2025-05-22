@@ -1,0 +1,136 @@
+.tree-view {
+  width: 100%;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 1em;
+}
+
+.tree-item {
+  margin-left: 1em;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.tree-folder {
+  font-weight: bold;
+  color: #333;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.3em;
+}
+
+.tree-file {
+  color: #007BFF;
+}
+
+.tree-file:hover {
+  text-decoration: underline;
+}
+
+.tree-file.selected {
+  background-color: #d0ecff;
+  border-left: 4px solid #007BFF;
+  font-weight: bold;
+  color: #004080;
+}
+
+.tree-subtree {
+  margin-left: 1em;
+  transition: max-height 0.2s ease-out;
+}
+
+.tree-subtree.collapsed {
+  display: none;
+}
+
+.tree-status-bar {
+  width: 100%;
+  background-color: #90c4e4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Poppins', sans-serif;
+  font-weight: bold;
+  border-bottom: 1px solid #555;
+}
+
+.tree-controls {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tree-controls button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.tree-controls img {
+  height: 24px;
+  width: 24px;
+  transition: transform 0.2s ease;
+}
+
+.tree-controls img:hover {
+  transform: scale(1.1);
+}
+
+.folder-icon {
+  width: 1em;
+  display: inline-block;
+  text-align: center;
+}
+
+.tree-title {
+  font-size: 1em;
+  color: #333;
+}
+
+#collapseAllBtn {
+  color: #fff;
+  font-size: 0.85em;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.current-test-label {
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #333;
+  margin-right: 15px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selected-test-badge {
+  background-color: #f0f8ff;
+  color: #1b3d6d;
+  font-weight: 600;
+  font-size: 0.88em;
+  border-left: 4px solid #007BFF;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selected-test-badge.hidden {
+  display: none;
+}

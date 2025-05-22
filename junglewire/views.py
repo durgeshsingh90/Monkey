@@ -6,30 +6,24 @@ from django.apps import apps
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 
+
 def index(request):
-    media_dir = os.path.join(settings.MEDIA_ROOT, 'junglewire')
-    os.makedirs(media_dir, exist_ok=True)
-    json_path = os.path.join(media_dir, 'testcases.json')
+    testcase_dir = os.path.join(settings.MEDIA_ROOT, 'junglewire', 'testcase')
+    os.makedirs(testcase_dir, exist_ok=True)
 
-    if not os.path.exists(json_path):
-        # Read from sample file
-        app_path = apps.get_app_config('junglewire').path
-        sample_path = os.path.join(app_path, 'samples', 'testcases_sample.json')
-        with open(sample_path, 'r') as sample_file:
-            sample_data = json.load(sample_file)
-        with open(json_path, 'w') as f:
-            json.dump(sample_data, f, indent=2)
+    filenames = [
+        f.replace('.json', '')
+        for f in os.listdir(testcase_dir)
+        if f.endswith('.json')
+    ]
 
-    with open(json_path, 'r') as f:
-        testcases = json.load(f)
+    return render(request, 'junglewire/index.html', {
+        'json_files': filenames
+    })
 
-    return render(request, 'junglewire/index.html', {'testcases': testcases})
 
 def admin(request):
     return render(request, 'junglewire/admin.html')
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
 
 @csrf_exempt
 def api_schedule(request):
@@ -45,13 +39,30 @@ def api_schedule(request):
 def save_testcases_api(request):
     if request.method == 'POST':
         try:
+            print("✅ Backend received save request")
             data = json.loads(request.body)
+            print("✅ Data content:", data)
+
             json_path = os.path.join(settings.MEDIA_ROOT, 'junglewire', 'testcases.json')
-            os.makedirs(os.path.dirname(json_path), exist_ok=True)
             with open(json_path, 'w') as f:
                 json.dump(data, f, indent=2)
+
             return JsonResponse({'status': 'success'})
         except Exception as e:
-            print('Save failed:', e)
+            print("❌ Error saving test cases:", e)
             return JsonResponse({'error': str(e)}, status=500)
-    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+@csrf_exempt
+def load_testcase_file(request, name):
+    try:
+        path = os.path.join(settings.MEDIA_ROOT, 'junglewire', 'testcase', f'{name}.json')
+        if not os.path.exists(path):
+            return JsonResponse({'error': 'File not found'}, status=404)
+
+        with open(path, 'r') as f:
+            data = json.load(f)
+
+        return JsonResponse(data, safe=False)  # list of test cases
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

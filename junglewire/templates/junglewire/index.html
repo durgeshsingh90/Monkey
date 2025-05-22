@@ -5,7 +5,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Junglewire</title>
-  <link href="{% static 'junglewire/css/styles.css' %}" rel="stylesheet" />
+<link href="{% static 'junglewire/css/base.css' %}" rel="stylesheet" />
+<link href="{% static 'junglewire/css/layout.css' %}" rel="stylesheet" />
+ <link href="{% static 'junglewire/css/treeview.css' %}" rel="stylesheet" />
+<link href="{% static 'junglewire/css/editor.css' %}" rel="stylesheet" />
+<link href="{% static 'junglewire/css/modal.css' %}" rel="stylesheet" />
+<link href="{% static 'junglewire/css/buttons.css' %}" rel="stylesheet" />
   <link rel="icon" href="{% static 'junglewire/images/jungle.png' %}" type="image/png">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 </head>
@@ -103,12 +108,6 @@
 
     <label>Test Case Name</label>
     <input type="text" id="saveName" />
-
-    <!-- <label>Folder Hierarchy</label>
-    <select id="level1Select"><option value="">Select Level 1</option></select>
-    <select id="level2Select"><option value="">Select Level 2</option></select>
-    <select id="level3Select"><option value="">Select Level 3</option></select> -->
-
     <div class="modal-actions">
       <button id="saveConfirmBtn">Save</button>
   <button id="saveAsBtn">Save As</button>
@@ -117,7 +116,17 @@
   </div>
 </div>
 
-  {{ testcases|json_script:"testcase-data" }}
-  <script src="{% static 'junglewire/js/scripts.js' %}" defer></script>
+  {{ json_files|json_script:"json-files" }}
+
+<script src="{% static 'junglewire/js/global.js' %}" defer></script>
+<script src="{% static 'junglewire/js/buttonHandlers.js' %}" defer></script>
+<script src="{% static 'junglewire/js/editorLogic.js' %}" defer></script>
+<script src="{% static 'junglewire/js/treeView.js' %}" defer></script>
+<script src="{% static 'junglewire/js/scheduledApi.js' %}" defer></script>
+<script src="{% static 'junglewire/js/saveModal.js' %}" defer></script>
+<script src="{% static 'junglewire/js/saveTestCase.js' %}" defer></script>
+<script src="{% static 'junglewire/js/deleteTestCases.js' %}" defer></script>
+<script src="{% static 'junglewire/js/populateDropdowns.js' %}" defer></script>
+
 </body>
 </html>

@@ -102,16 +102,21 @@ function buildTree(data, container, path = []) {
       file.className = 'tree-item tree-file';
       file.textContent = `${item.id} - ${item.name || item.description || 'Unnamed Test'}`;
       file.dataset.testcase = JSON.stringify(item);
+      
 
       file.addEventListener('click', (e) => {
         e.stopPropagation();
         const key = file.dataset.testcase;
         const parsed = JSON.parse(key);
         loadedTestcase = parsed;
+        document.getElementById('deleteSelectedBtn').disabled = false;
+
 
 if (e.ctrlKey || e.metaKey) {
   const selected = file.classList.toggle('selected');
   selected ? selectedTestCases.add(key) : selectedTestCases.delete(key);
+  document.getElementById('deleteSelectedBtn').disabled = selectedTestCases.size === 0;
+
 } else {
   // Clear all previous selections
   document.querySelectorAll('.tree-file.selected').forEach(el => el.classList.remove('selected'));
@@ -183,16 +188,6 @@ Object.entries(data).forEach(([key, value]) => {
 
   }
 }
-folder.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const icon = folder.querySelector('.folder-icon');
-  const subtree = folder.nextElementSibling?.querySelector('.tree-subtree');
-  if (subtree) {
-    const isCollapsed = subtree.classList.toggle('collapsed');
-    icon.textContent = isCollapsed ? '▶' : '▼';
-  }
-});
-
 
 // Scheduled API Call
 document.getElementById('scheduledBtn').addEventListener('click', () => {
@@ -323,32 +318,84 @@ document.getElementById('selectedTestBadge').classList.add('hidden');
 
 
 
-document.getElementById('deleteBtn').addEventListener('click', () => {
-  if (!loadedTestcase) return alert('Nothing to delete');
-  let deleted = false;
+document.getElementById('deleteSelectedBtn').addEventListener('click', () => {
+  const idsToDelete = new Set();
+
+  if (selectedTestCases.size > 0) {
+    for (const tc of selectedTestCases) {
+      try {
+        const parsed = JSON.parse(tc);
+        if (parsed?.id) idsToDelete.add(parsed.id);
+      } catch {}
+    }
+  } else if (loadedTestcase?.id) {
+    idsToDelete.add(loadedTestcase.id);
+  }
+
+  if (idsToDelete.size === 0) {
+    alert("No test cases selected to delete.");
+    return;
+  }
+
+  const confirmDelete = confirm(`Are you sure you want to delete ${idsToDelete.size} test case(s)?`);
+  if (!confirmDelete) return;
+
+  let deletedCount = 0;
 
   const recurseDelete = (obj) => {
     if (Array.isArray(obj)) {
-      const idx = obj.findIndex(t => t.id === loadedTestcase.id);
-      if (idx !== -1) {
-        obj.splice(idx, 1);
-        deleted = true;
-        return;
+      for (let i = obj.length - 1; i >= 0; i--) {
+        if (idsToDelete.has(obj[i].id)) {
+          obj.splice(i, 1);
+          deletedCount++;
+        }
       }
-    } else if (typeof obj === 'object') {
-      for (let key in obj) recurseDelete(obj[key]);
+    } else if (typeof obj === 'object' && obj !== null) {
+      for (const key in obj) recurseDelete(obj[key]);
     }
   };
 
   recurseDelete(testcaseData);
-  if (deleted) {
-    alert('Test case deleted.');
-    loadedTestcase = null;
-    document.getElementById('saveModal').classList.add('hidden');
+
+  if (deletedCount > 0) {
+    alert(`Deleted ${deletedCount} test case(s).`);
   } else {
-    alert('Test case not found.');
+    alert("Test case(s) not found.");
+    return;
   }
+
+  selectedTestCases.clear();
+  loadedTestcase = null;
+
+  document.getElementById('deleteSelectedBtn').disabled = true;
+  document.getElementById('selectedTestBadge').classList.add('hidden');
+  monacoEditor.setValue('');
+  document.getElementById('testcaseTree').innerHTML = '';
+  buildTree(testcaseData, treeContainer);
+
+  console.log("Sending data to backend:", testcaseData); // ✅ Log before saving
+
+  fetch('/api/save_testcases/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken()
+    },
+    body: JSON.stringify(testcaseData)
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Save failed');
+    return res.json();
+  })
+  .then(() => {
+    console.log('✅ Saved testcases.json');
+  })
+  .catch(err => {
+    console.error('❌ Save failed:', err);
+    alert('Failed to save changes to testcases.json. Please try again.');
+  });
 });
+
 
 function populateDropdowns(data) {
   const l1 = document.getElementById('level1Select');
@@ -441,63 +488,4 @@ document.getElementById('collapseAllBtn').addEventListener('click', () => {
 });
 
 
-document.getElementById('deleteSelectedBtn').addEventListener('click', () => {
-  if (selectedTestCases.size === 0) {
-    alert('No test cases selected to delete.');
-    return;
-  }
-
-  const confirmDelete = confirm(`Delete ${selectedTestCases.size} selected test case(s)?`);
-  if (!confirmDelete) return;
-
-  // 🔄 Animate delete icon
-  const deleteIcon = document.getElementById('deleteIcon');
-  const originalSrc = deleteIcon.src;
-  deleteIcon.src = deleteGif;
-
-  const keysToDelete = [...selectedTestCases].map(JSON.parse);
-  let deletedCount = 0;
-
-  const recurseDelete = (obj) => {
-    if (Array.isArray(obj)) {
-      for (let i = obj.length - 1; i >= 0; i--) {
-        if (keysToDelete.find(k => k.id === obj[i].id)) {
-          obj.splice(i, 1);
-          deletedCount++;
-        }
-      }
-    } else if (typeof obj === 'object') {
-      for (const key in obj) recurseDelete(obj[key]);
-    }
-  };
-
-  recurseDelete(testcaseData);
-
-  setTimeout(() => {
-    deleteIcon.src = originalSrc;
-  }, 1500); // back to static after 1.5s
-
-  if (deletedCount > 0) {
-    alert(`Deleted ${deletedCount} test case(s).`);
-    selectedTestCases.clear();
-    loadedTestcase = null;
-    document.getElementById('selectedTestBadge').classList.add('hidden');
-    monacoEditor.setValue('');
-    document.getElementById('testcaseTree').innerHTML = '';
-    buildTree(testcaseData, treeContainer);
-
-    fetch('/api/save_testcases/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCSRFToken()
-      },
-      body: JSON.stringify(testcaseData)
-    }).catch(err => {
-      console.error('Save after delete failed:', err);
-    });
-  } else {
-    alert('No matching test cases found.');
-  }
-});
-
+document.getElementById('deleteSelectedBtn').disabled = true;

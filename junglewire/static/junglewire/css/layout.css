@@ -1,0 +1,57 @@
+/* Main Layout Container */
+.main {
+  flex: 1;
+  display: flex;
+}
+
+/* Middle section (Hex + Editor) */
+.middle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top Bar */
+.container0 {
+  height: 3.5em;
+  background-color: #fef8e6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px;
+  border-bottom: 1px solid #ccc;
+}
+
+
+
+/* Container 1 (Test Case Tree) */
+.container1 {
+  width: 20%;
+  background-color: #add8e6;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+
+  padding: 0;
+  overflow-y: auto;
+}
+
+/* Hex Input Area */
+.container2 {
+  background-color: #ffe4b5;
+}
+
+/* Monaco Editor */
+.container3 {
+  flex: 1;
+  background-color: #1e1e1e;
+}
+
+/* Log Viewer */
+.container4 {
+  width: 20%;
+  background-color: #add8e6;
+  display: flex;
+  flex-direction: column;
+}

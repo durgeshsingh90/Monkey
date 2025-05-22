@@ -423,7 +423,6 @@ body {
 }
 
 #collapseAllBtn {
-  background-color: #333;
   color: #fff;
   font-size: 0.85em;
   padding: 2px 8px;
@@ -433,9 +432,7 @@ body {
   transition: background 0.2s ease;
 }
 
-#collapseAllBtn:hover {
-  background-color: #111;
-}
+
 
 /* Container 1 refinements */
 .container1 {
@@ -509,18 +506,19 @@ body {
   color: #004080;
 }
 
-#deleteSelectedBtn {
-  background-color: #cc4444;
-  color: white;
-  font-size: 0.85em;
-  padding: 2px 8px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+#deleteSelectedBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+  filter: grayscale(100%);
 }
 
-#deleteSelectedBtn:hover {
-  background-color: #a22;
+
+#deleteSelectedBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+  filter: grayscale(100%);
 }
 
 .tree-controls button {
