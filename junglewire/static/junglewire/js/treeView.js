@@ -1,7 +1,5 @@
 const filenames = JSON.parse(document.getElementById('json-files').textContent);
 const treeContainer = document.getElementById('testcaseTree');
-const selectedTestCases = new Set();
-let loadedTestcase = null;
 
 // Build collapsible tree for each JSON file
 filenames.forEach(filename => {
@@ -26,7 +24,7 @@ filenames.forEach(filename => {
     icon.textContent = isCollapsed ? '▶' : '▼';
 
     if (!loaded && !isCollapsed) {
-      fetch(`/load_testcase/${filename}/`)
+fetch(`/junglewire/load_testcase/${filename}`)
         .then(res => res.ok ? res.json() : Promise.reject(`Failed to load ${filename}`))
         .then(data => {
           buildTree(data, subtree);
@@ -40,11 +38,35 @@ filenames.forEach(filename => {
   });
 });
 
-function buildTree(data, container) {
-  data.forEach(item => {
+function buildTree(fileData, container) {
+  if (!Array.isArray(fileData.testcases)) return;
+
+  const rootLabel = `${fileData.name || "Unnamed Suite"}${fileData.description ? " — " + fileData.description : ""}`;
+  const rootFolder = document.createElement('div');
+  rootFolder.className = 'tree-item tree-folder';
+  rootFolder.innerHTML = `<span class="folder-icon">▶</span><span class="folder-label">${rootLabel}</span>`;
+
+  const subContainer = document.createElement('div');
+  subContainer.className = 'tree-indent';
+  const subtree = document.createElement('div');
+  subtree.className = 'tree-subtree collapsed';
+  subContainer.appendChild(subtree);
+
+  container.appendChild(rootFolder);
+  container.appendChild(subContainer);
+
+  rootFolder.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const icon = rootFolder.querySelector('.folder-icon');
+    const isCollapsed = subtree.classList.toggle('collapsed');
+    icon.textContent = isCollapsed ? '▶' : '▼';
+  });
+
+  fileData.testcases.forEach(item => {
+    const label = `${item.id}${item.name ? ' - ' + item.name : ''}${item.description ? ' — ' + item.description : ''}`;
     const file = document.createElement('div');
     file.className = 'tree-item tree-file';
-    file.textContent = `${item.id} - ${item.name || item.description || 'Unnamed Test'}`;
+    file.textContent = label;
     file.dataset.testcase = JSON.stringify(item);
 
     file.addEventListener('click', (e) => {
@@ -66,9 +88,10 @@ function buildTree(data, container) {
       }
     });
 
-    container.appendChild(file);
+    subtree.appendChild(file);
   });
 }
+
 
 // Collapse all button
 document.getElementById('collapseAllBtn').addEventListener('click', () => {

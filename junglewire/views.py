@@ -63,6 +63,6 @@ def load_testcase_file(request, name):
         with open(path, 'r') as f:
             data = json.load(f)
 
-        return JsonResponse(data, safe=False)  # list of test cases
+        return JsonResponse(data, safe=False)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

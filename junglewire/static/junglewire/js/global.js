@@ -1,4 +1,8 @@
 let selectedFolderPath = [];  // e.g., ["certified", "Fiserv", "Authorization Tests"]
+// global.js
+let loadedTestcase = null;
+let selectedTestCases = new Set();
+
 const deleteGif = "/static/junglewire/images/delete.gif";
 const deletePng = "/static/junglewire/images/delete.png";
 
