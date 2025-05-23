@@ -10,5 +10,7 @@ urlpatterns = [
 path('delete_testcases/', views.delete_testcases, name='delete_testcases'),
 path('create_testcase_file/', views.create_testcase_file, name='create_testcase_file'),
 path('upload_testcase_file/', views.upload_testcase_file, name='upload_testcase_file'),
+path('list_testcase_files/', views.list_testcase_files, name='list_testcase_files'),
+path('save_testcases/<str:filename>/', views.save_testcases_file, name='save_testcases_file'),
 
     ]

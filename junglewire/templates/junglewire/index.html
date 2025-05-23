@@ -24,9 +24,8 @@
   🧪 <span id="currentTestName">No test case selected</span>
 </div>
 
-      <button id="saveBtn" class="save-icon" title="Save">
-  <img id="saveIconImg" src="{% static 'junglewire/images/save.png' %}" alt="Save" />
-</button>
+<button id="saveBtn" class="btn btn-save" title="Save">Save</button>
+
 
 
             <div class="btn-group">
@@ -121,19 +120,24 @@
 <div id="saveModal" class="modal hidden">
   <div class="modal-content">
     <h3 id="modalTitle">Save Test Case</h3>
-    
-    <label>Test Case ID</label>
-    <input type="text" id="saveId" />
+
+    <label>Select File</label>
+    <select id="fileSelect"></select>
+
+    <label>Select Root</label>
+    <select id="rootSelect"></select>
 
     <label>Test Case Name</label>
     <input type="text" id="saveName" />
+
     <div class="modal-actions">
-      <button id="saveConfirmBtn">Save</button>
-  <button id="saveAsBtn">Save As</button>
+<button id="saveBtn">Save</button>
       <button id="cancelSaveBtn">Cancel</button>
     </div>
   </div>
 </div>
+
+
 <div id="addFileModal" class="modal hidden">
   <div class="modal-content">
     <h3>Create New JSON File</h3>
@@ -150,6 +154,7 @@
     </div>
   </div>
 </div>
+
 
 
   {{ json_files|json_script:"json-files" }}

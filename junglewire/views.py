@@ -213,3 +213,27 @@ def upload_testcase_file(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid upload'}, status=400)
+
+from django.http import JsonResponse
+import os
+
+def list_testcase_files(request):
+    base_dir = os.path.join(settings.MEDIA_ROOT, 'junglewire', 'testcase')
+    files = [
+        f.replace('.json', '')
+        for f in os.listdir(base_dir)
+        if f.endswith('.json')
+    ]
+    return JsonResponse(files, safe=False)
+
+@csrf_exempt
+def save_testcases_file(request, filename):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            path = os.path.join(settings.MEDIA_ROOT, 'junglewire', 'testcase', f'{filename}.json')
+            with open(path, 'w') as f:
+                json.dump(data, f, indent=2)
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)

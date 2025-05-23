@@ -112,6 +112,7 @@ document.getElementById('confirmAddFile').addEventListener('click', () => {
 });
 
 
+
 // Upload File
 document.getElementById('uploadFileInput').addEventListener('change', function () {
   const file = this.files[0];
