@@ -1,0 +1,36 @@
+{
+  "name": "Visa Authorization Suite",
+  "description": "Tests for standard Visa auth flow",
+  "testcases": [
+    {
+      "id": "TC1001",
+      "name": "Basic Authorization Request",
+      "description": "Tests DE003, DE004, DE011",
+      "request": {
+        "mti": "0200",
+        "data_elements": {
+          "DE003": "000000",
+          "DE004": "000000000000",
+          "DE011": "123456",
+          "DE041": "12345678",
+          "DE049": "840"
+        }
+      }
+    },
+    {
+      "id": "TC1002",
+      "name": "Reversal Request",
+      "description": "Tests DE003, DE004, DE011",
+      "request": {
+        "mti": "0400",
+        "data_elements": {
+          "DE003": "200000",
+          "DE004": "000000005000",
+          "DE011": "789012",
+          "DE041": "98765432",
+          "DE049": "840"
+        }
+      }
+    }
+  ]
+}

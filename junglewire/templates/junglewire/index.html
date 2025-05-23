@@ -63,6 +63,25 @@
     <span class="tree-title">Test Case Tree</span>
     
 <div class="tree-controls">
+<!-- Add File -->
+<button id="addFileBtn" title="Add File">
+  <img src="{% static 'junglewire/images/add-file.png' %}" alt="Add File" />
+</button>
+
+<!-- Upload File -->
+<label for="uploadFileInput" title="Upload JSON" style="cursor: pointer;">
+  <img src="{% static 'junglewire/images/upload.png' %}" alt="Upload" />
+</label>
+<input type="file" id="uploadFileInput" accept=".json" style="display: none;" />
+
+<!-- Download Selected -->
+<button id="downloadBtn" title="Download File">
+  <img src="{% static 'junglewire/images/download.png' %}" alt="Download" />
+</button>
+
+  <button id="selectAllBtn" title="Select All Test Cases">
+  <img src="{% static 'junglewire/images/all-in.png' %}" alt="Select All" />
+</button>
   <button id="deleteSelectedBtn" title="Delete Selected Test Cases">
     <img id="deleteIcon" src="{% static 'junglewire/images/delete.png' %}" alt="Delete" />
   </button>
@@ -115,6 +134,23 @@
     </div>
   </div>
 </div>
+<div id="addFileModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Create New JSON File</h3>
+
+    <label for="newFilename">Filename (.json)</label>
+    <input type="text" id="newFilename" placeholder="e.g. new_suite.json" />
+
+    <label for="newRootName">Root Test Suite Name</label>
+    <input type="text" id="newRootName" placeholder="e.g. Visa Auth Flow" />
+
+    <div class="modal-actions">
+      <button id="confirmAddFile">Create</button>
+      <button id="cancelAddFile">Cancel</button>
+    </div>
+  </div>
+</div>
+
 
   {{ json_files|json_script:"json-files" }}
 

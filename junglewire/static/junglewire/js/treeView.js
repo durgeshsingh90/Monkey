@@ -2,6 +2,26 @@ const filenames = JSON.parse(document.getElementById('json-files').textContent);
 const treeContainer = document.getElementById('testcaseTree');
 document.getElementById('deleteSelectedBtn').disabled = true;
 
+// Function to update Container 4 with selected test cases
+function updateLogViewerFromSelection() {
+  const grouped = {};
+
+  for (const tc of selectedTestCases) {
+    try {
+      const parsed = JSON.parse(tc);
+      const filename = parsed.__source || 'unknown.json';
+      if (!grouped[filename]) grouped[filename] = [];
+      grouped[filename].push(parsed.id);
+    } catch {}
+  }
+
+  const lines = Object.entries(grouped).map(
+    ([file, ids]) => `${file} → ${ids.join(', ')}`
+  );
+
+  document.getElementById('logViewer').value = lines.join('\n');
+}
+
 filenames.forEach(filename => {
   const fileBar = document.createElement('div');
   fileBar.className = 'tree-item tree-folder tree-bar file-bar';
@@ -19,26 +39,30 @@ filenames.forEach(filename => {
   let loaded = false;
 
   fileBar.addEventListener('click', (e) => {
-if ((e.ctrlKey || e.metaKey) && loaded) {
-  // Toggle all test cases under this file (across all roots)
-  const files = rootContainer.querySelectorAll('.tree-file');
-  const anyUnselected = Array.from(files).some(file => !file.classList.contains('selected'));
-
-  files.forEach(file => {
-    const key = file.dataset.testcase;
-    const shouldSelect = anyUnselected;
-    file.classList.toggle('selected', shouldSelect);
-    shouldSelect ? selectedTestCases.add(key) : selectedTestCases.delete(key);
-  });
-
-  document.getElementById('deleteSelectedBtn').disabled = selectedTestCases.size === 0;
-  return; // ✅ Skip expand/collapse
-}
-
+    if ((e.ctrlKey || e.metaKey) && loaded) {
+      const files = rootContainer.querySelectorAll('.tree-file');
+      const anyUnselected = Array.from(files).some(f => !f.classList.contains('selected'));
+      files.forEach(file => {
+        const key = file.dataset.testcase;
+        file.classList.toggle('selected', anyUnselected);
+        anyUnselected ? selectedTestCases.add(key) : selectedTestCases.delete(key);
+      });
+      document.getElementById('deleteSelectedBtn').disabled = selectedTestCases.size === 0;
+      updateLogViewerFromSelection();
+      return;
+    }
 
     const icon = fileBar.querySelector('.folder-icon');
     const isCollapsed = rootContainer.classList.toggle('collapsed');
     icon.textContent = isCollapsed ? '▶' : '▼';
+
+    const openFiles = new Set(JSON.parse(localStorage.getItem('openFiles') || '[]'));
+    if (!isCollapsed) {
+      openFiles.add(filename);
+    } else {
+      openFiles.delete(filename);
+    }
+    localStorage.setItem('openFiles', JSON.stringify([...openFiles]));
 
     if (!loaded && !isCollapsed) {
       fetch(`/junglewire/load_testcase/${filename}`)
@@ -53,6 +77,7 @@ if ((e.ctrlKey || e.metaKey) && loaded) {
           rootIndent.className = 'tree-indent';
           const testcasesContainer = document.createElement('div');
           testcasesContainer.className = 'tree-subtree collapsed';
+          testcasesContainer.dataset.key = `${filename}::${fileData.name}`;
           rootIndent.appendChild(testcasesContainer);
 
           rootContainer.appendChild(rootBar);
@@ -63,8 +88,12 @@ if ((e.ctrlKey || e.metaKey) && loaded) {
               const label = `${item.id}${item.name ? ' - ' + item.name : ''}${item.description ? ' — ' + item.description : ''}`;
               const testItem = document.createElement('div');
               testItem.className = 'tree-item tree-file';
+              const enrichedItem = Object.assign({}, item, {
+                __source: filename,
+                __root: fileData.name || 'Unnamed Suite'
+              });
               testItem.textContent = label;
-              testItem.dataset.testcase = JSON.stringify(item);
+              testItem.dataset.testcase = JSON.stringify(enrichedItem);
 
               testItem.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -76,9 +105,13 @@ if ((e.ctrlKey || e.metaKey) && loaded) {
                   const selected = testItem.classList.toggle('selected');
                   selected ? selectedTestCases.add(testItem.dataset.testcase) : selectedTestCases.delete(testItem.dataset.testcase);
                   document.getElementById('deleteSelectedBtn').disabled = selectedTestCases.size === 0;
+                  updateLogViewerFromSelection();
                 } else {
                   document.querySelectorAll('.tree-file.selected').forEach(el => el.classList.remove('selected'));
                   testItem.classList.add('selected');
+                  selectedTestCases.clear();
+                  selectedTestCases.add(testItem.dataset.testcase);
+                  updateLogViewerFromSelection();
                   monacoEditor?.setValue(JSON.stringify(parsed.request, null, 2));
                   document.getElementById('currentTestName').textContent = parsed.name || parsed.id;
                   document.getElementById('selectedTestBadge').classList.remove('hidden');
@@ -93,13 +126,15 @@ if ((e.ctrlKey || e.metaKey) && loaded) {
             e.stopPropagation();
 
             if (e.ctrlKey || e.metaKey) {
-              // Ctrl+Click: toggle all test cases under this root
-              testcasesContainer.querySelectorAll('.tree-file').forEach(file => {
+              const files = testcasesContainer.querySelectorAll('.tree-file');
+              const anyUnselected = Array.from(files).some(f => !f.classList.contains('selected'));
+              files.forEach(file => {
                 const key = file.dataset.testcase;
-                const selected = file.classList.toggle('selected');
-                selected ? selectedTestCases.add(key) : selectedTestCases.delete(key);
+                file.classList.toggle('selected', anyUnselected);
+                anyUnselected ? selectedTestCases.add(key) : selectedTestCases.delete(key);
               });
               document.getElementById('deleteSelectedBtn').disabled = selectedTestCases.size === 0;
+              updateLogViewerFromSelection();
               return;
             }
 
@@ -116,12 +151,15 @@ if ((e.ctrlKey || e.metaKey) && loaded) {
                 }
               });
               document.getElementById('deleteSelectedBtn').disabled = false;
+              updateLogViewerFromSelection();
             }
           });
 
-          // Auto-expand root
-          testcasesContainer.classList.remove('collapsed');
-          rootBar.querySelector('.folder-icon').textContent = '▼';
+          const openKeys = JSON.parse(localStorage.getItem('openFiles') || '[]');
+          if (openKeys.includes(filename)) {
+            testcasesContainer.classList.remove('collapsed');
+            rootBar.querySelector('.folder-icon').textContent = '▼';
+          }
 
           loaded = true;
         })
@@ -129,15 +167,6 @@ if ((e.ctrlKey || e.metaKey) && loaded) {
           rootContainer.innerHTML = `<div style="color:red;">Error loading test cases</div>`;
           console.error(err);
         });
-    } else if (!isCollapsed) {
-      rootContainer.querySelectorAll('.tree-file').forEach(file => {
-        const key = file.dataset.testcase;
-        if (!selectedTestCases.has(key)) {
-          file.classList.add('selected');
-          selectedTestCases.add(key);
-        }
-      });
-      document.getElementById('deleteSelectedBtn').disabled = false;
     }
   });
 });
@@ -145,4 +174,28 @@ if ((e.ctrlKey || e.metaKey) && loaded) {
 document.getElementById('collapseAllBtn').addEventListener('click', () => {
   document.querySelectorAll('.tree-subtree').forEach(subtree => subtree.classList.add('collapsed'));
   document.querySelectorAll('.tree-folder .folder-icon').forEach(icon => icon.textContent = '▶');
+  localStorage.removeItem('openFiles');
+});
+
+document.getElementById('selectAllBtn').addEventListener('click', () => {
+  const treeFiles = document.querySelectorAll('.tree-file');
+
+  // If no files are visible yet (not expanded), simulate expansion
+  if (treeFiles.length === 0) {
+    const allFileBars = document.querySelectorAll('.file-bar');
+    allFileBars.forEach(bar => bar.click());
+    // Wait briefly for async loads to finish, then re-trigger select
+    setTimeout(() => document.getElementById('selectAllBtn').click(), 300);
+    return;
+  }
+
+  // Clear old selections and select all
+  selectedTestCases.clear();
+  treeFiles.forEach(file => {
+    file.classList.add('selected');
+    selectedTestCases.add(file.dataset.testcase);
+  });
+
+  document.getElementById('deleteSelectedBtn').disabled = false;
+  updateLogViewerFromSelection();
 });
