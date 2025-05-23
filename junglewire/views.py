@@ -231,9 +231,73 @@ def save_testcases_file(request, filename):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
+            root = data.get('root')
+            testcase = data.get('testcase')
+
             path = os.path.join(settings.MEDIA_ROOT, 'junglewire', 'testcase', f'{filename}.json')
+
+            # Load existing content
+            if not os.path.exists(path):
+                return JsonResponse({'error': 'File not found'}, status=404)
+
+            with open(path, 'r') as f:
+                content = json.load(f)
+
+            # Handle single-suite and multi-suite
+            if isinstance(content, dict) and 'name' in content:
+                suites = [content]
+                is_single = True
+            else:
+                suites = content
+                is_single = False
+
+            found = False
+            for suite in suites:
+                if suite.get('name') == root:
+                    suite.setdefault('testcases', [])
+                    # Update if exists, else append
+                    for i, tc in enumerate(suite['testcases']):
+                        if tc.get('id') == testcase['id']:
+                            suite['testcases'][i] = testcase
+                            break
+                    else:
+                        suite['testcases'].append(testcase)
+                    found = True
+                    break
+
+            if not found:
+                return JsonResponse({'error': f"Root suite '{root}' not found."}, status=400)
+
             with open(path, 'w') as f:
-                json.dump(data, f, indent=2)
+                json.dump(suites[0] if is_single else suites, f, indent=2)
+
             return JsonResponse({'status': 'success'})
+
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
+
+def append_testcase(request, file):
+    data = json.loads(request.body)
+    root = data['root']
+    testcase = data['testcase']
+
+    full_path = os.path.join(settings.MEDIA_ROOT, 'junglewire', file)
+    with open(full_path) as f:
+        content = json.load(f)
+
+    if isinstance(content, dict):  # single suite
+        content = [content]
+
+    for suite in content:
+        if suite['name'] == root:
+            suite.setdefault('testcases', []).append(testcase)
+            break
+    else:
+        return JsonResponse({'error': 'Root not found'}, status=400)
+
+    with open(full_path, 'w') as f:
+        json.dump(content[0] if len(content) == 1 else content, f, indent=2)
+
+    return JsonResponse({'status': 'ok'})
+

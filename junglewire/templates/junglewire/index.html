@@ -5,12 +5,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Junglewire</title>
-<link href="{% static 'junglewire/css/base.css' %}" rel="stylesheet" />
-<link href="{% static 'junglewire/css/layout.css' %}" rel="stylesheet" />
- <link href="{% static 'junglewire/css/treeview.css' %}" rel="stylesheet" />
-<link href="{% static 'junglewire/css/editor.css' %}" rel="stylesheet" />
-<link href="{% static 'junglewire/css/modal.css' %}" rel="stylesheet" />
-<link href="{% static 'junglewire/css/buttons.css' %}" rel="stylesheet" />
+  <link href="{% static 'junglewire/css/base.css' %}" rel="stylesheet" />
+  <link href="{% static 'junglewire/css/layout.css' %}" rel="stylesheet" />
+  <link href="{% static 'junglewire/css/treeview.css' %}" rel="stylesheet" />
+  <link href="{% static 'junglewire/css/editor.css' %}" rel="stylesheet" />
+  <link href="{% static 'junglewire/css/modal.css' %}" rel="stylesheet" />
+  <link href="{% static 'junglewire/css/buttons.css' %}" rel="stylesheet" />
   <link rel="icon" href="{% static 'junglewire/images/jungle.png' %}" type="image/png">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 </head>
@@ -21,91 +21,74 @@
     </div>
     <div class="button-groups">
       <div id="selectedTestBadge" class="selected-test-badge hidden">
-  🧪 <span id="currentTestName">No test case selected</span>
-</div>
-
-<button id="saveBtn" class="btn btn-save" title="Save">Save</button>
-
-
-
-            <div class="btn-group">
-  <button id="scheduledBtn" class="scheduled-icon" title="Scheduled">
-    <img src="{% static 'junglewire/images/schedule.png' %}" alt="Scheduled" />
-  </button>
+        🧪 <span id="currentTestName">No test case selected</span>
+      </div>
+      <button id="openSaveModalBtn" class="btn btn-save" title="Save">Save</button>
+      <div class="btn-group">
+        <button id="scheduledBtn" class="scheduled-icon" title="Scheduled">
+          <img src="{% static 'junglewire/images/schedule.png' %}" alt="Scheduled" />
+        </button>
         <button class="btn btn-send" id="sendBtn">SEND</button>
       </div>
-      <div class="btn-group" id="exclusiveGroup">
-        <button class="btn" id="dev77">dev77</button>
-        <button class="btn" id="paypal77">paypal77</button>
-        <button class="btn" id="novate">novate</button>
-        <button class="btn" id="test77">test77</button>
-        <button class="btn" id="cert77">cert77</button>
-        <button class="btn" id="netscaler">netscaler</button>
-      </div>
-      <div class="btn-group">
-        <button class="btn" id="updateBtn">Update</button>
-        <button class="btn" id="echoBtn">Echo</button>
-        <button class="btn" id="incrBtn">Incr</button>
-      </div>
-<a href="{% url 'admin' %}" class="settings-icon" title="Admin Settings">
-  <img src="{% static 'junglewire/images/settings.png' %}" alt="Settings" />
-</a>
+<div class="btn-group" id="multiEnvGroup">
+    <button class="btn" id="envSelectAll">All</button>
 
+  <button class="btn env-btn" id="dev77">dev77</button>
+  <button class="btn env-btn" id="paypal77">paypal77</button>
+  <button class="btn env-btn" id="novate">novate</button>
+  <button class="btn env-btn" id="test77">test77</button>
+  <button class="btn env-btn" id="cert77">cert77</button>
+  <button class="btn env-btn" id="netscaler">netscaler</button>
+</div>
+<div class="btn-group" id="actionGroup">
+  <button class="btn action-btn active" id="updateBtn">Update</button>
+  <button class="btn action-btn active" id="echoBtn">Echo</button>
+  <button class="btn action-btn active" id="incrBtn">Incr</button>
+</div>
+
+      <a href="{% url 'admin' %}" class="settings-icon" title="Admin Settings">
+        <img src="{% static 'junglewire/images/settings.png' %}" alt="Settings" />
+      </a>
     </div>
-
-
   </div>
 
   <div class="main">
-<div class="container1">
-  <div class="tree-status-bar">
-    <span class="tree-title">Test Case Tree</span>
-    
-<div class="tree-controls">
-<!-- Add File -->
-<button id="addFileBtn" title="Add File">
-  <img src="{% static 'junglewire/images/add-file.png' %}" alt="Add File" />
-</button>
-
-<!-- Upload File -->
-<label for="uploadFileInput" title="Upload JSON" style="cursor: pointer;">
-  <img src="{% static 'junglewire/images/upload.png' %}" alt="Upload" />
-</label>
-<input type="file" id="uploadFileInput" accept=".json" style="display: none;" />
-
-<!-- Download Selected -->
-<button id="downloadBtn" title="Download File">
-  <img src="{% static 'junglewire/images/download.png' %}" alt="Download" />
-</button>
-
-  <button id="selectAllBtn" title="Select All Test Cases">
-  <img src="{% static 'junglewire/images/all-in.png' %}" alt="Select All" />
-</button>
-  <button id="deleteSelectedBtn" title="Delete Selected Test Cases">
-    <img id="deleteIcon" src="{% static 'junglewire/images/delete.png' %}" alt="Delete" />
-  </button>
-  <button id="collapseAllBtn" title="Collapse All">
-  <img src="/static/junglewire/images/collapse.png" alt="Collapse All" />
-  </button>
-</div>
-
-</div>
-  <div id="testcaseTree" class="tree-view"></div>
-</div>
-
+    <div class="container1">
+      <div class="tree-status-bar">
+        <span class="tree-title">Test Case Tree</span>
+        <div class="tree-controls">
+          <button id="addFileBtn" title="Add File">
+            <img src="{% static 'junglewire/images/add-file.png' %}" alt="Add File" />
+          </button>
+          <label for="uploadFileInput" title="Upload JSON" style="cursor: pointer;">
+            <img src="{% static 'junglewire/images/upload.png' %}" alt="Upload" />
+          </label>
+          <input type="file" id="uploadFileInput" accept=".json" style="display: none;" />
+          <button id="downloadBtn" title="Download File">
+            <img src="{% static 'junglewire/images/download.png' %}" alt="Download" />
+          </button>
+          <button id="selectAllBtn" title="Select All Test Cases">
+            <img src="{% static 'junglewire/images/all-in.png' %}" alt="Select All" />
+          </button>
+          <button id="deleteSelectedBtn" title="Delete Selected Test Cases">
+            <img id="deleteIcon" src="{% static 'junglewire/images/delete.png' %}" alt="Delete" />
+          </button>
+          <button id="collapseAllBtn" title="Collapse All">
+            <img src="/static/junglewire/images/collapse.png" alt="Collapse All" />
+          </button>
+        </div>
+      </div>
+      <div id="testcaseTree" class="tree-view"></div>
+    </div>
 
     <div class="middle">
       <div class="container2">
         <div class="linenumber-wrapper">
-          <div id="lineNumbersWrapper">
-            <pre id="lineNumbers"></pre>
-          </div>
+          <div id="lineNumbersWrapper"><pre id="lineNumbers"></pre></div>
           <textarea id="hexInput" placeholder="Paste hex dump here..."></textarea>
         </div>
       </div>
-      <div class="container3">
-        <div id="editor"></div>
-      </div>
+      <div class="container3"><div id="editor"></div></div>
     </div>
 
     <div class="container4">
@@ -116,58 +99,68 @@
       <textarea id="logViewer" readonly placeholder="Logs will appear here..."></textarea>
     </div>
   </div>
-  
-<div id="saveModal" class="modal hidden">
-  <div class="modal-content">
-    <h3 id="modalTitle">Save Test Case</h3>
 
-    <label>Select File</label>
-    <select id="fileSelect"></select>
+  <!-- Save Modal -->
+  <div id="saveModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="modalTitle">Save Test Case</h3>
 
-    <label>Select Root</label>
-    <select id="rootSelect"></select>
+      <label>Test Case ID</label>
+      <div id="saveId" style="padding: 6px 8px; background: #f0f0f0; border-radius: 4px; font-weight: bold;"></div>
 
-    <label>Test Case Name</label>
-    <input type="text" id="saveName" />
+      <label>Select File</label>
+      <select id="fileSelect"></select>
 
-    <div class="modal-actions">
-<button id="saveBtn">Save</button>
-      <button id="cancelSaveBtn">Cancel</button>
+      <label>Select Root</label>
+      <select id="rootSelect"></select>
+
+      <label>Test Case Name</label>
+      <input type="text" id="saveName" />
+
+      <label>Databases</label>
+      <select id="databaseSelect" multiple size="4">
+        <option value="Visa">Visa</option>
+        <option value="MasterCard">MasterCard</option>
+        <option value="Amex">Amex</option>
+        <option value="UPI">UPI</option>
+        <option value="CUP">CUP</option>
+      </select>
+
+      <div class="modal-actions">
+        <button id="saveConfirmBtn">Save</button>
+        <button id="cancelSaveBtn">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
 
+  <!-- Add File Modal -->
+  <div id="addFileModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Create New JSON File</h3>
 
-<div id="addFileModal" class="modal hidden">
-  <div class="modal-content">
-    <h3>Create New JSON File</h3>
+      <label for="newFilename">Filename (.json)</label>
+      <input type="text" id="newFilename" placeholder="e.g. new_suite.json" />
 
-    <label for="newFilename">Filename (.json)</label>
-    <input type="text" id="newFilename" placeholder="e.g. new_suite.json" />
+      <label for="newRootName">Root Test Suite Name</label>
+      <input type="text" id="newRootName" placeholder="e.g. Visa Auth Flow" />
 
-    <label for="newRootName">Root Test Suite Name</label>
-    <input type="text" id="newRootName" placeholder="e.g. Visa Auth Flow" />
-
-    <div class="modal-actions">
-      <button id="confirmAddFile">Create</button>
-      <button id="cancelAddFile">Cancel</button>
+      <div class="modal-actions">
+        <button id="confirmAddFile">Create</button>
+        <button id="cancelAddFile">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
-
-
 
   {{ json_files|json_script:"json-files" }}
 
-<script src="{% static 'junglewire/js/global.js' %}" defer></script>
-<script src="{% static 'junglewire/js/buttonHandlers.js' %}" defer></script>
-<script src="{% static 'junglewire/js/editorLogic.js' %}" defer></script>
-<script src="{% static 'junglewire/js/treeView.js' %}" defer></script>
-<script src="{% static 'junglewire/js/scheduledApi.js' %}" defer></script>
-<script src="{% static 'junglewire/js/saveModal.js' %}" defer></script>
-<script src="{% static 'junglewire/js/saveTestCase.js' %}" defer></script>
-<script src="{% static 'junglewire/js/deleteTestCases.js' %}" defer></script>
-<script src="{% static 'junglewire/js/populateDropdowns.js' %}" defer></script>
-
+  <script src="{% static 'junglewire/js/global.js' %}" defer></script>
+  <script src="{% static 'junglewire/js/buttonHandlers.js' %}" defer></script>
+  <script src="{% static 'junglewire/js/editorLogic.js' %}" defer></script>
+  <script src="{% static 'junglewire/js/treeView.js' %}" defer></script>
+  <script src="{% static 'junglewire/js/scheduledApi.js' %}" defer></script>
+  <script src="{% static 'junglewire/js/saveModal.js' %}" defer></script>
+  <script src="{% static 'junglewire/js/saveTestCase.js' %}" defer></script>
+  <script src="{% static 'junglewire/js/deleteTestCases.js' %}" defer></script>
+  <script src="{% static 'junglewire/js/populateDropdowns.js' %}" defer></script>
 </body>
 </html>

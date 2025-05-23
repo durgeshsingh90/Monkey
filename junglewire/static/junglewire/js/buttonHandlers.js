@@ -9,19 +9,27 @@
 });
 
 // Exclusive group (only one can be active at a time)
-const exclusiveButtons = ['dev77', 'paypal77', 'novate', 'test77', 'cert77', 'netscaler'];
-exclusiveButtons.forEach(id => {
+const envButtons = ['dev77', 'paypal77', 'novate', 'test77', 'cert77', 'netscaler'];
+
+envButtons.forEach(id => {
   const btn = document.getElementById(id);
   if (btn) {
     btn.addEventListener('click', () => {
-      exclusiveButtons.forEach(otherId => {
-        const otherBtn = document.getElementById(otherId);
-        if (otherBtn) otherBtn.classList.remove('active');
-      });
-      btn.classList.add('active');
+      btn.classList.toggle('active');
     });
   }
 });
+
+document.getElementById('envSelectAll')?.addEventListener('click', () => {
+  const allSelected = envButtons.every(id => document.getElementById(id).classList.contains('active'));
+  envButtons.forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.classList.toggle('active', !allSelected); // toggle all on if not all selected
+    }
+  });
+});
+
 
 // SEND button sends selected test cases
 document.getElementById('sendBtn')?.addEventListener('click', () => {

@@ -1,31 +1,22 @@
-document.getElementById('saveBtn').addEventListener('click', () => {
-  document.getElementById('saveModal').classList.remove('hidden');
-  document.getElementById('modalTitle').textContent = loadedTestcase ? "Update Test Case" : "Add New Test Case";
-
-  // Assume you’ve created a global object to map files to roots:
-  // e.g. { "certifications": ["Visa Authorization Suite"], "demo": ["Root 1", "Root 2"] }
-  populateDropdownsFromFiles(testcaseFileRootMap);
-
-  if (loadedTestcase) {
-    document.getElementById('saveId').value = loadedTestcase.id || '';
-    document.getElementById('saveName').value = loadedTestcase.name || '';
-  } else {
-    document.getElementById('saveName').value = '';
-    document.getElementById('saveId').value = '';
-  }
-});
-
-document.getElementById('saveBtn').addEventListener('click', () => {
-  document.getElementById('saveModal').classList.remove('hidden');
-  document.getElementById('modalTitle').textContent = loadedTestcase ? "Update Test Case" : "Add New Test Case";
-
-  // Clear existing dropdowns
+document.getElementById('openSaveModalBtn').addEventListener('click', () => {
+  const saveModal = document.getElementById('saveModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const saveIdEl = document.getElementById('saveId');
+  const saveNameEl = document.getElementById('saveName');
   const fileSelect = document.getElementById('fileSelect');
   const rootSelect = document.getElementById('rootSelect');
+
+  if (!saveModal || !modalTitle || !saveIdEl || !saveNameEl || !fileSelect || !rootSelect) {
+    console.error("Missing modal input elements.");
+    return;
+  }
+
+  saveModal.classList.remove('hidden');
+  modalTitle.textContent = loadedTestcase ? "Update Test Case" : "Add New Test Case";
+
   fileSelect.innerHTML = '<option value="">Loading...</option>';
   rootSelect.innerHTML = '<option value="">Select a file first</option>';
 
-  // Step 1: Load list of files
   fetch('/junglewire/list_testcase_files/')
     .then(res => res.ok ? res.json() : Promise.reject("Failed to fetch files"))
     .then(files => {
@@ -38,50 +29,34 @@ document.getElementById('saveBtn').addEventListener('click', () => {
       });
     });
 
-  // Step 2: When file selected, load roots
-  fileSelect.addEventListener('change', () => {
-    const selectedFile = fileSelect.value;
-    rootSelect.innerHTML = '<option value="">Loading roots...</option>';
-    if (!selectedFile) return;
-
-    fetch(`/junglewire/load_testcase/${selectedFile}`)
-      .then(res => res.ok ? res.json() : Promise.reject("Failed to load file"))
-      .then(data => {
-        const roots = Array.isArray(data) ? data.map(s => s.name) : [data.name];
-        rootSelect.innerHTML = '<option value="">Select Root Suite</option>';
-        roots.forEach(r => {
-          const opt = document.createElement('option');
-          opt.value = r;
-          opt.textContent = r;
-          rootSelect.appendChild(opt);
-        });
-      });
-  });
-
-  // Pre-fill inputs if editing
   if (loadedTestcase) {
-    document.getElementById('saveId').value = loadedTestcase.id || '';
-    document.getElementById('saveName').value = loadedTestcase.name || '';
+    saveIdEl.value = loadedTestcase.id || '';
+    saveNameEl.value = loadedTestcase.name || '';
   } else {
-    document.getElementById('saveId').value = '';
-    document.getElementById('saveName').value = '';
+    saveIdEl.value = '';
+    saveNameEl.value = '';
   }
 });
 
 document.getElementById('cancelSaveBtn').addEventListener('click', () => {
-  document.getElementById('saveModal').classList.add('hidden');
+  const saveModal = document.getElementById('saveModal');
+  if (saveModal) {
+    saveModal.classList.add('hidden');
+  }
 });
 
-fileSelect.addEventListener('change', () => {
-  const selectedFile = fileSelect.value;
+document.getElementById('fileSelect').addEventListener('change', () => {
+  const fileSelect = document.getElementById('fileSelect');
+  const rootSelect = document.getElementById('rootSelect');
+  const selectedFile = fileSelect?.value;
+
+  if (!fileSelect || !rootSelect || !selectedFile) return;
   rootSelect.innerHTML = '<option value="">Loading roots...</option>';
-  if (!selectedFile) return;
 
   fetch(`/junglewire/load_testcase/${selectedFile}`)
     .then(res => res.ok ? res.json() : Promise.reject("Failed to load file"))
     .then(data => {
       const suites = Array.isArray(data) ? data : [data];
-
       rootSelect.innerHTML = '<option value="">Select Root Suite</option>';
       suites.forEach(suite => {
         const opt = document.createElement('option');
@@ -90,7 +65,6 @@ fileSelect.addEventListener('change', () => {
         rootSelect.appendChild(opt);
       });
 
-      // Auto-generate TC ID when user selects root
       rootSelect.addEventListener('change', () => {
         const selectedRoot = rootSelect.value;
         if (!selectedRoot) return;
@@ -106,7 +80,8 @@ fileSelect.addEventListener('change', () => {
         );
 
         const newId = `TC${maxIdNum + 1}`;
-        document.getElementById('saveId').value = newId;
+        const saveIdInput = document.getElementById('saveId');
+        if (saveIdInput) saveIdInput.value = newId;
       });
     });
 });
