@@ -39,3 +39,8 @@ clearBtn.addEventListener('click', () => {
   clearBtn.textContent = "Cleared";
   setTimeout(() => clearBtn.textContent = original, 1000);
 });
+
+function getCSRFToken() {
+  const match = document.cookie.match(/csrftoken=([^;]+)/);
+  return match ? match[1] : '';
+}

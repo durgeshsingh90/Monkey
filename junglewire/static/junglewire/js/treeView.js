@@ -134,7 +134,34 @@ filenames.forEach(filename => {
                     selectedTestCases.clear();
                     selectedTestCases.add(testItem.dataset.testcase);
                     updateLogViewerFromSelection();
-                    monacoEditor?.setValue(JSON.stringify(parsed.request || {}, null, 2));
+const formattedJSON = {
+  mti: parsed.mti || "0200",  // fallback for safety
+  data_elements: parsed.request || {}
+};
+
+monacoEditor?.setValue(JSON.stringify(formattedJSON, null, 2));
+
+// Also convert JSON → hex and show in #hexInput
+fetch('/convert/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRFToken': getCSRFToken()
+  },
+  body: JSON.stringify({
+    direction: 'json_to_hex',
+    schema: 'omnipay.json',  // change if needed
+    input: JSON.stringify(formattedJSON)
+  })
+})
+.then(res => res.ok ? res.json() : Promise.reject('Conversion failed'))
+.then(data => {
+  document.getElementById('hexInput').value = data.hex || '';
+  updateLineNumbers();
+})
+.catch(err => {
+  console.error('Failed to convert JSON to hex:', err);
+});
                     document.getElementById('currentTestName').textContent = parsed.name || parsed.id;
                     document.getElementById('selectedTestBadge').classList.remove('hidden');
                   }
@@ -188,3 +215,8 @@ document.getElementById('selectAllBtn').addEventListener('click', () => {
   document.getElementById('deleteSelectedBtn').disabled = false;
   updateLogViewerFromSelection();
 });
+
+function getCSRFToken() {
+  const match = document.cookie.match(/csrftoken=([^;]+)/);
+  return match ? match[1] : '';
+}

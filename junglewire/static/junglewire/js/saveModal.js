@@ -1,3 +1,20 @@
+let loadedSuites = [];
+
+function updateTestCaseId(suites, selectedRoot) {
+  const matchedSuite = suites.find(s => s.name === selectedRoot);
+  const existingIds = (matchedSuite?.testcases || []).map(tc => tc.id);
+  const maxIdNum = Math.max(
+    0,
+    ...existingIds.map(id => {
+      const match = id.match(/TC(\d+)/i);
+      return match ? parseInt(match[1], 10) : 0;
+    })
+  );
+  const newId = `TC${(maxIdNum + 1).toString().padStart(4, '0')}`;
+  const saveIdInput = document.getElementById('saveId');
+  if (saveIdInput) saveIdInput.textContent = newId;
+}
+
 document.getElementById('openSaveModalBtn').addEventListener('click', () => {
   const saveModal = document.getElementById('saveModal');
   const modalTitle = document.getElementById('modalTitle');
@@ -30,10 +47,10 @@ document.getElementById('openSaveModalBtn').addEventListener('click', () => {
     });
 
   if (loadedTestcase) {
-    saveIdEl.value = loadedTestcase.id || '';
+    saveIdEl.textContent = loadedTestcase.id || '';
     saveNameEl.value = loadedTestcase.name || '';
   } else {
-    saveIdEl.value = '';
+    saveIdEl.textContent = '';
     saveNameEl.value = '';
   }
 });
@@ -50,38 +67,28 @@ document.getElementById('fileSelect').addEventListener('change', () => {
   const rootSelect = document.getElementById('rootSelect');
   const selectedFile = fileSelect?.value;
 
-  if (!fileSelect || !rootSelect || !selectedFile) return;
+  if (!selectedFile) return;
   rootSelect.innerHTML = '<option value="">Loading roots...</option>';
 
   fetch(`/junglewire/load_testcase/${selectedFile}`)
     .then(res => res.ok ? res.json() : Promise.reject("Failed to load file"))
     .then(data => {
-      const suites = Array.isArray(data) ? data : [data];
+      loadedSuites = Array.isArray(data) ? data : [data];
       rootSelect.innerHTML = '<option value="">Select Root Suite</option>';
-      suites.forEach(suite => {
+      loadedSuites.forEach(suite => {
         const opt = document.createElement('option');
         opt.value = suite.name;
         opt.textContent = suite.name;
         rootSelect.appendChild(opt);
       });
 
-      rootSelect.addEventListener('change', () => {
-        const selectedRoot = rootSelect.value;
-        if (!selectedRoot) return;
-
-        const matchedSuite = suites.find(s => s.name === selectedRoot);
-        const existingIds = (matchedSuite?.testcases || []).map(tc => tc.id);
-        const maxIdNum = Math.max(
-          0,
-          ...existingIds.map(id => {
-            const match = id.match(/TC(\d+)/i);
-            return match ? parseInt(match[1]) : 0;
-          })
-        );
-
-        const newId = `TC${maxIdNum + 1}`;
-        const saveIdInput = document.getElementById('saveId');
-        if (saveIdInput) saveIdInput.value = newId;
-      });
+      // If root already selected, refresh ID
+      const selectedRoot = rootSelect.value;
+      if (selectedRoot) updateTestCaseId(loadedSuites, selectedRoot);
     });
+});
+
+document.getElementById('rootSelect').addEventListener('change', () => {
+  const root = document.getElementById('rootSelect').value;
+  if (root) updateTestCaseId(loadedSuites, root);
 });
